@@ -233,6 +233,8 @@ export const MANNERS = [
   // "The trophy": a queen taken is held up at the top of the carry. Not the second of two queens taken one after the other.
   told({ name: 'trophy', at: 'set', when: [moving, (f) => f.move!.took === 'q', (f) => f.tookBefore !== 'q'], rarity: 'always' }),
   // "The pat": the king that has castled is tapped on its crown; twice, castling long.
+  // "Small takes great": a pawn that takes a rook or a queen is patted by the hand that set it down.
+  told({ name: 'small-takes-great', at: 'set', when: [moving, (f) => f.move!.kind === 'p', (f) => f.move!.took === 'r' || f.move!.took === 'q', (f) => f.move!.becomes === null], rarity: 'always' }),
   told({ name: 'pat', at: 'set', when: [moving, (f) => f.move!.castle !== null], rarity: 'often' }),
   // "The push": a pawn going one square early in the game is slid there by one finger, not carried.
   // Not against a clock: it is slower to the square than a carry.

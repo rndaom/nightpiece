@@ -116,6 +116,9 @@ const HOP = 0.09;
 const HOP_AFTER = 0.3;
 /** The winner's hand comes back to lay the mated king down this long after the mate. */
 const LAID_AFTER = 4.4;
+/** How much quicker each capture of an exchange on one square is made than the one before it, and after how many it is made no quicker. */
+const QUICKENS = 1.15;
+const QUICKENS_AT_MOST = 3;
 /** How near the pointer must be to a resting hand's palm to be over it, and to a weight to pull it, as shares of the picture's height; how hard a pulled weight is pushed; and how long a hand that has waved does not wave again. */
 const HAND_NEAR = 0.11;
 const WEIGHT_NEAR = 0.035;
@@ -663,8 +666,10 @@ export class Stage {
     const cuts: (() => void)[] = [];
     // How the stone is to be set down, if it is to be set down in a way of its own (manners.ts).
     const manner = this.manners.choose('set', this.facts(e.side, told));
-    // A king that has castled is patted, now and then; one stepped up on its side's second move always is, and a knight that has smothered a king.
-    const pats = manner === 'pat' ? (e.castle === 'q' ? 2 : 1) : manner === 'bongcloud' || manner === 'bongcloud-both' || manner === 'smothered' ? 1 : 0;
+    // A king that has castled is patted, now and then; one stepped up on its side's second move always is, and a knight that has smothered a king, and a pawn that has taken a rook or a queen.
+    const pats = manner === 'pat' ? (e.castle === 'q' ? 2 : 1) : manner === 'bongcloud' || manner === 'bongcloud-both' || manner === 'smothered' || manner === 'small-takes-great' ? 1 : 0;
+    // A capture that answers a capture on the same square is made quicker than the one before it.
+    const pace = QUICKENS ** this.exchange(this.ply - 1);
 
     // Castling takes both hands at once: the hand on the rook's side takes the rook, the other the king.
     const rook = e.rook ? this.pieces.hold(e.rook.id) : null;
@@ -692,7 +697,8 @@ export class Stage {
           const p = victim.group.position;
           gone = () => p.y > GONE_UP || Math.hypot(p.x - stood.x, p.z - stood.z) > GONE_ASIDE;
         }
-        const show = manner === 'trophy' ? { show: TROPHY_SECONDS } : {};
+        // A queen is held up on her way to the drawer: and so is one a pawn took, as the pawn is patted.
+        const show = manner === 'trophy' || (manner === 'small-takes-great' && e.captured.kind === 'q' && told.tookBefore !== 'q') ? { show: TROPHY_SECONDS } : {};
         const after = passing ? { delay: PASSING_WAITS, makeWay: true, until: () => letGo } : {};
         // The taken stone has only to be off the board: the hand takes it on to the drawer as the game goes on.
         let off: () => void = () => undefined;
@@ -700,6 +706,7 @@ export class Stage {
         const carried = player.carry(remover, victim, spot, {
           energy: 0,
           apex: this.apexOver(victim, spot, [mover.id]),
+          pace,
           ...show,
           ...after,
           onBeat: (b) => {
@@ -709,7 +716,7 @@ export class Stage {
         });
         jobs.push(Promise.race([lifted, carried]));
         left.push(carried);
-        if (!passing) moverDelay = crowded ? 0.3 : 0.55;
+        if (!passing) moverDelay = (crowded ? 0.3 : 0.55) / pace;
       }
     }
 
@@ -735,6 +742,7 @@ export class Stage {
         : player.carry(moverArm, mover, to, {
             ...(rook && e.rook ? { ...KING_OVER, beside: { puppet: rook, at: squareCenter(e.rook.to) } } : { apex: this.apexOver(mover, to) }),
             delay: moverDelay,
+            pace,
             makeWay: crowded && !passing,
             until: gone,
             onBeat: beats,
@@ -743,7 +751,7 @@ export class Stage {
               ? {
                   pat: {
                     taps: pats,
-                    patted: (at: Vector3) => this.patted(mover, at),
+                    patted: (at: Vector3) => (manner === 'small-takes-great' ? this.pattedSmall(mover, at) : this.patted(mover, at)),
                     patting: (rest: Promise<void>) => {
                       left.push(rest);
                       cuts.push(() => player.letBe(moverArm));
@@ -1053,6 +1061,29 @@ export class Stage {
   private patted(king: Puppet, at: Vector3): void {
     this.pieces.blink(king.id);
     this.heard?.('tap', at, 0.7);
+  }
+
+  /** A pawn patted for what it took: its eye goes wide. */
+  private pattedSmall(pawn: Puppet, at: Vector3): void {
+    this.pieces.widen(pawn.id);
+    this.heard?.('tap', at, 0.7);
+  }
+
+  /**
+   * How many captures running, before the `index`th move of the game, were made on the square that
+   * move takes on, each answering the one before it: none unless that move is itself a capture
+   * there, and never more than `QUICKENS_AT_MOST`.
+   */
+  private exchange(index: number): number {
+    const m = this.record[index];
+    if (!m || m.took === null) return 0;
+    let run = 0;
+    for (let i = index - 1; i >= 0 && run < QUICKENS_AT_MOST; i--) {
+      const r = this.record[i];
+      if (!r || r.took === null || r.to !== m.to) break;
+      run++;
+    }
+    return run;
   }
 
   /** Which ending the game is to have, if it has one of its own. */

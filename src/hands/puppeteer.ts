@@ -1015,6 +1015,8 @@ export interface CarryOptions {
   rap?: (at: Vector3) => void;
   /** Seconds the stone is held up at the top of its carry, lit, before it goes on. */
   show?: number;
+  /** How much quicker than usual the whole of it is done: the reach, the lift, the way across and the set. 1 if not said. */
+  pace?: number;
   /**
    * Once it has let go, the hand taps the stone on its crown this many times, and `patted` is told
    * each time it does, before the hand goes. The carry is done with when the stone is let go, as
@@ -1277,25 +1279,26 @@ export class Puppeteer {
 
     // Come and reach, slowing into the piece. The fingers open round it before they close: they
     // have to be open by the time they pass the top of it.
-    arm.omega = 13;
+    const pace = options.pace ?? 1;
+    arm.omega = 13 * pace;
     const posture = { focus: spec.centre, pitch, loose: 0 };
     if (this.far(arm, start)) {
       // A hand that is not already over the piece crosses to it and comes down on it as one path,
       // in the time it used to take to arrive above it and then reach down, opening on the way.
-      arm.fly(start, posture, 0.5, dart, [ready], this.stones(), this.mate(arm));
-      hand.setPose(ready, 0.24, 0.015);
-      await this.tweens.wait(0.2);
+      arm.fly(start, posture, 0.5 / pace, dart, [ready], this.stones(), this.mate(arm));
+      hand.setPose(ready, 0.24 / pace, 0.015);
+      await this.tweens.wait(0.2 / pace);
       if (stale()) return;
       options.onBeat?.('reach');
-      await this.tweens.wait(0.4);
+      await this.tweens.wait(0.4 / pace);
     } else {
       // One that is over it opens first, and then comes down.
       options.onBeat?.('reach');
-      hand.setPose(ready, 0.16, 0.012);
-      await this.tweens.wait(0.06);
+      hand.setPose(ready, 0.16 / pace, 0.012);
+      await this.tweens.wait(0.06 / pace);
       if (stale()) return;
       arm.go(start, posture);
-      await this.tweens.wait(0.34);
+      await this.tweens.wait(0.34 / pace);
     }
     if (stale()) return;
 
@@ -1337,9 +1340,9 @@ export class Puppeteer {
     const turn = options.bow ? null : knightsTurn(puppet, from, to, options.retrace ?? false);
     const corner = turn ? new Vector3(start.x + turn.x, 0, start.z + turn.z) : null;
     const distance = turn ? turn.first + turn.second : Math.hypot(to.x - from.x, to.z - from.z);
-    const lift = 0.25;
-    const travel = Math.min(0.9, 0.45 + (turn ? 0.13 : 0.065) * distance);
-    const set = 0.2;
+    const lift = 0.25 / pace;
+    const travel = Math.min(0.9, 0.45 + (turn ? 0.13 : 0.065) * distance) / pace;
+    const set = 0.2 / pace;
     const total = lift + travel + set;
     // Held up at the top of the carry (`show`): the time slows to a stop there, at the middle of the
     // way across, stands still, and comes back up to speed. All of that adds this much to the carry.
@@ -1359,7 +1362,7 @@ export class Puppeteer {
     const energyFrom = puppet.energy;
     const energyTo = options.energy ?? energyFrom;
     const bow = options.bow;
-    arm.omega = 26;
+    arm.omega = 26 * pace;
     await this.tweens.run({
       duration: total + stood,
       ease: (t) => t,

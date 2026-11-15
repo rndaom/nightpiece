@@ -209,6 +209,9 @@ const FOOTPRINT: Record<Kind, number> = { p: 0.56, r: 0.64, n: 0.64, b: 0.6, q: 
 const SELECT_LIFT = 0.16;
 const KNIGHT_HOP = 1.95;
 /** How a piece is drawn when nothing is happening to it. */
+/** How bright an eye gone wide is, against 1 at rest. */
+const WIDE_EYE = 2.3;
+
 const REST: PieceDraw = { energy: 1, breath: 0, turn: 0, squash: 0, leanX: 0, leanZ: 0, eye: 1, tint: new Color(), tintAmount: 0 };
 /** What a piece that has left the room is drawn with: nothing at all. */
 const NOTHING: PieceVisual = { object: new Group(), setKind() {}, update() {}, dispose() {} };
@@ -449,6 +452,12 @@ export class PieceLayer {
   blink(id: number): void {
     const v = this.views.get(id);
     if (v) v.mood.eye.value = 0.05;
+  }
+
+  /** A piece's eye goes wide for a moment: brighter than it rests, and back by itself. */
+  widen(id: number): void {
+    const v = this.views.get(id);
+    if (v) v.mood.eye.value = WIDE_EYE;
   }
 
   /** The piece on this square is afraid (a king in check): its eye narrows and it trembles. Null calms everyone. */

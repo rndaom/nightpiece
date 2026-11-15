@@ -415,6 +415,13 @@ Not built, or built smaller than written above:
 - **The weight, pulled.** The hand looks at its weight; it does not wait for it or stop it.
 - **Frames.** Each was filmed headless from the Shoulder camera, and the candle, the captive, the sweep and the king laid down from the side as well (`tmp/backlog/manners56.mjs`). The candle and the drawer are at the edge of the Shoulder's picture. How any of it reads in motion, and whether it is funny, has not been judged: that needs the running game.
 
+**Built, 15 November: two more ways a capture is staged.** *Small takes great* is a row at the set (`small-takes-great`, Always): a pawn that takes a rook or a queen, and is not made into anything as it does. It is part of the move and not a gesture after it, so that every screen plays it alike: the hand that set the pawn down taps it once on the head as the game goes on, the pawn's eye goes wide (`PieceLayer.widen`), and the next player's turning to a stone, their move, or a take-back cuts it short, as the king's pat is. A queen taken so is held up on her way to the drawer as well. *The exchange quickens* is not a row and spends nothing: `Stage.exchange` counts from the game's own moves how many captures running were made on the square now taken on, and the whole of this one (both hands' reach, the lift, the way across and the set: `CarryOptions.pace`) is made 15 per cent quicker for each, to three. A move made elsewhere between sets it back, a take-back takes it back a step, and a screen come late counts the same. Tests: `tests/capture-stagings.test.ts`.
+
+Not built, or built smaller than written above:
+- **Small takes great.** The pat is where the pawn stands and not on the hand's way home; it is heard as the king's pat is. A wide eye is a brighter one.
+- **The exchange quickens.** The fingers close on a stone as fast as they ever do, so the fourth capture is done in about seven tenths of its time and not two thirds. Not filmed: whether an exchange feels as it should needs the running game.
+- **No choice.** Not built.
+
 ## 9. How it is judged
 
 - **By the table's tests:** the most specific row wins; nothing repeats; the budget holds; 300 random plain games never consult a `Judged` row; the same room and ply give the same manner on two clients.
