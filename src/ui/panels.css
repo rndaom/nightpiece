@@ -1,0 +1,2068 @@
+/*
+ * Whatever is read or chosen from, as against the frame during play (hud.css, which defines
+ * the parts these are made of): the choice of game, the settings, the cards that stand beside
+ * the board, the players coming to it, and the rankings.
+ */
+
+/* ───────────────────────────── The choice of game ───────────────────────────── */
+
+.veil-bill {
+  z-index: 6;
+  place-items: stretch;
+  justify-items: start;
+  padding: 0;
+  background: linear-gradient(90deg, rgba(7, 9, 6, 0.97) 0, rgba(7, 9, 6, 0.95) 500px, rgba(7, 9, 6, 0.62) 720px, rgba(7, 9, 6, 0.16) 1120px, rgba(7, 9, 6, 0.06) 100%);
+}
+.veil-opening {
+  background:
+    linear-gradient(90deg, rgba(7, 9, 6, 0.97) 0, rgba(7, 9, 6, 0.95) 500px, rgba(7, 9, 6, 0.52) 720px, rgba(7, 9, 6, 0) 1140px),
+    linear-gradient(0deg, rgba(7, 9, 6, 0.5), rgba(7, 9, 6, 0) 24%);
+}
+.bill {
+  display: flex;
+  flex-direction: column;
+  justify-content: safe center;
+  gap: clamp(14px, 3vh, 34px);
+  width: min(620px, 100vw);
+  height: 100%;
+  padding: calc(clamp(16px, 4vh, 48px) + var(--safe-top)) 28px calc(clamp(16px, 4vh, 48px) + var(--safe-bottom)) max(clamp(22px, 5vw, 92px), calc(env(safe-area-inset-left, 0px) + 12px));
+  overflow-y: auto;
+  scrollbar-width: none;
+  animation: bill-in 0.3s var(--ease) both;
+}
+.bill-body {
+  display: grid;
+  gap: clamp(14px, 2.4vh, 22px);
+}
+/* The name of the game is its mark, and the one thing here that is not square to the screen. */
+.title {
+  position: relative;
+  display: grid;
+  justify-items: start;
+}
+.title h2 {
+  position: relative;
+  display: grid;
+  width: max-content;
+  margin: clamp(10px, 2vh, 18px) 0 0 -3px;
+  font: 900 clamp(56px, 10.4vh, 112px) / 0.8 var(--display);
+  font-variation-settings: 'opsz' 144, 'SOFT' 100, 'WONK' 1;
+  letter-spacing: -0.04em;
+  text-shadow:
+    3px 4px 0 #000,
+    7px 9px 0 var(--spirit-deep);
+  transform: rotate(-3deg);
+  transform-origin: 0 100%;
+}
+.title h2 span + span {
+  margin-left: 0.66em;
+}
+/* The seal: the emblem struck on a coin of paper, set against the end of the first word. */
+.seal {
+  position: absolute;
+  top: -0.03em;
+  left: 2.5em;
+  display: grid;
+  place-items: center;
+  width: 0.7em;
+  height: 0.7em;
+  border-radius: 50%;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow:
+    inset 0 0 0 3px var(--paper),
+    inset 0 0 0 4px var(--ink),
+    3px 4px 0 #000,
+    6px 8px 0 var(--spirit-deep);
+  transform: rotate(13deg);
+}
+.seal .emblem {
+  width: 62%;
+  height: 62%;
+}
+.bill-head {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+}
+.bill-head h2 {
+  font: 900 clamp(30px, 5vh, 42px) / 1 var(--display);
+  font-variation-settings: 'opsz' 144, 'SOFT' 100, 'WONK' 1;
+  letter-spacing: -0.025em;
+  text-shadow: 2px 3px 0 #000;
+}
+.ways {
+  display: grid;
+  gap: 0;
+  padding: 0;
+  list-style: none;
+}
+.way {
+  display: grid;
+  grid-template-columns: 26px auto 1fr;
+  grid-template-areas:
+    'icon name go'
+    'icon line line';
+  align-items: center;
+  column-gap: 14px;
+  row-gap: 3px;
+  width: 100%;
+  padding: clamp(6px, 1.1vh, 10px) 8px clamp(6px, 1.1vh, 10px) 0;
+  border: 0;
+  background: none;
+  color: var(--paper);
+  text-align: left;
+  transition:
+    color 0.1s linear,
+    translate 0.12s var(--ease);
+}
+button.way {
+  cursor: pointer;
+}
+.way b {
+  grid-area: name;
+  font: 900 clamp(23px, 3.5vh, 31px) / 1.05 var(--display);
+  font-variation-settings: 'opsz' 144, 'SOFT' 100, 'WONK' 1;
+  letter-spacing: -0.02em;
+  text-shadow: 2px 2px 0 #000;
+}
+.way small {
+  grid-area: line;
+  max-width: 470px;
+  font: 500 13px/1.35 var(--body);
+  color: var(--paper-68);
+}
+.way-icon {
+  grid-area: icon;
+  align-self: start;
+  display: grid;
+  margin-top: 0.3em;
+  color: var(--paper-42);
+  transition: color 0.1s linear;
+}
+.way-icon .icon {
+  width: 25px;
+  height: 25px;
+}
+/* A way to play with no line under its name: the icon sits level with the name. */
+.way:not(:has(small)) .way-icon {
+  align-self: center;
+  margin-top: 0;
+}
+.way-go {
+  grid-area: go;
+  display: grid;
+  opacity: 0;
+  transform: translateX(-8px);
+  transition:
+    opacity 0.12s ease,
+    transform 0.16s var(--ease);
+}
+.way-go .icon {
+  width: 23px;
+  height: 23px;
+}
+/* A way that is shut for now (the server has said to wait): seen, and said why, but not pressed. */
+button.way:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+@media (hover: hover) {
+  button.way:hover:not(:disabled) {
+    color: var(--spirit);
+    translate: 5px 0;
+  }
+  button.way:hover:not(:disabled) .way-icon {
+    color: var(--spirit);
+  }
+  button.way:hover:not(:disabled) .way-go {
+    opacity: 1;
+    transform: none;
+  }
+}
+button.way:focus-visible {
+  color: var(--spirit);
+  translate: 5px 0;
+}
+button.way:focus-visible .way-icon {
+  color: var(--spirit);
+}
+button.way:focus-visible .way-go {
+  opacity: 1;
+  transform: none;
+}
+/* With a game to carry on there are five ways: the first is told in full and stands apart. */
+.ways-many li:first-child {
+  margin-bottom: clamp(4px, 0.8vh, 8px);
+  padding-bottom: clamp(4px, 0.8vh, 8px);
+  border-bottom: 2px dashed var(--paper-27);
+}
+.ways-many li:first-child .way-icon {
+  color: var(--spirit);
+}
+.way-group[hidden] {
+  display: none;
+}
+/* On all but a tall window, once the computer's strengths are unfolded the other ways say only their names. */
+@media (max-height: 1160px) {
+  .ways-open li:not(:first-child) > button.way small {
+    display: none;
+  }
+}
+.way-more {
+  display: grid;
+  gap: 12px;
+  max-width: 500px;
+  margin: 4px 0 8px 40px;
+  padding: 13px 14px 15px;
+  border-left: 2px solid var(--paper-27);
+  background: rgba(247, 234, 210, 0.045);
+}
+.way-more .chips {
+  display: grid;
+  grid-template-columns: repeat(6, auto);
+  gap: 5px;
+}
+.way-more .chip {
+  padding: 1px 6px 0;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+/* The computer's level, in a line under the chips. Two lines are kept for it so the panel does not jump as the level changes. */
+.way-more .level-hint {
+  margin: -3px 0 -2px;
+  min-height: 2.7em;
+  font: 500 12.5px/1.35 var(--body);
+  color: var(--paper-68);
+}
+.sides {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 9px;
+}
+.sidepick {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 2px 12px 2px 3px;
+  border: 1px solid var(--paper-68);
+  border-radius: 0;
+  background: var(--ink);
+  color: var(--paper);
+  font: 800 11px/1 var(--block);
+  font-stretch: 108%;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 var(--shadow);
+}
+.sidepick .coin {
+  width: 24px;
+  height: 24px;
+}
+@media (hover: hover) {
+  .sidepick:hover {
+    border-color: var(--paper);
+    background: var(--paper);
+    color: var(--ink);
+  }
+}
+.sidepick.on {
+  border-color: var(--paper);
+  background: var(--paper);
+  color: var(--ink);
+  transform: rotate(-1.6deg);
+  box-shadow: 2px 3px 0 var(--shadow);
+}
+.sides-note {
+  margin-left: 4px;
+  font-size: 12.5px;
+  color: var(--paper-68);
+}
+.bill-foot {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-left: 40px;
+}
+
+/* The name the player goes by online, at the foot of the choice of game. */
+.who {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  max-width: 490px;
+  margin: 0 0 0 40px;
+}
+.who label {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+  font: 500 11.5px/1 var(--body);
+  letter-spacing: 0.02em;
+  color: var(--paper-68);
+}
+.who input {
+  width: 100%;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--paper-42);
+  border-radius: 0;
+  background: rgba(5, 7, 4, 0.6);
+  color: var(--paper);
+  font: 500 13.5px var(--body);
+}
+.who input::placeholder {
+  color: var(--paper-42);
+}
+/* What became of the name just given: kept, said for a moment; or refused, said until the field is changed. */
+.who-said {
+  margin-left: 10px;
+  font: 650 11px/1 var(--body);
+  font-style: normal;
+}
+.who-said-saved {
+  color: var(--spirit);
+  animation: bare-note 2.4s ease forwards;
+}
+.who-said-refused {
+  color: var(--ember);
+}
+.who input[aria-invalid='true'] {
+  border-color: var(--ember);
+}
+
+@media (max-height: 1160px) {
+  .way-more {
+    gap: 9px;
+    margin-bottom: 2px;
+    padding: 11px 13px 13px;
+  }
+  .ways:has(.way-group:not([hidden])) .way {
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
+}
+
+/* ───────────────────────────── Settings ───────────────────────────── */
+
+.settings {
+  position: absolute;
+  --lean: 0.4deg;
+  top: calc(62px + var(--safe-top));
+  right: var(--edge);
+  z-index: 7;
+  display: flex;
+  flex-direction: column;
+  width: min(348px, calc(100vw - 16px));
+  max-height: calc(100% - 80px);
+  padding: 20px 6px 8px 18px;
+  animation: dialog-in 0.2s var(--ease) both;
+  user-select: none;
+}
+.settings .card-head {
+  margin-right: 0;
+  margin-bottom: 6px;
+}
+/* The way out of the panel: a small tag on the corner. */
+.settings .card-head .pill {
+  width: 26px;
+  min-height: 26px;
+}
+.settings-body {
+  display: grid;
+  padding: 0 10px 10px 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--paper-27) transparent;
+}
+.group {
+  display: grid;
+  gap: 10px;
+  padding: 13px 0 15px;
+  border-top: 1px dashed var(--paper-27);
+}
+.group:first-child {
+  padding-top: 4px;
+  border-top: 0;
+}
+.group:last-child {
+  padding-bottom: 6px;
+}
+.group h3 {
+  margin: 0;
+  font-size: 18px;
+}
+.group-note {
+  margin: 0 !important;
+  font-size: 12.5px;
+}
+.settings .level-hint {
+  margin: 0;
+  font: 500 12px/1.4 var(--body);
+  color: var(--paper-42);
+}
+.settings .ways-on {
+  margin-top: 2px !important;
+}
+/* A switch: a small box that fills with paper, and a tick, and sits a little askew, when it is on. */
+.switch {
+  position: relative;
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  align-items: start;
+  gap: 11px;
+  font-size: 13.5px;
+  line-height: 1.35;
+  color: var(--paper-82);
+  cursor: pointer;
+}
+.switch input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.switch i {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--paper-68);
+  background: var(--ink);
+  box-shadow: 2px 2px 0 var(--shadow);
+}
+/* The tick, drawn with two edges of a box. */
+.switch i::after {
+  content: '';
+  position: absolute;
+  top: 1px;
+  left: 5px;
+  width: 5px;
+  height: 10px;
+  border: solid var(--ink);
+  border-width: 0 2px 2px 0;
+  transform: rotate(42deg);
+  opacity: 0;
+}
+@media (hover: hover) {
+  .switch:hover i {
+    border-color: var(--paper);
+  }
+}
+.switch input:checked + i {
+  border-color: var(--paper);
+  background: var(--paper);
+  transform: rotate(-4deg);
+}
+.switch input:checked + i::after {
+  opacity: 1;
+}
+.switch input:focus-visible + i {
+  outline: 2px solid var(--spirit);
+  outline-offset: 2px;
+}
+.switch b {
+  display: block;
+  color: var(--paper);
+  font-weight: 500;
+}
+/* A setting that hangs from another, and one that is waiting on it. */
+.switch small {
+  display: block;
+  margin-top: 1px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--paper-42);
+}
+.switch-under {
+  margin-left: 29px;
+}
+.switch-off {
+  cursor: default;
+  opacity: 0.45;
+}
+.switch-off b,
+.switch-off:hover i {
+  color: inherit;
+  border-color: var(--paper-42);
+}
+.switch input:disabled {
+  cursor: default;
+}
+/* A volume: its name, a line with a slip of paper to slide along it, and the figure. */
+.level {
+  display: grid;
+  grid-template-columns: 1fr 140px 24px;
+  align-items: center;
+  gap: 12px;
+  font-size: 13.5px;
+  color: var(--paper-82);
+}
+.level output {
+  font: 500 12px/1 var(--mono);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--paper-68);
+}
+.level input {
+  width: 100%;
+  height: 20px;
+  margin: 0;
+  background: none;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+.level input::-webkit-slider-runnable-track {
+  height: 3px;
+  background: linear-gradient(90deg, var(--paper) var(--fill, 50%), var(--paper-27) var(--fill, 50%));
+}
+.level input::-moz-range-track {
+  height: 3px;
+  background: linear-gradient(90deg, var(--paper) var(--fill, 50%), var(--paper-27) var(--fill, 50%));
+}
+.level input::-webkit-slider-thumb {
+  width: 9px;
+  height: 17px;
+  margin-top: -7px;
+  border: 0;
+  border-radius: 0;
+  background: var(--paper);
+  box-shadow: 2px 2px 0 var(--shadow);
+  appearance: none;
+  -webkit-appearance: none;
+}
+.level input::-moz-range-thumb {
+  width: 9px;
+  height: 17px;
+  border: 0;
+  border-radius: 0;
+  background: var(--paper);
+  box-shadow: 2px 2px 0 var(--shadow);
+}
+
+/* On a short window the panel stops above the keys along the bottom, and scrolls inside. */
+@media (max-height: 800px) and (min-width: 761px) and (min-height: 501px) {
+  .settings {
+    max-height: calc(100% - 136px);
+  }
+}
+
+/* ───────────────────────────── Cards beside the board ───────────────────────────── */
+
+/* How far through a lesson: a fine line, filled as far as the step. */
+.steps {
+  position: relative;
+  flex: 1;
+  max-width: 96px;
+  height: 3px;
+  overflow: hidden;
+  background: var(--paper-12);
+}
+.steps i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--gilt);
+  transition: width 0.3s var(--ease);
+}
+.result h2:not(.plate) {
+  margin-bottom: 4px;
+  font-size: 27px;
+  letter-spacing: -0.02em;
+}
+.result-won {
+  --edge-line: rgba(201, 164, 92, 0.7);
+}
+/* At its head the seal, small, turns over to the winner's coin (to half of each for a draw). */
+.result-head {
+  justify-content: flex-start;
+  margin-bottom: 12px;
+  perspective: 520px;
+}
+.result-head .seal-coin {
+  --seal: 44px;
+  animation: seal-turn 0.9s cubic-bezier(0.45, 0, 0.25, 1) 0.2s both;
+}
+/* How it ended and when, said plainly under who won. */
+.card .result-how {
+  margin-bottom: 0;
+  color: var(--paper-82);
+  font: 500 13.5px/1.4 var(--body);
+}
+.card .result-why {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+}
+/* On the result card: the graph under its own small heading, and the move that decided the game. */
+.story {
+  margin: 14px 0 4px;
+}
+.story figcaption {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+  font: 750 9px/1 var(--block);
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--paper-42);
+}
+.story figcaption b {
+  margin-right: auto;
+  font-weight: 800;
+  color: var(--paper-68);
+}
+.story figcaption span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.key {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--paper);
+}
+.key-b {
+  background: var(--spirit);
+}
+.card .story-turn {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  margin: 9px 0 0;
+  font-size: 13px;
+}
+.story-turn .link {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--paper);
+}
+/* What the game did to the rating: the figure before, the figure after, and the difference on a chip. */
+.card .rating {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 14px 0 0;
+  padding: 9px 11px;
+  box-shadow: inset 3px 0 0 var(--paper-42);
+  background: var(--paper-06);
+}
+.rating-word {
+  font: 800 9.5px/1 var(--block);
+  font-stretch: 108%;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--paper-68);
+}
+.rating-figures {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--paper-68);
+  font: 500 14px/1 var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+.rating-figures i {
+  font-style: normal;
+  color: var(--paper-42);
+}
+.rating-figures b {
+  min-width: 4ch;
+  color: var(--paper);
+  font: 500 20px/1 var(--mono);
+}
+.rating-chip {
+  margin-left: auto;
+  padding: 4px 7px 3px;
+  background: var(--paper-12);
+  color: var(--paper);
+  font: 500 12.5px/1 var(--mono);
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+}
+.card .rating-up {
+  box-shadow: inset 3px 0 0 var(--spirit);
+}
+.rating-up .rating-chip {
+  background: var(--spirit);
+  color: var(--ink);
+}
+.card .rating-down {
+  box-shadow: inset 3px 0 0 var(--ember);
+}
+.rating-down .rating-chip {
+  background: var(--ember);
+  color: var(--ink);
+}
+
+/*
+ * The seal struck as a coin with two faces (Seal in glyphs.tsx): the emblem on paper, as on the
+ * title screen, and a king's coin on its back. It turns about its upright, so whatever holds it
+ * gives it a perspective. `--seal` is its size.
+ */
+.seal-coin {
+  --seal: 96px;
+  position: relative;
+  display: block;
+  flex: none;
+  width: var(--seal);
+  height: var(--seal);
+  transform-style: preserve-3d;
+}
+.seal-turned {
+  transform: rotateY(180deg);
+}
+.seal-face {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.seal-front {
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow:
+    inset 0 0 0 calc(var(--seal) * 0.032) var(--paper),
+    inset 0 0 0 calc(var(--seal) * 0.05) var(--ink),
+    calc(var(--seal) * 0.04) calc(var(--seal) * 0.055) 0 rgba(0, 0, 0, 0.62);
+}
+.seal-front .emblem {
+  width: 62%;
+  height: 62%;
+}
+/* The back is turned away until the coin turns it round (so its hard shadow is given the other way about). */
+.seal-back {
+  transform: rotateY(180deg);
+}
+.seal-back .stone {
+  width: 56%;
+  height: 56%;
+}
+.seal-back.coin-w {
+  box-shadow:
+    inset 0 0 0 calc(var(--seal) * 0.03) rgba(255, 255, 255, 0.45),
+    0 0 0 1px rgba(0, 0, 0, 0.55),
+    calc(var(--seal) * -0.04) calc(var(--seal) * 0.055) 0 rgba(0, 0, 0, 0.62);
+}
+.seal-back.coin-b {
+  box-shadow:
+    inset 0 0 0 calc(var(--seal) * 0.03) rgba(89, 229, 204, 0.6),
+    0 0 0 1px rgba(0, 0, 0, 0.55),
+    calc(var(--seal) * -0.04) calc(var(--seal) * 0.055) 0 rgba(0, 0, 0, 0.62),
+    0 0 26px rgba(89, 229, 204, 0.22);
+}
+.seal-back.coin-either {
+  box-shadow:
+    inset 0 0 0 calc(var(--seal) * 0.03) rgba(247, 234, 210, 0.4),
+    0 0 0 1px rgba(0, 0, 0, 0.55),
+    calc(var(--seal) * -0.04) calc(var(--seal) * 0.055) 0 rgba(0, 0, 0, 0.62);
+}
+@keyframes seal-turn {
+  from {
+    transform: rotateY(0deg);
+  }
+  to {
+    transform: rotateY(180deg);
+  }
+}
+
+/*
+ * The players coming to the board as an online game begins (Intro in Match.tsx). In about three
+ * and a third seconds: the board dims; the seal comes up between the two players, with the terms
+ * of the game under it; it turns over to show this player's side; that is called out; and the
+ * two go up into the match bar at the top while the board comes back. The app puts it away at 3.4
+ * seconds (INTRO_SECONDS in app.ts). It is never in the way: a click or a key goes through it.
+ */
+.hud > .intro {
+  pointer-events: none;
+}
+.intro {
+  z-index: 4;
+  background: none;
+  animation: none;
+}
+.intro::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, rgba(9, 11, 7, 0.6), rgba(9, 11, 7, 0.86));
+  animation:
+    fade 0.3s both,
+    intro-out 0.5s 2.8s ease-in forwards;
+}
+.intro-stage {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-areas:
+    'w seal b'
+    '. terms .'
+    'call call call';
+  align-items: center;
+  gap: 20px 28px;
+  width: min(820px, 100%);
+  margin-top: -4vh;
+}
+.intro-seal {
+  grid-area: seal;
+  justify-self: center;
+  perspective: 700px;
+  animation:
+    intro-seal-in 0.4s var(--ease) 0.1s both,
+    intro-out 0.35s 2.75s ease-in forwards;
+}
+.intro-seal .seal-coin {
+  animation: seal-turn 1.15s cubic-bezier(0.45, 0, 0.25, 1) 0.85s both;
+}
+/* A player: a sheet edged in their side's colour, with their coin, their name and their rating. */
+.intro-seat {
+  grid-area: w;
+  justify-self: end;
+  width: 100%;
+  max-width: 310px;
+  min-width: 0;
+  min-height: 68px;
+  gap: 13px;
+  padding: 10px 18px 10px 12px;
+  border: 1px solid var(--ivory);
+  background: var(--sheet);
+  box-shadow:
+    0 0 0 3px var(--ink),
+    6px 7px 0 rgba(0, 0, 0, 0.5);
+  rotate: -1.2deg;
+  animation:
+    intro-in-w 0.45s var(--ease) 0.3s both,
+    intro-settle 0.55s 2.7s cubic-bezier(0.55, 0, 0.75, 0.2) forwards;
+}
+.intro-seat-b {
+  grid-area: b;
+  justify-self: start;
+  padding: 10px 12px 10px 18px;
+  border-color: var(--spirit);
+  rotate: 1.2deg;
+  animation-name: intro-in-b, intro-settle;
+}
+.intro-seat .coin {
+  width: 44px;
+  height: 44px;
+}
+.intro-who {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+.intro-who small {
+  font: 850 10.5px/1 var(--block);
+  font-stretch: 114%;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ivory);
+}
+.intro-seat-b .intro-who small {
+  color: var(--spirit);
+}
+.intro-who b {
+  overflow: hidden;
+  color: var(--paper);
+  font: 900 22px/1.12 var(--display);
+  font-variation-settings: 'opsz' 72, 'SOFT' 100, 'WONK' 1;
+  letter-spacing: -0.015em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.intro-line {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 16px;
+}
+.intro-seat-b .intro-line {
+  flex-direction: row-reverse;
+}
+.intro-line em {
+  color: var(--paper-68);
+  font: 500 13px/1 var(--mono);
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+}
+/* "You", on a small tag of the side's colour. */
+.intro-line .plate,
+.players-you {
+  padding: 3px 5px 2px;
+  background: var(--ivory);
+  color: var(--ink);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  box-shadow: none;
+}
+.intro-seat-b .intro-line .plate {
+  background: var(--spirit);
+}
+.intro-terms {
+  grid-area: terms;
+  justify-self: center;
+  animation:
+    intro-rise 0.35s var(--ease) 0.55s both,
+    intro-out 0.3s 2.75s ease-in forwards;
+}
+.intro-terms .plate {
+  font-size: 12px;
+}
+.intro-call {
+  position: static;
+  grid-area: call;
+  justify-self: center;
+  margin-top: -6px;
+}
+.intro-call span {
+  font-size: 30px;
+  animation:
+    call-in 0.36s var(--ease) 1.95s both,
+    call-out 0.3s 2.8s ease-in forwards;
+}
+@keyframes intro-seal-in {
+  from {
+    opacity: 0;
+    transform: scale(0.84);
+  }
+}
+@keyframes intro-in-w {
+  from {
+    opacity: 0;
+    transform: translateX(-28px);
+  }
+}
+@keyframes intro-in-b {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+}
+@keyframes intro-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@keyframes intro-out {
+  to {
+    opacity: 0;
+  }
+}
+/* Up into its place in the match bar (where Match.tsx measured it to be), and gone into it. */
+@keyframes intro-settle {
+  70% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: translate(var(--dx, 0), var(--dy, -40vh)) scale(var(--k, 0.6));
+  }
+}
+
+/*
+ * The end of a game said over the scene (Verdict in Match.tsx), for three seconds: a band of
+ * night across the middle of the picture, lit from behind in the colour of how it went; the seal
+ * turning to the winner's coin; the word struck between two fine rules; how it ended slapped down
+ * on a plate under it; the move and the time in small capitals. Then the word and the seal go up
+ * into the result card (where Match.tsx measured them to land) and the rest goes out. It is never
+ * in the way: a click or a key goes through it, and sends it into the card at once.
+ *
+ * `--tone` is the rules, the plate and the light behind; `--tone-deep` the word's hard shadow.
+ */
+.hud > .verdict {
+  pointer-events: none;
+}
+.verdict {
+  --tone: var(--gilt);
+  --tone-deep: #5a4318;
+  --glow: rgba(201, 164, 92, 0.36);
+  --word: var(--paper);
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  padding: calc(16px + var(--safe-top)) var(--edge) calc(16px + var(--safe-bottom));
+  overflow: hidden;
+}
+.verdict-lost {
+  --tone: var(--ember);
+  --tone-deep: var(--ember-deep);
+  --glow: rgba(226, 113, 79, 0.26);
+  --word: var(--paper-shade);
+}
+.verdict-drew {
+  --tone: var(--paper);
+  --tone-deep: #2a2820;
+  --glow: rgba(247, 234, 210, 0.14);
+}
+/* Said to a table, or to someone watching: in the colour of the side that won. */
+.verdict-w {
+  --tone: var(--ivory);
+  --tone-deep: #5a4318;
+  --glow: rgba(243, 219, 164, 0.3);
+}
+.verdict-b {
+  --tone: var(--spirit);
+  --tone-deep: var(--spirit-deep);
+  --glow: rgba(89, 229, 204, 0.26);
+  --word: var(--spirit-pale);
+}
+.verdict-stage {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  width: 100%;
+  margin-top: -7vh;
+}
+/* The band: night drawn across the whole picture, thinning out above and below, with the word's own light behind it. */
+.verdict-stage::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: -1;
+  width: 100vw;
+  height: calc(100% + 24vh);
+  translate: -50% -50%;
+  background:
+    radial-gradient(ellipse 30% 42% at 50% 56%, var(--glow), transparent 72%),
+    var(--grain),
+    rgba(9, 11, 7, 0.74);
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 27%, #000 73%, transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 27%, #000 73%, transparent);
+  animation: fade 0.4s both;
+}
+.verdict-seal {
+  margin-bottom: clamp(8px, 1.6vh, 16px);
+  perspective: 700px;
+  animation: intro-seal-in 0.45s var(--ease) both;
+}
+.verdict-seal .seal-coin {
+  --seal: clamp(60px, 8.5vh, 88px);
+  animation: seal-turn 1s cubic-bezier(0.45, 0, 0.25, 1) 0.3s both;
+}
+.verdict-line {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(14px, 2.2vw, 34px);
+  width: min(1520px, 100%);
+  margin: 0;
+}
+/* The word: as large as the picture allows, and smaller the more letters it has, so that "Ivory wins" is never wider than "Victory" by much. */
+.verdict-word {
+  display: block;
+  padding: 0.04em 0.02em 0;
+  color: var(--word);
+  font: 900 clamp(40px, min(11vw, 15vh, calc(76vw / var(--letters, 7))), 168px) / 0.96 var(--display);
+  font-variation-settings: 'opsz' 144, 'SOFT' 100, 'WONK' 1;
+  letter-spacing: 0.015em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-shadow:
+    0.028em 0.038em 0 var(--tone-deep),
+    0 0 0.55em var(--glow);
+  animation: verdict-struck 0.5s var(--ease) 0.08s both;
+}
+/* Lost, it does not land: it sinks into place. A draw is drawn together from either side. */
+.verdict-lost .verdict-word {
+  animation: verdict-sinks 0.75s cubic-bezier(0.3, 0.7, 0.4, 1) 0.08s both;
+}
+.verdict-drew .verdict-word {
+  animation: verdict-closes 0.8s var(--ease) 0.08s both;
+}
+/* A rule either side of the word: two hairlines, fading outward, with a lozenge at the end that meets the word. */
+.verdict-rule {
+  position: relative;
+  height: 5px;
+  border-block: 1px solid var(--tone);
+  opacity: 0.85;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 75%);
+  mask-image: linear-gradient(90deg, transparent, #000 75%);
+  transform-origin: right;
+  animation: verdict-rule-in 0.7s var(--ease) 0.22s both;
+}
+.verdict-rule:last-child {
+  -webkit-mask-image: linear-gradient(270deg, transparent, #000 75%);
+  mask-image: linear-gradient(270deg, transparent, #000 75%);
+  transform-origin: left;
+}
+.verdict-rule::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -4px;
+  width: 7px;
+  height: 7px;
+  background: var(--tone);
+  transform: translateY(-50%) rotate(45deg);
+}
+.verdict-rule:last-child::after {
+  right: auto;
+  left: -4px;
+}
+/* How it ended: the call over the board, on a plate of the verdict's colour. */
+.verdict .verdict-reason {
+  position: static;
+  margin-top: clamp(10px, 2.2vh, 22px);
+}
+.verdict .verdict-reason span {
+  padding: 10px 26px 7px;
+  background: var(--tone);
+  font-size: clamp(17px, min(2.2vw, 3.6vh), 30px);
+  animation: call-in 0.36s var(--ease) 0.55s both;
+}
+.verdict-note {
+  margin: clamp(12px, 2vh, 20px) 0 0;
+  max-width: 100%;
+  color: var(--paper-82);
+  font: 750 12px/1.35 var(--block);
+  font-stretch: 112%;
+  letter-spacing: 0.16em;
+  text-align: center;
+  text-transform: uppercase;
+  animation: intro-rise 0.4s var(--ease) 0.85s both;
+}
+/* Going into the card: the word and the seal to where they land on it, and the rest out. */
+.verdict-going .verdict-stage::before {
+  animation: verdict-out 0.5s ease-in forwards;
+}
+.verdict-going .verdict-word,
+.verdict-going .verdict-seal {
+  animation: verdict-settle 0.6s cubic-bezier(0.6, 0, 0.3, 1) forwards;
+}
+/* The seal is the card's own, and stays whole until it is on it. */
+.verdict-going .verdict-seal {
+  animation-name: verdict-settle-whole;
+}
+.verdict-going .verdict-rule {
+  animation: verdict-rule-out 0.3s ease-in forwards;
+}
+.verdict-going .verdict-reason span,
+.verdict-going .verdict-note {
+  animation: verdict-out 0.28s ease-in forwards;
+}
+/* The card comes in under them as they arrive, its seal already turned. */
+.result-handed {
+  animation: card-in 0.36s var(--ease) 0.26s both;
+}
+.result-handed .result-head .seal-coin {
+  animation: none;
+  transform: rotateY(180deg);
+}
+/* Struck: it lands large, goes a little too far, and settles. */
+@keyframes verdict-struck {
+  0% {
+    opacity: 0;
+    transform: scale(1.32);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(0.975);
+  }
+  100% {
+    transform: none;
+  }
+}
+@keyframes verdict-sinks {
+  0% {
+    opacity: 0;
+    transform: translateY(-0.2em);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(0.025em);
+  }
+  100% {
+    transform: none;
+  }
+}
+@keyframes verdict-closes {
+  from {
+    opacity: 0;
+    letter-spacing: 0.32em;
+  }
+}
+@keyframes verdict-rule-in {
+  from {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+}
+@keyframes verdict-rule-out {
+  to {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+}
+@keyframes verdict-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes verdict-settle {
+  60% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: translate(var(--dx, 0), var(--dy, -30vh)) scale(var(--k, 0.2));
+  }
+}
+@keyframes verdict-settle-whole {
+  to {
+    transform: translate(var(--dx, 0), var(--dy, -30vh)) scale(var(--k, 0.4));
+  }
+}
+/* On a phone, or a short screen: the word fills the width, the rules are short, and the plate is the size of the call over the board. */
+@media (max-width: 760px), (max-height: 500px) and (orientation: landscape) {
+  .verdict-stage {
+    margin-top: -4vh;
+  }
+  .verdict-line {
+    gap: 10px;
+  }
+  .verdict-word {
+    font-size: clamp(34px, min(17vw, 12vh, calc(118vw / var(--letters, 7))), 80px);
+  }
+  .verdict .verdict-reason span {
+    padding: 8px 18px 6px;
+    font-size: 20px;
+  }
+  .verdict-note {
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+  }
+}
+
+/* A link to the room, to be copied and sent. */
+.share {
+  display: flex;
+  gap: 6px;
+  margin: 12px 0 2px;
+}
+.share input {
+  flex: 1;
+  min-width: 0;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--paper-42);
+  border-radius: 0;
+  background: rgba(5, 7, 4, 0.6);
+  color: var(--paper);
+  font: 400 11.5px var(--mono);
+}
+
+/* A draw that has been offered and not yet answered, in the room's card. It is there only while there is one. */
+.offer:empty {
+  display: none;
+}
+.offer {
+  margin-top: 13px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--paper-27);
+}
+.offer > * {
+  animation: fade 0.28s both;
+}
+.offer b {
+  color: var(--paper);
+  font-weight: 650;
+}
+.offer .choices {
+  margin: 11px 0 2px;
+}
+/* The card that is waiting for this player's answer is edged in gilt, like the frame of a look back. */
+.room-asked {
+  --edge-line: rgba(201, 164, 92, 0.8);
+}
+
+/* The two players of an online game, the opponent above: name, rating, clock. */
+.players {
+  display: grid;
+  /* A long name gives way, not the card: it is cut short, and the rating and the clock keep their places. */
+  grid-template-columns: minmax(0, 1fr);
+  gap: 5px;
+  margin: 10px 0 2px;
+  padding: 0;
+  list-style: none;
+}
+.players li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  min-height: 36px;
+  padding: 4px 10px 4px 6px;
+  border: 1px solid transparent;
+  background: var(--paper-06);
+  transition: border-color 0.2s ease;
+}
+.players .coin {
+  width: 26px;
+  height: 26px;
+}
+/* Whose clock is running. */
+.players li.on {
+  border-color: rgba(89, 229, 204, 0.7);
+}
+.players b {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--paper);
+  font: 600 13.5px/1.1 var(--body);
+}
+.players small {
+  flex: none;
+  min-width: 4ch;
+  color: var(--paper-68);
+  font: 500 11.5px/1 var(--mono);
+  text-align: right;
+  white-space: nowrap;
+}
+.players em {
+  margin-left: 6px;
+  font-style: normal;
+}
+.players em.up {
+  color: var(--spirit);
+}
+.players em.down {
+  color: var(--ember);
+}
+.players time {
+  flex: none;
+  min-width: 54px;
+  text-align: right;
+  color: var(--paper-68);
+  font: 500 16px/1 var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+.players li.on time {
+  color: var(--paper);
+}
+.players li.low time {
+  color: var(--ember);
+}
+.players-you {
+  flex: none;
+  background: var(--paper);
+  font-style: normal;
+}
+
+/* A friendly room's clock, chosen between games: a clock face, then the choices in a row. */
+.clock-pick {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 12px 0 2px;
+}
+.clock-pick-icon {
+  display: grid;
+  flex: none;
+  color: var(--paper-68);
+}
+.clock-pick-icon .icon {
+  width: 18px;
+  height: 18px;
+}
+/* One row, whatever the width of the card: six equal tags, their words set close. */
+.clock-pick .chips {
+  display: grid;
+  flex: 1;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  min-width: 0;
+  gap: 4px;
+}
+.clock-pick .chip {
+  min-width: 0;
+  padding: 1px 0 0;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.clock-pick .chip:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.result .clock-pick {
+  margin: 14px 0 0;
+}
+
+/* The best players. */
+.ranks {
+  width: min(460px, 100%);
+}
+.ranks table {
+  width: 100%;
+  margin: 6px 0 4px;
+  border-collapse: collapse;
+  font: 500 13.5px/1.2 var(--body);
+  color: var(--paper-68);
+}
+.ranks thead th {
+  padding: 0 8px 8px;
+  border-bottom: 1px solid var(--paper-27);
+  font: 800 9.5px/1 var(--block);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-align: left;
+  color: var(--paper-42);
+}
+.ranks tbody th,
+.ranks td {
+  padding: 7px 8px;
+  border-bottom: 1px solid var(--paper-06);
+  text-align: left;
+  font-weight: 500;
+}
+.ranks tbody th {
+  overflow: hidden;
+  color: var(--paper);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* The figures keep columns of their own, however long the names beside them. */
+.ranks th:nth-child(3),
+.ranks td:nth-child(3) {
+  width: 74px;
+}
+.ranks th:nth-child(4),
+.ranks td:nth-child(4) {
+  width: 122px;
+}
+.ranks td {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+}
+.ranks tr.me th,
+.ranks tr.me td {
+  color: var(--spirit);
+}
+.ranks tbody {
+  display: block;
+  max-height: 46vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--paper-27) transparent;
+}
+.ranks thead,
+.ranks tbody tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+.ranks th:first-child,
+.ranks td:first-child {
+  width: 38px;
+}
+/* Asked for from the choice of game, so it stands in front of it. */
+.veil-over {
+  z-index: 8;
+}
+
+/* ───────────────────────────── Narrow screens ───────────────────────────── */
+
+/* A short window: the choice of game sheds its small print before it sheds anything else. */
+@media (max-height: 800px) {
+  button.way small {
+    display: none;
+  }
+  .bill {
+    padding-top: calc(2.5vh + var(--safe-top));
+    padding-bottom: calc(2.5vh + var(--safe-bottom));
+  }
+  .title h2 {
+    font-size: clamp(52px, 10.6vh, 84px);
+  }
+  .btn-wide {
+    min-height: 40px;
+  }
+  /* The game to carry on keeps its line, until the computer's strengths are unfolded and need the room. */
+  .ways-many:not(.ways-open) li:first-child > button.way small {
+    display: block;
+  }
+  .bill:has(.ways-many) .title h2 {
+    font-size: clamp(44px, 8.4vh, 70px);
+  }
+}
+
+/* A phone, held either way (see hud.css). */
+@media (max-width: 760px), (max-height: 500px) and (orientation: landscape) {
+  /*
+   * The choice of game leaves the room to be seen: the name at the top, the ways to play on a
+   * dark of their own at the foot, and between them the picture as it is.
+   */
+  .veil-bill,
+  .veil-opening {
+    background: linear-gradient(180deg, rgba(7, 9, 6, 0.72) 0, rgba(7, 9, 6, 0.3) 150px, rgba(7, 9, 6, 0.14) 240px);
+  }
+  .bill {
+    justify-content: space-between;
+    gap: 0;
+    width: 100vw;
+    padding: calc(14px + var(--safe-top)) 0 0;
+  }
+  .bill > header {
+    padding: 0 18px;
+  }
+  .bill-body {
+    gap: 14px;
+    margin-top: 24px;
+    padding: 44px 18px calc(16px + var(--safe-bottom));
+    background: linear-gradient(180deg, rgba(7, 9, 6, 0), rgba(7, 9, 6, 0.9) 44px, rgba(7, 9, 6, 0.96));
+  }
+  .title h2 {
+    display: block;
+    margin-top: 8px;
+    font-size: clamp(40px, 13.2vw, 58px);
+    line-height: 1;
+    text-shadow:
+      2px 3px 0 #000,
+      4px 6px 0 var(--spirit-deep);
+    transform: rotate(-2deg);
+  }
+  .title h2 span + span {
+    margin-left: 0;
+  }
+  .title .seal {
+    position: static;
+    display: inline-grid;
+    width: 0.62em;
+    height: 0.62em;
+    margin-left: 0.2em;
+    vertical-align: 0.02em;
+    box-shadow:
+      inset 0 0 0 2px var(--paper),
+      inset 0 0 0 3px var(--ink),
+      2px 3px 0 #000;
+  }
+  .bill:has(.ways-many) .title h2 {
+    font-size: clamp(40px, 13.2vw, 58px);
+  }
+  .way {
+    column-gap: 12px;
+    padding-top: 9px;
+    padding-bottom: 9px;
+  }
+  .way b {
+    font-size: clamp(22px, 6.2vw, 26px);
+  }
+  button.way small {
+    display: block;
+  }
+  .way-more,
+  .bill-foot,
+  .who {
+    margin-left: 0;
+  }
+  .way-more .chips {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .sides-note {
+    display: none;
+  }
+  /* The settings open under the corner they are asked for from, and end above the row of keys, not over it. */
+  .settings {
+    top: calc(154px + var(--safe-top));
+    right: 8px;
+    max-height: calc(100% - 162px - var(--safe-top) - var(--bar-top));
+  }
+  .result h2:not(.plate) {
+    font-size: 24px;
+  }
+  .result-head {
+    margin-bottom: 8px;
+  }
+  .result-head .seal-coin {
+    --seal: 38px;
+  }
+  .story {
+    margin-top: 10px;
+  }
+  .story figcaption span {
+    display: none;
+  }
+  /* The rankings give their names more of a narrow screen. */
+  .ranks th:nth-child(3),
+  .ranks td:nth-child(3) {
+    width: 58px;
+  }
+  .ranks th:nth-child(4),
+  .ranks td:nth-child(4) {
+    width: 86px;
+  }
+  .ranks th:first-child,
+  .ranks td:first-child {
+    width: 30px;
+  }
+  /* The players coming to the board, stacked: the seal, then each on a line of their own, a little to their side. */
+  .intro-stage {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'seal'
+      'w'
+      'b'
+      'terms'
+      'call';
+    gap: 14px;
+    margin-top: -8vh;
+  }
+  .intro-seal .seal-coin {
+    --seal: 84px;
+  }
+  .intro-seat {
+    width: 88%;
+    max-width: 320px;
+    min-height: 60px;
+    justify-self: start;
+  }
+  .intro-seat-b {
+    justify-self: end;
+  }
+  .intro-seat .coin {
+    width: 40px;
+    height: 40px;
+  }
+  .intro-who b {
+    font-size: 19px;
+  }
+  .intro-terms {
+    margin-top: 4px;
+  }
+  .intro-call span {
+    font-size: 22px;
+  }
+}
+
+/*
+ * A phone, held either way: the room's card stands over the foot of the board, or in the narrow
+ * column beside it, so it is kept short. Who plays is already said in the match bar, so the list
+ * of the two players is shown only where it has clocks to show; and a draw that is offered takes
+ * as little more as it can.
+ */
+@media (max-width: 760px), (max-height: 500px) and (orientation: landscape) {
+  .room .players:not(:has(time)) {
+    display: none;
+  }
+  .room .players {
+    gap: 4px;
+    margin-top: 8px;
+  }
+  .room .players li {
+    min-height: 32px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+  }
+  .room .players .coin {
+    width: 24px;
+    height: 24px;
+  }
+  .offer {
+    margin-top: 9px;
+    padding-top: 9px;
+  }
+  .offer p {
+    margin-bottom: 0;
+  }
+  .offer .choices {
+    margin: 8px 0 0;
+  }
+  /*
+   * A ranked game's card has the clocks on it and is the tallest. While a draw waits for this
+   * player's answer it says only what it must: the clocks and the two answers. Which side this is
+   * is on the list ("You"), and that a draw is offered is in the answers and in the gilt edge; the
+   * sentence is still there for a screen reader.
+   */
+  .room-asked:has(.players time) > p {
+    display: none;
+  }
+  .room-asked:has(.players time) .offer p {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .room-asked:has(.players time) .offer .choices {
+    margin-top: 0;
+  }
+  .room-asked:has(.players time) .players {
+    margin-top: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The players coming to the board are not moved about: the seal already shows this player's side, and the whole fades in and out. */
+  .intro *,
+  .intro::before {
+    animation: none !important;
+  }
+  .intro .seal-coin {
+    transform: rotateY(180deg);
+  }
+  .intro {
+    animation: intro-still 3.3s linear both !important;
+  }
+  /* Nor is the verdict: it is there, already said, and goes again; the card is simply there after it. */
+  .verdict *,
+  .verdict-stage::before {
+    animation: none !important;
+  }
+  .verdict .seal-coin {
+    transform: rotateY(180deg);
+  }
+  .verdict {
+    animation: fade 0.3s both !important;
+  }
+  .verdict-going {
+    animation: verdict-out 0.4s ease-in forwards !important;
+  }
+}
+@keyframes intro-still {
+  0% {
+    opacity: 0;
+  }
+  10%,
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Played with a finger (see hud.css): each setting is a row the height of a fingertip, and the volumes have a thumb that can be found. */
+@media (pointer: coarse) {
+  .settings .group {
+    gap: 2px;
+  }
+  .switch {
+    min-height: 44px;
+    align-content: center;
+  }
+  .switch input {
+    top: 50%;
+    margin-top: -9px;
+  }
+  .switch i {
+    align-self: center;
+    margin-top: 0;
+  }
+  .level {
+    min-height: 44px;
+  }
+  .level input {
+    height: 44px;
+  }
+  .level input::-webkit-slider-thumb {
+    width: 14px;
+    height: 25px;
+    margin-top: -11px;
+  }
+  .level input::-moz-range-thumb {
+    width: 14px;
+    height: 25px;
+  }
+  .settings .card-head .pill {
+    width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* A phone on its side (see hud.css). */
+@media (max-height: 500px) and (orientation: landscape) {
+  /* The choice of game: the name stands at the left, and the ways to play beside it. */
+  .veil-bill,
+  .veil-opening {
+    background: linear-gradient(90deg, rgba(7, 9, 6, 0.96) 0, rgba(7, 9, 6, 0.9) 62%, rgba(7, 9, 6, 0.3));
+  }
+  .bill {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-content: safe center;
+    column-gap: 40px;
+    width: min(820px, 100vw);
+    padding: calc(12px + var(--safe-top)) 18px calc(12px + var(--safe-bottom)) max(18px, calc(env(safe-area-inset-left, 0px) + 12px));
+  }
+  .bill > header {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    padding: 0;
+  }
+  .bill-body {
+    margin-top: 0;
+    padding: 0;
+    background: none;
+  }
+  .title h2,
+  .bill:has(.ways-many) .title h2 {
+    display: grid;
+    font-size: clamp(40px, 12vh, 54px);
+    line-height: 0.82;
+  }
+  .title h2 span + span {
+    margin-left: 0.5em;
+  }
+  .title .seal {
+    position: absolute;
+    top: -0.03em;
+    left: 2.5em;
+    margin: 0;
+  }
+  .way {
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+  button.way small {
+    display: none;
+  }
+  .way-more .chips {
+    grid-template-columns: repeat(6, auto);
+  }
+  .settings {
+    top: calc(18px + var(--safe-top));
+    max-height: calc(100% - 26px - var(--safe-top) - var(--safe-bottom));
+  }
+  /* The result card has the height of the screen less the match bar: the graph of the game waits for the record. */
+  .result .story {
+    display: none;
+  }
+  /* On a card this narrow a player's rating goes under their name, which keeps the room it needs beside the clock. */
+  .players li {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      'coin name time'
+      'coin rating time';
+    align-items: center;
+    gap: 2px 9px;
+  }
+  .players li > .coin {
+    grid-area: coin;
+  }
+  .players b {
+    grid-area: name;
+  }
+  .players small {
+    grid-area: rating;
+    min-width: 0;
+    text-align: left;
+  }
+  .players time {
+    grid-area: time;
+    min-width: 0;
+  }
+  /* "You" keeps to the end of the line the rating is on. */
+  .players-you {
+    grid-area: rating;
+    justify-self: end;
+  }
+  /* The players coming to the board stand either side of the seal again, as on a wide screen. */
+  .intro-stage {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    grid-template-areas:
+      'w seal b'
+      '. terms .'
+      'call call call';
+    gap: 12px 18px;
+    margin-top: 0;
+  }
+  .intro-seat {
+    width: auto;
+    max-width: none;
+    justify-self: stretch;
+  }
+  .intro-seal .seal-coin {
+    --seal: 70px;
+  }
+}
+
+/* ───────────────────────────── The lesson card on a narrow screen ───────────────────────────── */
+
+/*
+ * Wide, the card stands beside the board and its foot is a plain stack. On a screen narrower than
+ * 900 pixels (not a phone on its side, which has its columns) it is docked at the foot over the
+ * keys, small and sharp, and the camera frames the board in what is left above it (Lesson in
+ * Cards.tsx tells it how much; see World.keepClearBetween). It folds away to the step's instruction
+ * and its key, so that the board has most of the screen. The media query is the one DOCKED in
+ * Cards.tsx and the test in World.clearance.
+ */
+.lesson-fold,
+.lesson-ask {
+  display: none;
+}
+@media (max-width: 899px) and (min-height: 501px) {
+  .hud:has(.card.lesson) .rail.rail-left {
+    top: auto;
+    left: var(--edge);
+    right: var(--edge);
+    bottom: var(--bar-top, calc(70px + var(--safe-bottom)));
+    width: auto;
+    max-height: min(58vh, calc(100% - 160px - var(--safe-top)));
+    align-items: center;
+    overflow-y: auto;
+    padding: 14px 8px 10px 5px;
+  }
+  .rail-left .card.lesson {
+    max-width: 560px;
+    padding: 15px 14px 11px;
+  }
+  .lesson h3 {
+    margin-bottom: 3px;
+    font-size: 18px;
+  }
+  .lesson p {
+    margin-bottom: 6px;
+    font-size: 13px;
+    line-height: 1.42;
+  }
+  .lesson .said {
+    padding: 5px 9px;
+  }
+  .lesson-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px 14px;
+    margin-top: 8px;
+  }
+  .lesson-foot .choices {
+    margin: 0;
+  }
+  .lesson-foot .ways-on {
+    flex: 1 1 auto;
+    justify-content: flex-end;
+    margin: 0 !important;
+    gap: 4px 14px;
+  }
+  /* The way out is a word, not three, to leave room in its row. */
+  .lesson-rest {
+    display: none;
+  }
+  .lesson-fold {
+    display: inline-block;
+    font-weight: 700;
+  }
+  /* Folded: the instruction and the key beside it, and nothing else but what the game says back. */
+  .lesson-folded {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 12px;
+  }
+  .lesson-folded .card-head {
+    grid-column: 1 / -1;
+  }
+  .lesson-folded h3,
+  .lesson-folded .lesson-say,
+  .lesson-folded .ways-on {
+    display: none;
+  }
+  .lesson-folded .lesson-ask {
+    display: block;
+    margin: 0;
+    color: var(--paper);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  .lesson-folded .said {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    margin-top: 8px;
+  }
+  .lesson-folded .lesson-foot {
+    grid-column: 2;
+    grid-row: 2;
+    margin: 0;
+    flex-wrap: nowrap;
+  }
+}
+
+/* ───────────────────── A rule explained and the end of the game, on a tablet's width ───────────────────── */
+
+/*
+ * From 761 to 899 pixels wide (not a phone, which has its own cards, nor a window of 900 or
+ * more, which has the column beside the board) these two cards stand where the lesson card does:
+ * docked at the foot over the keys, and the board framed in the picture above them, so that they
+ * cover no square (Explain and Result in Cards.tsx tell the camera how much; see
+ * World.keepClearBetween). The record of moves, which stands in the same corner, waits until the
+ * card is put away. The media query is the one TABLET in Cards.tsx. (On a phone the explanation
+ * is framed for as well, by the same DOCKED screens as the lesson; the result card there is
+ * left over the foot of the board.)
+ */
+@media (min-width: 761px) and (max-width: 899px) and (min-height: 501px) {
+  .hud:has(.card.explain, .card.result) .rail.rail-left {
+    top: auto;
+    left: var(--edge);
+    right: var(--edge);
+    bottom: var(--bar-top, calc(70px + var(--safe-bottom)));
+    width: auto;
+    max-height: min(58vh, calc(100% - 160px - var(--safe-top)));
+    align-items: center;
+    overflow-y: auto;
+    padding: 14px 8px 10px 5px;
+  }
+  .hud:has(.rail-left .card.explain, .rail-left .card.result) .record {
+    display: none;
+  }
+  .rail-left .card.explain,
+  .rail-left .card.result {
+    max-width: 560px;
+    padding: 15px 14px 11px;
+  }
+  .explain h3,
+  .result h2:not(.plate) {
+    margin-bottom: 3px;
+    font-size: 20px;
+  }
+  .explain p,
+  .result .result-how {
+    margin-bottom: 6px;
+    font-size: 13px;
+    line-height: 1.42;
+  }
+  .explain .choices,
+  .result .choices {
+    margin-top: 8px;
+  }
+  .result-head {
+    margin-bottom: 8px;
+  }
+  .result-head .seal-coin {
+    --seal: 38px;
+  }
+  .story {
+    margin-top: 10px;
+  }
+}
+/* A tablet held on its side, or a short window: the graph of the game waits for the record, so that the board keeps the room. */
+@media (min-width: 761px) and (max-width: 899px) and (min-height: 501px) and (max-height: 760px) {
+  .result .story {
+    display: none;
+  }
+}

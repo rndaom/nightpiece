@@ -1,0 +1,704 @@
+[
+ {
+  "family": "Void and ink",
+  "label": "giant hand fill",
+  "frame": "R12",
+  "box": [
+   30,
+   150,
+   110,
+   330
+  ],
+  "mode": "median",
+  "hex": "#030804"
+ },
+ {
+  "family": "Void and ink",
+  "label": "giant hand fill (second frame)",
+  "frame": "R14",
+  "box": [
+   690,
+   230,
+   830,
+   380
+  ],
+  "mode": "median",
+  "hex": "#070906"
+ },
+ {
+  "family": "Void and ink",
+  "label": "giant hand outline",
+  "frame": "R12",
+  "box": [
+   140,
+   395,
+   250,
+   440
+  ],
+  "mode": "top:0.97",
+  "hex": "#DDE6D0"
+ },
+ {
+  "family": "Void and ink",
+  "label": "giant hand outline (second frame)",
+  "frame": "R14",
+  "box": [
+   590,
+   110,
+   1010,
+   500
+  ],
+  "mode": "top:0.985",
+  "hex": "#F2F6DC"
+ },
+ {
+  "family": "Void and ink",
+  "label": "tooltip panel",
+  "frame": "R12",
+  "box": [
+   800,
+   330,
+   1100,
+   420
+  ],
+  "mode": "dark",
+  "hex": "#101010"
+ },
+ {
+  "family": "Void and ink",
+  "label": "tooltip title text",
+  "frame": "R12",
+  "box": [
+   752,
+   215,
+   945,
+   250
+  ],
+  "mode": "bright",
+  "hex": "#FCF3E3"
+ },
+ {
+  "family": "Ivory light",
+  "label": "target square, lit",
+  "frame": "R12",
+  "box": [
+   455,
+   380,
+   515,
+   440
+  ],
+  "mode": "median",
+  "hex": "#EADBB0"
+ },
+ {
+  "family": "Ivory light",
+  "label": "target square, dim",
+  "frame": "R12",
+  "box": [
+   425,
+   140,
+   485,
+   200
+  ],
+  "mode": "median",
+  "hex": "#BB9B6D"
+ },
+ {
+  "family": "Ivory light",
+  "label": "target square border core",
+  "frame": "R12",
+  "box": [
+   405,
+   116,
+   505,
+   124
+  ],
+  "mode": "bright",
+  "hex": "#FFFEEE"
+ },
+ {
+  "family": "Ivory light",
+  "label": "plinth of light",
+  "frame": "R15",
+  "box": [
+   505,
+   590,
+   650,
+   612
+  ],
+  "mode": "median",
+  "hex": "#D5C499"
+ },
+ {
+  "family": "Ivory light",
+  "label": "path beam",
+  "frame": "R14",
+  "box": [
+   820,
+   60,
+   960,
+   220
+  ],
+  "mode": "top:0.93",
+  "hex": "#C6BA98"
+ },
+ {
+  "family": "Ivory light",
+  "label": "ribbon of light",
+  "frame": "R17",
+  "box": [
+   150,
+   255,
+   560,
+   285
+  ],
+  "mode": "top:0.93",
+  "hex": "#F8F6ED"
+ },
+ {
+  "family": "Ivory light",
+  "label": "marquee bulb core",
+  "frame": "R17",
+  "box": [
+   660,
+   130,
+   840,
+   250
+  ],
+  "mode": "top:0.97",
+  "hex": "#EADFCA"
+ },
+ {
+  "family": "Ivory light",
+  "label": "marquee amber",
+  "frame": "R17",
+  "box": [
+   660,
+   130,
+   840,
+   250
+  ],
+  "mode": "sattop:0.95",
+  "hex": "#CCAA81"
+ },
+ {
+  "family": "Spirit teal",
+  "label": "emissive tile",
+  "frame": "R17",
+  "box": [
+   600,
+   525,
+   760,
+   565
+  ],
+  "mode": "median",
+  "hex": "#C3FBF2"
+ },
+ {
+  "family": "Spirit teal",
+  "label": "candle wax",
+  "frame": "R19",
+  "box": [
+   283,
+   480,
+   305,
+   540
+  ],
+  "mode": "median",
+  "hex": "#59E5CC"
+ },
+ {
+  "family": "Spirit teal",
+  "label": "candle wax (second frame)",
+  "frame": "R20",
+  "box": [
+   415,
+   570,
+   440,
+   625
+  ],
+  "mode": "median",
+  "hex": "#40DDBA"
+ },
+ {
+  "family": "Spirit teal",
+  "label": "cast fan rays",
+  "frame": "R23",
+  "box": [
+   160,
+   300,
+   520,
+   480
+  ],
+  "mode": "sattop:0.85",
+  "hex": "#60E0CA"
+ },
+ {
+  "family": "Spirit teal",
+  "label": "zone edge line",
+  "frame": "R19",
+  "box": [
+   300,
+   585,
+   900,
+   600
+  ],
+  "mode": "bright",
+  "hex": "#ECFFF8"
+ },
+ {
+  "family": "Spirit teal",
+  "label": "light pillar",
+  "frame": "R19",
+  "box": [
+   665,
+   90,
+   695,
+   200
+  ],
+  "mode": "median",
+  "hex": "#86B7B0"
+ },
+ {
+  "family": "Spirit teal",
+  "label": "matte flipped tile",
+  "frame": "R17",
+  "box": [
+   450,
+   470,
+   500,
+   560
+  ],
+  "mode": "median",
+  "hex": "#4A7C79"
+ },
+ {
+  "family": "Spirit teal",
+  "label": "floor sigil",
+  "frame": "R20",
+  "box": [
+   800,
+   560,
+   960,
+   660
+  ],
+  "mode": "sattop:0.95",
+  "hex": "#59A18E"
+ },
+ {
+  "family": "Spirit teal",
+  "label": "crystal block",
+  "frame": "R19",
+  "box": [
+   640,
+   300,
+   720,
+   340
+  ],
+  "mode": "median",
+  "hex": "#64A480"
+ },
+ {
+  "family": "Jade stone",
+  "label": "knight, lit planes",
+  "frame": "R15",
+  "box": [
+   905,
+   250,
+   985,
+   330
+  ],
+  "mode": "median",
+  "hex": "#D2E9BB"
+ },
+ {
+  "family": "Jade stone",
+  "label": "knight, shadow planes",
+  "frame": "R15",
+  "box": [
+   880,
+   230,
+   1000,
+   420
+  ],
+  "mode": "dark",
+  "hex": "#7EA26A"
+ },
+ {
+  "family": "Jade stone",
+  "label": "carried piece, head",
+  "frame": "R12",
+  "box": [
+   375,
+   290,
+   420,
+   325
+  ],
+  "mode": "median",
+  "hex": "#8FC293"
+ },
+ {
+  "family": "Jade stone",
+  "label": "carried piece, stem",
+  "frame": "R12",
+  "box": [
+   290,
+   285,
+   350,
+   312
+  ],
+  "mode": "median",
+  "hex": "#6C9667"
+ },
+ {
+  "family": "Jade stone",
+  "label": "glass dome",
+  "frame": "R15",
+  "box": [
+   455,
+   330,
+   515,
+   420
+  ],
+  "mode": "median",
+  "hex": "#A9CBA2"
+ },
+ {
+  "family": "Jade stone",
+  "label": "mint backlight",
+  "frame": "R15",
+  "box": [
+   428,
+   110,
+   448,
+   290
+  ],
+  "mode": "median",
+  "hex": "#AFDEC9"
+ },
+ {
+  "family": "Jade stone",
+  "label": "board tile, light",
+  "frame": "R21",
+  "box": [
+   400,
+   50,
+   470,
+   120
+  ],
+  "mode": "median",
+  "hex": "#CBDFC0"
+ },
+ {
+  "family": "Jade stone",
+  "label": "board tile, void",
+  "frame": "R21",
+  "box": [
+   400,
+   155,
+   475,
+   225
+  ],
+  "mode": "median",
+  "hex": "#1B4A37"
+ },
+ {
+  "family": "Jade stone",
+  "label": "spirit glow",
+  "frame": "R21",
+  "box": [
+   540,
+   330,
+   680,
+   430
+  ],
+  "mode": "sat",
+  "hex": "#478345"
+ },
+ {
+  "family": "Violet",
+  "label": "arena fog",
+  "frame": "R19",
+  "box": [
+   300,
+   60,
+   600,
+   120
+  ],
+  "mode": "median",
+  "hex": "#715294"
+ },
+ {
+  "family": "Violet",
+  "label": "arena wall",
+  "frame": "R19",
+  "box": [
+   60,
+   260,
+   180,
+   330
+  ],
+  "mode": "median",
+  "hex": "#573250"
+ },
+ {
+  "family": "Violet",
+  "label": "arena floor",
+  "frame": "R20",
+  "box": [
+   150,
+   560,
+   350,
+   640
+  ],
+  "mode": "median",
+  "hex": "#5F3E64"
+ },
+ {
+  "family": "Violet",
+  "label": "tooltip stat box",
+  "frame": "R12",
+  "box": [
+   772,
+   485,
+   815,
+   528
+  ],
+  "mode": "median",
+  "hex": "#261832"
+ },
+ {
+  "family": "Violet",
+  "label": "queen stone, highlight",
+  "frame": "R20",
+  "box": [
+   560,
+   380,
+   760,
+   660
+  ],
+  "mode": "top:0.93",
+  "hex": "#C0B7C1"
+ },
+ {
+  "family": "Violet",
+  "label": "queen stone, shadow",
+  "frame": "R20",
+  "box": [
+   560,
+   380,
+   760,
+   660
+  ],
+  "mode": "low:0.12",
+  "hex": "#68555C"
+ },
+ {
+  "family": "Night",
+  "label": "board square, navy marble",
+  "frame": "R01",
+  "box": [
+   548,
+   262,
+   572,
+   286
+  ],
+  "mode": "median",
+  "hex": "#3B5069"
+ },
+ {
+  "family": "Night",
+  "label": "board square, ivory marble",
+  "frame": "R01",
+  "box": [
+   503,
+   262,
+   527,
+   286
+  ],
+  "mode": "median",
+  "hex": "#CFD7E4"
+ },
+ {
+  "family": "Night",
+  "label": "board frame, walnut",
+  "frame": "R01",
+  "box": [
+   440,
+   170,
+   470,
+   300
+  ],
+  "mode": "median",
+  "hex": "#37333B"
+ },
+ {
+  "family": "Night",
+  "label": "skin in night light",
+  "frame": "R01",
+  "box": [
+   560,
+   470,
+   700,
+   560
+  ],
+  "mode": "median",
+  "hex": "#4E3859"
+ },
+ {
+  "family": "Night",
+  "label": "rim light on hand",
+  "frame": "R01",
+  "box": [
+   980,
+   140,
+   1180,
+   210
+  ],
+  "mode": "bright",
+  "hex": "#8282A2"
+ },
+ {
+  "family": "Night",
+  "label": "contour line on hand",
+  "frame": "R01",
+  "box": [
+   690,
+   290,
+   760,
+   330
+  ],
+  "mode": "sattop:0.9",
+  "hex": "#A75A5F"
+ },
+ {
+  "family": "Night",
+  "label": "banner blue",
+  "frame": "R17",
+  "box": [
+   275,
+   60,
+   310,
+   180
+  ],
+  "mode": "median",
+  "hex": "#4A6DD0"
+ },
+ {
+  "family": "Night",
+  "label": "slate flipped tile",
+  "frame": "R17",
+  "box": [
+   190,
+   485,
+   280,
+   505
+  ],
+  "mode": "median",
+  "hex": "#4C648D"
+ },
+ {
+  "family": "Night",
+  "label": "asphalt",
+  "frame": "R17",
+  "box": [
+   300,
+   640,
+   500,
+   700
+  ],
+  "mode": "median",
+  "hex": "#2F2D2F"
+ },
+ {
+  "family": "Earth",
+  "label": "timber",
+  "frame": "R21",
+  "box": [
+   140,
+   300,
+   200,
+   480
+  ],
+  "mode": "median",
+  "hex": "#483526"
+ },
+ {
+  "family": "Earth",
+  "label": "flagstones",
+  "frame": "R21",
+  "box": [
+   700,
+   560,
+   900,
+   650
+  ],
+  "mode": "median",
+  "hex": "#23201D"
+ },
+ {
+  "family": "Earth",
+  "label": "lawn at night",
+  "frame": "R12",
+  "box": [
+   600,
+   380,
+   700,
+   480
+  ],
+  "mode": "median",
+  "hex": "#1F3917"
+ },
+ {
+  "family": "Earth",
+  "label": "cream flipped tile",
+  "frame": "R17",
+  "box": [
+   940,
+   525,
+   1150,
+   560
+  ],
+  "mode": "median",
+  "hex": "#ADA88C"
+ },
+ {
+  "family": "Earth",
+  "label": "rook stone in shade",
+  "frame": "R17",
+  "box": [
+   10,
+   330,
+   60,
+   420
+  ],
+  "mode": "median",
+  "hex": "#97989A"
+ },
+ {
+  "family": "Earth",
+  "label": "tooltip upgrade header",
+  "frame": "R12",
+  "box": [
+   60,
+   523,
+   110,
+   550
+  ],
+  "mode": "median",
+  "hex": "#43784C"
+ },
+ {
+  "family": "Earth",
+  "label": "chapter medallion",
+  "frame": "R12",
+  "box": [
+   1145,
+   625,
+   1160,
+   655
+  ],
+  "mode": "median",
+  "hex": "#9F9476"
+ }
+]

@@ -1,0 +1,57 @@
+{
+  "name": "nightpiece",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "author": "Random (rndaom)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rndaom/nightpiece.git"
+  },
+  "homepage": "https://nightpiece-production.up.railway.app",
+  "bugs": {
+    "url": "https://github.com/rndaom/nightpiece/issues"
+  },
+  "description": "Nightpiece: a living, puppeteered 3D chess game for the browser.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "postinstall": "node tools/dev/copy-engine.mjs",
+    "predev": "node tools/dev/copy-engine.mjs",
+    "dev": "vite",
+    "server": "tsx server/main.ts",
+    "prebuild": "node tools/dev/copy-engine.mjs",
+    "build": "npm run typecheck && vite build",
+    "serve": "node --import tsx server/main.ts",
+    "start": "node --import tsx server/main.ts",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json",
+    "test": "vitest run",
+    "look": "node tools/dev/tour.mjs"
+  },
+  "dependencies": {
+    "@fontsource-variable/archivo": "^5.3.0",
+    "@fontsource-variable/figtree": "^5.3.0",
+    "@fontsource-variable/fraunces": "^5.3.0",
+    "@fontsource/dm-mono": "^5.3.0",
+    "@preact/signals": "^2.11.4",
+    "chess.js": "^1.4.0",
+    "preact": "^11.2.0",
+    "stockfish": "^19.0.1",
+    "three": "^0.187.0",
+    "tsx": "^4.23.15",
+    "ws": "^8.22.2"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.10.6",
+    "@types/node": "^24.19.2",
+    "@types/three": "^0.187.0",
+    "@types/ws": "^8.18.2",
+    "puppeteer-core": "^25.17.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.7",
+    "vitest": "^5.1.0"
+  }
+}

@@ -1,0 +1,18 @@
+# Keep text files LF on every platform so shell scripts, shaders and Python behave the same everywhere.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ktx2 binary
+*.glb binary
+*.blend binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.ogg binary
+*.mp3 binary
+*.wav binary
+*.wasm binary

@@ -1,0 +1,47 @@
+# Third-party reference media studied for art direction. Kept on disk only.
+/reference/
+/docs/reference/frames/
+
+# Dependencies and build output
+node_modules/
+dist/
+.vite/
+.vitest/
+
+# The chess engine, copied out of node_modules by tools/dev/copy-engine.mjs
+/public/engine/
+
+# Python
+__pycache__/
+*.pyc
+
+# Blender backups and caches
+*.blend1
+*.blend2
+
+# Local settings and OS clutter
+.claude/*.local.json
+.env
+.env.*
+*.log
+.DS_Store
+Thumbs.db
+
+# Scratch output from the development tools (tools/dev/look.mjs)
+/tmp/
+
+# Ranked scores kept by the game's server
+/data/
+
+# Source recordings for the sound library, fetched by assets/src/sound/fetch.py (see CREDITS.md)
+/assets/src/sound/cache/
+
+# The promotional film as encoded (made by tools/promo/, from frames under tmp/promo/)
+/promo/
+
+# Local tool settings and editor folders
+.claude/
+.venv/
+coverage/
+.vscode/
+.idea/

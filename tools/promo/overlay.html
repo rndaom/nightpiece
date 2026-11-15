@@ -1,0 +1,402 @@
+<!doctype html>
+<!--
+  Development only. Everything the promotional film writes over its picture: the lines that say
+  what is being shown (edit.mjs, CAPTIONS), the names tied to the six kinds of piece (LABELS), and
+  the card that closes it: the game's name as its title screen sets it (the two words stacked and
+  tilted, the seal against the first). Nothing here runs by itself: overlay.mjs asks for the
+  picture at each instant of the film with setFilm(seconds, marks) and photographs it over
+  nothing, so that it can be laid over the film.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>What the film says</title>
+    <style>
+      :root {
+        --paper: #f7ead2;
+        --ink: #10130d;
+        --spirit: #59e5cc;
+        --spirit-deep: #17463a;
+        --display: 'Fraunces Variable', Georgia, serif;
+        --block: 'Archivo Variable', 'Arial Black', sans-serif;
+        --mono: 'DM Mono', ui-monospace, monospace;
+      }
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: transparent;
+        color: var(--paper);
+      }
+
+      /* -- the lines ------------------------------------------------------------------------- */
+      /* The film behind is put back a little where a line stands, so that it reads over anything. */
+      .shade {
+        position: fixed;
+        inset: 0;
+        opacity: 0;
+      }
+      #shade-right {
+        background: radial-gradient(ellipse 58% 46% at 86% 92%, rgba(5, 4, 9, 0.8) 0%, rgba(5, 4, 9, 0.52) 45%, rgba(5, 4, 9, 0) 100%);
+      }
+      #shade-middle {
+        background: radial-gradient(ellipse 50% 30% at 50% 88%, rgba(5, 4, 9, 0.7) 0%, rgba(5, 4, 9, 0.4) 50%, rgba(5, 4, 9, 0) 100%);
+      }
+      .cap {
+        position: fixed;
+        right: 4vw;
+        bottom: 12.4vh;
+        display: grid;
+        justify-items: end;
+        gap: 1.1vh;
+        max-width: 50vw;
+        text-align: right;
+        opacity: 0;
+      }
+      .cap.middle {
+        right: auto;
+        left: 50%;
+        bottom: 9.5vh;
+        justify-items: center;
+        text-align: center;
+        translate: -50% 0;
+      }
+      .cap .head {
+        display: flex;
+        align-items: center;
+        gap: 1.1vh;
+        font: 500 1.85vh / 1 var(--mono);
+        letter-spacing: 0.26em;
+        text-transform: uppercase;
+        color: var(--spirit);
+        text-shadow:
+          0 0.1em 0 #000,
+          0 0 0.8em rgba(0, 0, 0, 0.9);
+      }
+      .cap .head::before {
+        content: '';
+        width: 3.4vh;
+        height: 0.22vh;
+        background: var(--spirit);
+        box-shadow: 0 0.15vh 0 #000;
+        transform-origin: 100% 50%;
+        scale: var(--rule, 1) 1;
+      }
+      .cap.middle .head::after {
+        content: '';
+        width: 3.4vh;
+        height: 0.22vh;
+        background: var(--spirit);
+        box-shadow: 0 0.15vh 0 #000;
+        transform-origin: 0 50%;
+        scale: var(--rule, 1) 1;
+      }
+      .cap .line {
+        font: 600 4.3vh / 1.1 var(--display);
+        font-variation-settings: 'opsz' 60, 'SOFT' 100, 'WONK' 0;
+        letter-spacing: -0.012em;
+        text-wrap: balance;
+        text-shadow:
+          0.035em 0.045em 0 #000,
+          0.07em 0.09em 0 var(--spirit-deep),
+          0 0 0.7em rgba(0, 0, 0, 0.75);
+      }
+
+      /* -- the names of the pieces ------------------------------------------------------------- */
+      #marks {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+      #marks line {
+        stroke: var(--paper);
+        stroke-width: 0.2vh;
+        stroke-linecap: round;
+        filter: drop-shadow(0 0.15vh 0.1vh rgba(0, 0, 0, 0.8));
+      }
+      #marks circle {
+        fill: var(--paper);
+        stroke: var(--ink);
+        stroke-width: 0.14vh;
+      }
+      .mark {
+        position: fixed;
+        left: 0;
+        top: 0;
+        padding: 0.62vh 1.25vh 0.5vh;
+        font: 800 2.05vh / 1 var(--block);
+        font-stretch: 118%;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--ink);
+        background: var(--paper);
+        box-shadow:
+          0.35vh 0.4vh 0 #000,
+          0.62vh 0.74vh 0 var(--spirit-deep);
+        opacity: 0;
+        will-change: transform, opacity;
+      }
+
+      /* -- the card -------------------------------------------------------------------------------- */
+      /* The film behind is put back a little, most where the words are. */
+      #veil {
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(ellipse 70% 62% at 50% 46%, rgba(5, 4, 9, 0.68) 0%, rgba(5, 4, 9, 0.5) 55%, rgba(5, 4, 9, 0.28) 100%);
+        opacity: 0;
+      }
+      #card {
+        position: fixed;
+        /* A little left of the middle: the seal stands out past the name's right-hand end. And a little above it: a line stands under the name. */
+        left: 48.4%;
+        top: 44%;
+        display: grid;
+        justify-items: start;
+        transform: translate(-50%, -50%);
+        visibility: hidden;
+      }
+      /* As .title h2 in src/ui/hud.css, at the size of a cinema screen. */
+      h1 {
+        position: relative;
+        display: grid;
+        width: max-content;
+        margin: 0;
+        font: 900 27vh / 0.8 var(--display);
+        font-variation-settings: 'opsz' 144, 'SOFT' 100, 'WONK' 1;
+        letter-spacing: -0.04em;
+        text-shadow:
+          0.03em 0.037em 0 #000,
+          0.066em 0.081em 0 var(--spirit-deep);
+        transform: rotate(-3deg);
+        transform-origin: 0 100%;
+      }
+      h1 .word {
+        display: block;
+        white-space: nowrap;
+      }
+      h1 .word + .word {
+        margin-left: 0.66em;
+      }
+      h1 .letter {
+        display: inline-block;
+        will-change: transform, opacity, filter;
+      }
+      .seal {
+        position: absolute;
+        top: -0.03em;
+        left: 2.5em;
+        display: grid;
+        place-items: center;
+        width: 0.7em;
+        height: 0.7em;
+        border-radius: 50%;
+        background: var(--paper);
+        color: var(--ink);
+        box-shadow:
+          inset 0 0 0 0.022em var(--paper),
+          inset 0 0 0 0.037em var(--ink),
+          0.03em 0.037em 0 #000,
+          0.059em 0.074em 0 var(--spirit-deep);
+        opacity: 0;
+      }
+      .seal svg {
+        width: 62%;
+        height: 62%;
+      }
+      svg.filters {
+        position: absolute;
+        width: 0;
+        height: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="veil"></div>
+    <div class="shade" id="shade-right"></div>
+    <div class="shade" id="shade-middle"></div>
+    <svg id="marks" aria-hidden="true"></svg>
+    <div id="names"></div>
+    <div id="caps"></div>
+    <div id="card">
+      <h1 id="name"></h1>
+    </div>
+    <!-- The edges redrawn, as Boil in src/ui/Hud.tsx does it: the same picture pushed about by a slow noise, four ways. -->
+    <svg class="filters" aria-hidden="true">
+      <defs id="drawings"></defs>
+    </svg>
+    <script type="module">
+      import '@fontsource-variable/fraunces/full.css';
+      import '@fontsource-variable/archivo/wdth.css';
+      import '@fontsource/dm-mono/latin-500';
+      import { BRAND } from '/src/app/brand.ts';
+      import { CAPTIONS, FPS, LABELS, TITLE } from '/tools/promo/edit.mjs';
+
+      const clamp = (x) => Math.max(0, Math.min(1, x));
+      const out = (x) => 1 - (1 - clamp(x)) ** 3;
+      /** Arrives a little past its place and comes back to it. */
+      const past = (x) => {
+        const u = clamp(x) - 1;
+        return 1 + 2.2 * u * u * u + 1.2 * u * u;
+      };
+
+      const defs = document.getElementById('drawings');
+      // For the name, and a finer one for the lines, which are a sixth its size.
+      [8, 16, 28, 47].forEach((seed, i) => {
+        defs.insertAdjacentHTML(
+          'beforeend',
+          `<filter id="drawn-${i}" x="-12%" y="-30%" width="124%" height="160%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="0.011" numOctaves="2" seed="${seed}" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale="7" xChannelSelector="R" yChannelSelector="G"/></filter>` +
+            `<filter id="fine-${i}" x="-6%" y="-30%" width="112%" height="160%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="${seed + 3}" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale="2.2" xChannelSelector="R" yChannelSelector="G"/></filter>`,
+        );
+      });
+
+      // -- the lines ---------------------------------------------------------------------------
+      const caps = CAPTIONS.map((c) => {
+        const el = document.createElement('div');
+        el.className = `cap ${c.place === 'middle' ? 'middle' : ''}`;
+        const head = document.createElement('div');
+        head.className = 'head';
+        head.textContent = c.head;
+        const line = document.createElement('div');
+        line.className = 'line';
+        line.textContent = c.line;
+        el.append(head, line);
+        document.getElementById('caps').append(el);
+        return { ...c, el, head, line };
+      });
+      const shades = { right: document.getElementById('shade-right'), middle: document.getElementById('shade-middle') };
+
+      // -- the names of the pieces ---------------------------------------------------------------
+      const svg = document.getElementById('marks');
+      const marks = LABELS.names.map((m) => {
+        const el = document.createElement('div');
+        el.className = 'mark';
+        el.textContent = m.name;
+        document.getElementById('names').append(el);
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        svg.append(line, dot);
+        return { ...m, el, line, dot };
+      });
+
+      // -- the card --------------------------------------------------------------------------------
+      const name = document.getElementById('name');
+      const veil = document.getElementById('veil');
+      const card = document.getElementById('card');
+      const letters = [];
+      BRAND.words.forEach((word, w) => {
+        const span = document.createElement('span');
+        span.className = 'word';
+        [...word].forEach((c, i) => {
+          const l = document.createElement('span');
+          l.className = 'letter';
+          l.textContent = c;
+          span.append(l);
+          letters.push({ el: l, at: w * 0.16 + i * 0.045 });
+        });
+        name.append(span);
+      });
+      const seal = document.createElement('i');
+      seal.className = 'seal';
+      // The emblem, as Emblem in src/ui/glyphs.tsx.
+      seal.innerHTML =
+        '<svg viewBox="0 0 48 48"><path fill="currentColor" d="M31.9 16.1A8.8 8.8 0 1 1 23.2 4.4A7.1 7.1 0 1 0 31.9 16.1z M17.2 22.6h13.6v2.8H17.2z M20.4 26.4h7.2l3.8 10.8H16.6z M12.6 38.4h22.8v4.2H12.6z"/></svg>';
+      name.append(seal);
+      /** When the seal begins to come down, in seconds from the card's first frame; it lands a fifth of a second later. */
+      const SEAL = 0.78;
+
+      /** The card as it is `t` seconds in. */
+      function setCard(t) {
+        card.style.visibility = t < 0 ? 'hidden' : 'visible';
+        veil.style.opacity = String(t < 0 ? 0 : out(t / 0.9));
+        if (t < 0) return;
+        for (const { el, at } of letters) {
+          const u = (t - at) / 0.62;
+          const p = past(u);
+          el.style.opacity = String(clamp(u * 3.2));
+          el.style.transform = `translateY(${(1 - p) * 0.62}em) rotate(${(1 - p) * 9}deg)`;
+          el.style.filter = u < 1 ? `blur(${(1 - out(u * 1.3)) * 0.05}em)` : 'none';
+        }
+        // The seal is struck: it comes down fast and lands hard, and the card takes the blow.
+        const s = (t - SEAL) / 0.2;
+        const down = clamp(s) ** 2.4;
+        const settle = t > SEAL + 0.2 ? Math.exp(-(t - SEAL - 0.2) * 16) * Math.cos((t - SEAL - 0.2) * 38) : 0;
+        seal.style.opacity = String(clamp(s * 4));
+        seal.style.transform = `rotate(${13 - (1 - down) * 34}deg) scale(${1 + (1 - down) * 1.7 - settle * 0.07})`;
+        const blow = t > SEAL + 0.2 ? Math.exp(-(t - SEAL - 0.2) * 14) * Math.sin((t - SEAL - 0.2) * 44) : 0;
+        card.style.transform = `translate(-50%, -50%) translate(${blow * 0.12}vh, ${blow * 0.5}vh)`;
+        // Once it has landed it is drawn again a few times a second, as the interface is.
+        const drawing = t > SEAL + 0.2 ? Math.floor((t - SEAL - 0.2) / 0.2) % 4 : -1;
+        name.style.filter = drawing < 0 ? 'none' : `url(#drawn-${drawing})`;
+      }
+
+      /**
+       * The whole of it as it is at second `t` of the film. `where` is, for each name of a piece, where
+       * the top of its stone is in the picture just then ([x, y] as fractions of the picture), or null.
+       * Answers whether anything at all is showing.
+       */
+      window.setFilm = (t, where = []) => {
+        let any = false;
+        const shade = { right: 0, middle: 0 };
+        for (const c of caps) {
+          const u = (t - c.at) / 0.45;
+          const leaving = clamp((t - (c.until - 0.3)) / 0.3);
+          const shown = t >= c.at && t < c.until;
+          const a = shown ? out(u * 1.4) * (1 - leaving) : 0;
+          c.el.style.opacity = String(a);
+          if (!shown) continue;
+          any = true;
+          const rise = 1 - out(u);
+          c.head.style.transform = `translateX(${(c.place === 'middle' ? 0 : 1) * rise * 2.2}vh)`;
+          c.head.style.setProperty('--rule', String(out((t - c.at - 0.12) / 0.5)));
+          c.line.style.transform = `translateY(${rise * 1.6}vh)`;
+          // Drawn again a few times a second, as the interface's own words are.
+          c.line.style.filter = `url(#fine-${Math.floor((t - c.at) / 0.22) % 4})`;
+          const side = c.place === 'middle' ? 'middle' : 'right';
+          shade[side] = Math.max(shade[side], a);
+        }
+        shades.right.style.opacity = String(shade.right);
+        shades.middle.style.opacity = String(shade.middle);
+
+        const W = window.innerWidth;
+        const H = window.innerHeight;
+        marks.forEach((m, i) => {
+          const p = where[i];
+          const u = (t - m.at) / 0.4;
+          const gone = clamp((t - (LABELS.until - 0.25)) / 0.2);
+          const shown = !!p && u > 0 && gone < 1;
+          m.el.style.opacity = '0';
+          m.line.style.opacity = m.dot.style.opacity = '0';
+          if (!shown) return;
+          any = true;
+          const [x, y] = [p[0] * W, p[1] * H];
+          // The line goes up from the stone, and the name is set on the end of it.
+          const grown = out(u * 1.5);
+          const top = y - 0.012 * H - (m.lift / 100) * H * grown;
+          const across = x + ((m.aside ?? 0) / 100) * W * grown;
+          m.line.setAttribute('x1', x);
+          m.line.setAttribute('y1', y - 0.012 * H);
+          m.line.setAttribute('x2', across);
+          m.line.setAttribute('y2', top);
+          m.dot.setAttribute('cx', x);
+          m.dot.setAttribute('cy', y - 0.012 * H);
+          m.dot.setAttribute('r', 0.0042 * H * past(u * 1.6));
+          m.line.style.opacity = m.dot.style.opacity = String(1 - gone);
+          const pop = past((t - m.at - 0.12) / 0.34);
+          m.el.style.opacity = String(clamp((t - m.at - 0.12) / 0.12) * (1 - gone));
+          m.el.style.transform = `translate(${across}px, ${top}px) translate(-50%, -100%) rotate(-2.5deg) scale(${0.6 + 0.4 * pop})`;
+        });
+
+        const cardT = t - TITLE.at / FPS;
+        setCard(cardT);
+        return any || cardT >= 0;
+      };
+      window.setFilm(-1);
+      await Promise.all([document.fonts.load('900 100px "Fraunces Variable"'), document.fonts.load('600 40px "Fraunces Variable"'), document.fonts.load('800 20px "Archivo Variable"'), document.fonts.load('500 20px "DM Mono"')]);
+      await document.fonts.ready;
+      window.overlayReady = true;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1082 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nightpiece Visual Direction</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Stencil+Display:wght@700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: an architect's drawing sheet for a concrete chapel. A title block, then drawings
+   named the way a drawing set names them (plan, elevations, schedules, details).
+   One deliberately dark world, so the sheet stays single-theme. */
+:root {
+  color-scheme: dark;
+  --soot: #0c0b09;        /* page ground: warm near-black, the shadow colour of the reference */
+  --form: #171613;        /* formwork shadow, panel ground */
+  --slab: #25231f;        /* raised concrete */
+  --concrete: #57534b;    /* mid concrete, rules */
+  --dust: #a39d8d;        /* secondary text */
+  --bone: #ece3cc;        /* primary text, ivory stone */
+  --candle: #eadbb0;      /* lit square (sampled) */
+  --gilt: #c9a45c;        /* ivory side's light */
+  --spirit: #59e5cc;      /* void side's light (sampled) */
+  --spirit-pale: #c3fbf2; /* sampled */
+  --violet: #8a68b4;      /* threat, lifted from sampled #715294 for text contrast */
+  --ember: #d0634a;       /* capture */
+  --void: #050806;        /* hand fill (sampled) */
+  --rule: rgba(236, 227, 204, 0.16);
+  --display: "Big Shoulders Display", "Arial Narrow", "Haettenschweiler", Impact, sans-serif;
+  --stencil: "Big Shoulders Stencil Display", "Big Shoulders Display", "Arial Narrow", Impact, sans-serif;
+  --voice: "Fraunces", Georgia, "Times New Roman", serif;
+  --mono: "DM Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--soot);
+  color: var(--bone);
+  font-family: var(--voice);
+  font-size: 17px;
+  font-weight: 340;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+.sheet {
+  max-width: 1180px;
+  margin-inline: auto;
+  padding-block: 28px 72px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 64px;
+}
+h1, h2, h3, p, dl, dd, ol, ul, figure { margin: 0; }
+ol, ul { padding: 0; list-style: none; }
+canvas { display: block; width: 100%; height: auto; }
+
+/* ---- title block ---- */
+.titleblock {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  border: 1px solid var(--rule);
+}
+.tb-name { padding: 28px 28px 30px; border-right: 1px solid var(--rule); min-width: 0; }
+.tag {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dust);
+}
+h1 {
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: clamp(58px, 12.4vw, 148px);
+  line-height: 0.84;
+  letter-spacing: -0.005em;
+  text-transform: uppercase;
+  margin-top: 10px;
+  color: var(--bone);
+}
+.gloss { font-style: italic; color: var(--dust); margin-top: 10px; font-size: 16px; }
+.thesis {
+  font-size: clamp(20px, 2.5vw, 27px);
+  line-height: 1.32;
+  margin-top: 22px;
+  max-width: 30em;
+  text-wrap: balance;
+}
+.tb-table { display: grid; grid-template-rows: repeat(4, auto); align-content: stretch; }
+.tb-table > div { padding: 14px 20px; border-bottom: 1px solid var(--rule); display: grid; gap: 2px; align-content: center; }
+.tb-table > div:last-child { border-bottom: 0; }
+.tb-table dt { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dust); }
+.tb-table dd { font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: 0.02em; text-transform: uppercase; line-height: 1.15; }
+.tb-table dd small { display: block; font-family: var(--voice); font-weight: 400; font-size: 14.5px; letter-spacing: 0; text-transform: none; color: var(--dust); line-height: 1.4; margin-top: 3px; }
+
+/* ---- drawing sections ---- */
+.drawing { display: flex; flex-direction: column; gap: 20px; }
+.drawing > header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; border-bottom: 1px solid var(--rule); padding-bottom: 10px; }
+.drawing h2 {
+  font-family: var(--stencil);
+  font-weight: 700;
+  font-size: clamp(26px, 3.4vw, 38px);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+.drawing > header p { color: var(--dust); font-size: 16px; min-width: 0; }
+.lede { max-width: 43em; }
+.frame { border: 1px solid var(--rule); background: var(--form); }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 22px; font-family: var(--mono); font-size: 12.5px; color: var(--dust); }
+.legend span { display: inline-flex; align-items: center; gap: 8px; }
+.key { width: 16px; height: 16px; flex: none; }
+.key.move { background: rgba(234, 219, 176, 0.8); outline: 1.5px solid #fffeee; outline-offset: -1.5px; }
+.key.cap { border: 2px solid var(--ember); }
+.key.risk { background: repeating-linear-gradient(135deg, var(--violet) 0 2px, transparent 2px 5px); outline: 1px solid var(--violet); outline-offset: -1px; }
+.key.thread { height: 2px; width: 22px; background: var(--candle); }
+
+.pillars { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border: 1px solid var(--rule); }
+.pillars li { padding: 22px 24px 24px; border-right: 1px solid var(--rule); min-width: 0; }
+.pillars li:last-child { border-right: 0; }
+.pillars h3 { font-family: var(--display); font-weight: 900; font-size: 30px; line-height: 1; text-transform: uppercase; letter-spacing: 0.01em; margin-bottom: 10px; }
+.pillars p { color: var(--dust); font-size: 16px; }
+
+/* ---- schedule of colour ---- */
+.families { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+.family { min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.family h3 { font-family: var(--display); font-weight: 700; font-size: 21px; text-transform: uppercase; letter-spacing: 0.04em; line-height: 1.1; }
+.family p { color: var(--dust); font-size: 14.5px; line-height: 1.45; }
+.chips { display: grid; gap: 6px; }
+.chip { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 10px; align-items: center; }
+.chip i { height: 34px; border: 1px solid var(--rule); }
+.chip b { font-family: var(--mono); font-weight: 500; font-size: 12.5px; display: block; letter-spacing: 0.02em; }
+.chip em { font-style: normal; font-family: var(--mono); font-size: 11.5px; color: var(--dust); display: block; }
+
+/* ---- grids of figures ---- */
+.figs { display: grid; gap: 14px; }
+.figs.six { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.figs.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+figure { min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+figure canvas { border: 1px solid var(--rule); background: var(--form); }
+figcaption b { font-family: var(--display); font-weight: 700; font-size: 19px; letter-spacing: 0.04em; text-transform: uppercase; display: block; line-height: 1.15; }
+figcaption span { color: var(--dust); font-size: 14.5px; line-height: 1.42; display: block; margin-top: 2px; }
+
+/* ---- motion ---- */
+.timeline { display: flex; height: 34px; border: 1px solid var(--rule); }
+.timeline i { display: block; border-right: 1px solid var(--soot); min-width: 3px; }
+.timeline i:last-child { border-right: 0; }
+.beats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px 22px; counter-reset: beat; }
+.beats li { min-width: 0; counter-increment: beat; border-top: 3px solid var(--c, var(--concrete)); padding-top: 8px; }
+.beats b { font-family: var(--display); font-weight: 700; font-size: 19px; text-transform: uppercase; letter-spacing: 0.04em; display: block; line-height: 1.15; }
+.beats b::before { content: counter(beat) ". "; color: var(--dust); }
+.beats em { font-style: normal; font-family: var(--mono); font-size: 12px; color: var(--dust); display: block; margin: 2px 0 4px; font-variant-numeric: tabular-nums; }
+.beats span { color: var(--dust); font-size: 14.5px; line-height: 1.42; display: block; }
+.rules { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 28px; max-width: 60em; }
+.rules li { padding-left: 18px; position: relative; font-size: 16px; }
+.rules li::before { content: ""; position: absolute; left: 0; top: 0.62em; width: 8px; height: 8px; background: var(--gilt); }
+
+/* ---- atmosphere ---- */
+.moods { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.mood { min-width: 0; border: 1px solid var(--rule); display: flex; flex-direction: column; }
+.mood i { display: block; height: 150px; }
+.mood div { padding: 12px 14px 14px; }
+.mood b { font-family: var(--display); font-weight: 900; font-size: 26px; text-transform: uppercase; letter-spacing: 0.02em; display: block; line-height: 1; }
+.mood span { color: var(--dust); font-size: 14.5px; line-height: 1.42; display: block; margin-top: 6px; }
+.m-calm i  { background: radial-gradient(60% 80% at 50% 0%, rgba(205, 215, 205, 0.22), transparent 70%), radial-gradient(30% 40% at 12% 92%, rgba(234, 190, 120, 0.5), transparent 70%), radial-gradient(30% 40% at 88% 92%, rgba(234, 190, 120, 0.42), transparent 70%), #14130f; }
+.m-sharp i { background: radial-gradient(46% 76% at 50% 0%, rgba(180, 225, 220, 0.3), transparent 70%), radial-gradient(22% 30% at 12% 94%, rgba(234, 190, 120, 0.34), transparent 70%), linear-gradient(180deg, #101614, #0b0c0b); }
+.m-check i { background: radial-gradient(40% 70% at 50% 0%, rgba(200, 190, 230, 0.3), transparent 70%), radial-gradient(90% 60% at 50% 100%, rgba(113, 82, 148, 0.75), transparent 75%), #130d18; }
+.m-mate i  { background: linear-gradient(90deg, transparent 47.5%, rgba(195, 251, 242, 0.95) 49.4% 50.6%, transparent 52.5%), radial-gradient(60% 46% at 50% 100%, rgba(89, 229, 204, 0.42), transparent 72%), radial-gradient(120% 90% at 50% 40%, #5f3e64, #1c1024 80%); }
+
+/* ---- interface ---- */
+.ui { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.1fr) minmax(0, 1.1fr); gap: 18px; align-items: start; }
+.card { background: #100f0d; border: 1px solid rgba(236, 227, 204, 0.42); padding: 16px 18px 18px; min-width: 0; }
+.card.tilt { transform: rotate(-1.2deg); }
+.card.tilt2 { transform: rotate(0.9deg); }
+.card h3 { font-family: var(--display); font-weight: 900; font-size: 30px; line-height: 1; text-transform: uppercase; letter-spacing: 0.01em; }
+.card p { font-size: 16px; margin-top: 8px; }
+.card p.note { color: var(--dust); font-size: 14.5px; }
+.moves { font-family: var(--mono); font-size: 14px; display: grid; grid-template-columns: 2.2em 1fr 1fr; gap: 3px 10px; margin-top: 10px; font-variant-numeric: tabular-nums; }
+.moves span:nth-child(3n + 1) { color: var(--dust); }
+.moves .now { color: var(--soot); background: var(--candle); padding: 0 5px; justify-self: start; }
+.btns { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.btn { font-family: var(--display); font-weight: 700; font-size: 18px; letter-spacing: 0.06em; text-transform: uppercase; padding: 7px 14px 6px; border: 1.5px solid var(--bone); color: var(--bone); background: transparent; }
+.btn.solid { background: var(--bone); color: var(--soot); }
+.btn.warn { border-color: var(--ember); color: var(--ember); }
+.strip { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.cam { font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.08em; text-transform: uppercase; padding: 6px 10px; border: 1px solid var(--rule); color: var(--dust); }
+.cam.on { border-color: var(--candle); color: var(--soot); background: var(--candle); }
+.specimen { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border: 1px solid var(--rule); }
+.specimen > div { padding: 18px 20px; border-right: 1px solid var(--rule); min-width: 0; }
+.specimen > div:last-child { border-right: 0; }
+.specimen .big { font-size: 46px; line-height: 1; margin: 8px 0 8px; overflow-wrap: anywhere; color: var(--bone); }
+.specimen p { color: var(--dust); font-size: 14.5px; line-height: 1.42; }
+.colophon { color: var(--dust); font-size: 15px; max-width: 50em; border-top: 1px solid var(--rule); padding-top: 18px; }
+.colophon b { color: var(--bone); font-weight: 600; }
+
+@media (max-width: 900px) {
+  .titleblock { grid-template-columns: 1fr; }
+  .tb-name { border-right: 0; border-bottom: 1px solid var(--rule); }
+  .pillars { grid-template-columns: 1fr; }
+  .pillars li { border-right: 0; border-bottom: 1px solid var(--rule); }
+  .pillars li:last-child { border-bottom: 0; }
+  .families { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .figs.six { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .beats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .moods { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ui { grid-template-columns: 1fr; }
+  .card.tilt, .card.tilt2 { transform: none; }
+  .specimen { grid-template-columns: 1fr; }
+  .specimen > div { border-right: 0; border-bottom: 1px solid var(--rule); }
+  .specimen > div:last-child { border-bottom: 0; }
+}
+@media (max-width: 560px) {
+  body { font-size: 16px; }
+  .sheet { gap: 48px; }
+  .tb-name { padding: 20px 18px 22px; }
+  .figs.six { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .figs.three { grid-template-columns: 1fr; }
+  .families { grid-template-columns: 1fr; }
+  .rules { grid-template-columns: 1fr; }
+  .moods { grid-template-columns: 1fr; }
+  .mood i { height: 110px; }
+}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+<header class="titleblock">
+  <div class="tb-name">
+    <p class="tag">Game</p>
+    <h1>Nightpiece</h1>
+    <p class="gloss">Called Mortmain, Old French for &ldquo;dead hand&rdquo;, when this sheet was drawn.</p>
+    <p class="thesis">A s&eacute;ance held in a concrete chapel. Two unseen players reach in with hands made of night, and the stone they move is alive and a little afraid of them.</p>
+  </div>
+  <dl class="tb-table">
+    <div><dt>Sheet</dt><dd>Visual direction</dd></div>
+    <div><dt>Status</dt><dd>Direction <small>Drawn before anything was built. Every drawing here is a sketch of intent; the game has been built since.</small></dd></div>
+    <div><dt>Reads with</dt><dd>Style bible <small>docs/style-bible.md holds the frame-by-frame evidence behind each choice.</small></dd></div>
+    <div><dt>Drawn</dt><dd>10 Nov 2026</dd></div>
+  </dl>
+</header>
+
+<section class="drawing">
+  <header><h2>Plan</h2><p>The top-down camera, ivory to move, a knight under consideration.</p></header>
+  <div class="frame"><canvas id="hero" width="1200" height="760" role="img" aria-label="Top-down sketch of a concrete chessboard. A dark spectral hand with a pale gold outline reaches in from the lower right and hovers over a knight, joined to it by three threads of light. Three squares glow ivory, one is bracketed in ember red, two are hatched in violet. A second hand with a mint outline rests at the far edge."></canvas></div>
+  <div class="legend">
+    <span><i class="key move"></i>A square the piece can move to</span>
+    <span><i class="key cap"></i>A capture</span>
+    <span><i class="key risk"></i>The piece would be lost here</span>
+    <span><i class="key thread"></i>Threads mark the piece a hand is considering</span>
+  </div>
+</section>
+
+<ul class="pillars">
+  <li><h3>The hand is the star</h3><p>Every move is a performance by a pair of spectral hands. They arrive as an outline, fill with night, close around the actual shape of the piece, and let go with a flourish.</p></li>
+  <li><h3>Stone that is alive</h3><p>Pieces are small brutalist towers of stacked blocks held together by light. The seams breathe. One glowing aperture works as an eye and follows the hand.</p></li>
+  <li><h3>Light carries the rules</h3><p>Legal squares, threats, paths and payoffs are drawn on the slab in flat, hard-edged light, so a beginner can read the game without opening a menu.</p></li>
+</ul>
+
+<section class="drawing">
+  <header><h2>Schedule of colour</h2><p>Four families, each with one job. Values marked &ldquo;sampled&rdquo; were measured from the reference footage.</p></header>
+  <div class="families">
+    <div class="family">
+      <h3>Ground</h3>
+      <div class="chips">
+        <div class="chip"><i style="background:#0c0b09"></i><span><b>#0C0B09 Soot</b><em>shadow, never pure black</em></span></div>
+        <div class="chip"><i style="background:#25231f"></i><span><b>#25231F Formwork</b><em>chapel walls</em></span></div>
+        <div class="chip"><i style="background:#57534b"></i><span><b>#57534B Concrete</b><em>slab in light</em></span></div>
+        <div class="chip"><i style="background:#a39d8d"></i><span><b>#A39D8D Dust</b><em>haze, secondary text</em></span></div>
+      </div>
+      <p>Warm greys. The room is nearly monochrome so that light is the only colour.</p>
+    </div>
+    <div class="family">
+      <h3>Ivory side</h3>
+      <div class="chips">
+        <div class="chip"><i style="background:#ece3cc"></i><span><b>#ECE3CC Bone</b><em>limestone pieces, text</em></span></div>
+        <div class="chip"><i style="background:#eadbb0"></i><span><b>#EADBB0 Candle</b><em>lit square, sampled</em></span></div>
+        <div class="chip"><i style="background:#fffeee"></i><span><b>#FFFEEE White heat</b><em>square border, sampled</em></span></div>
+        <div class="chip"><i style="background:#c9a45c"></i><span><b>#C9A45C Gilt</b><em>seams, hand rim</em></span></div>
+      </div>
+      <p>The first player. Pale stone lit from inside by candle gold.</p>
+    </div>
+    <div class="family">
+      <h3>Void side</h3>
+      <div class="chips">
+        <div class="chip"><i style="background:#050806"></i><span><b>#050806 Void</b><em>hand fill, sampled</em></span></div>
+        <div class="chip"><i style="background:#1b4a37"></i><span><b>#1B4A37 Deep</b><em>starfield tile, sampled</em></span></div>
+        <div class="chip"><i style="background:#59e5cc"></i><span><b>#59E5CC Spirit</b><em>seams, hand rim, sampled</em></span></div>
+        <div class="chip"><i style="background:#c3fbf2"></i><span><b>#C3FBF2 Pale spirit</b><em>hot core, sampled</em></span></div>
+      </div>
+      <p>The second player. Basalt lit from inside by mint spirit light.</p>
+    </div>
+    <div class="family">
+      <h3>Consequence</h3>
+      <div class="chips">
+        <div class="chip"><i style="background:#715294"></i><span><b>#715294 Violet</b><em>threat and check, sampled</em></span></div>
+        <div class="chip"><i style="background:#2a1b33"></i><span><b>#2A1B33 Plum</b><em>fog under check</em></span></div>
+        <div class="chip"><i style="background:#d0634a"></i><span><b>#D0634A Ember</b><em>capture</em></span></div>
+        <div class="chip"><i style="background:#a75a5f"></i><span><b>#A75A5F Old blood</b><em>blunder, sampled</em></span></div>
+      </div>
+      <p>Held back until the game earns it. Violet only enters with danger.</p>
+    </div>
+  </div>
+</section>
+
+<section class="drawing">
+  <header><h2>Schedule of finishes</h2><p>Six materials. Nothing else appears in the room.</p></header>
+  <div class="figs six" id="finishes">
+    <figure><canvas data-mat="formwork" width="240" height="180"></canvas><figcaption><b>Board-formed concrete</b><span>Plank grain and tie holes. Chapel, plinth, slab edge.</span></figcaption></figure>
+    <figure><canvas data-mat="limestone" width="240" height="180"></canvas><figcaption><b>Bush-hammered limestone</b><span>Ivory pieces and light squares. Matte, chalky.</span></figcaption></figure>
+    <figure><canvas data-mat="basalt" width="240" height="180"></canvas><figcaption><b>Honed basalt</b><span>Void pieces and dark squares. A low, cold sheen.</span></figcaption></figure>
+    <figure><canvas data-mat="brass" width="240" height="180"></canvas><figcaption><b>Dull brass inlay</b><span>Grid lines, coordinates, sigils cut into the slab.</span></figcaption></figure>
+    <figure><canvas data-mat="light" width="240" height="180"></canvas><figcaption><b>Flat light</b><span>Hard edge, hot border, soft bloom. Never a blurry blob.</span></figcaption></figure>
+    <figure><canvas data-mat="voidglass" width="240" height="180"></canvas><figcaption><b>Void glass</b><span>The hands. Dark, with drifting specks and a bright rim.</span></figcaption></figure>
+  </div>
+</section>
+
+<section class="drawing">
+  <header><h2>Elevations</h2><p>The six pieces at eye level, measured in board squares. Sides alternate to show both stones.</p></header>
+  <p class="lede">Each piece is a stack of blocks with glowing seams, so it can breathe, flinch, lean and break apart without a face or limbs. Every silhouette differs at the top, where a hand and a top-down camera both read it.</p>
+  <div class="figs six" id="elevations">
+    <figure><canvas data-piece="p" data-side="w" width="220" height="320"></canvas><figcaption><b>Pawn</b><span>One block, one round eye. Looks up most.</span></figcaption></figure>
+    <figure><canvas data-piece="r" data-side="b" width="220" height="320"></canvas><figcaption><b>Rook</b><span>A slit-windowed tower under a cantilevered crown.</span></figcaption></figure>
+    <figure><canvas data-piece="n" data-side="w" width="220" height="320"></canvas><figcaption><b>Knight</b><span>The only piece that leans. Its head overhangs and turns.</span></figcaption></figure>
+    <figure><canvas data-piece="b" data-side="b" width="220" height="320"></canvas><figcaption><b>Bishop</b><span>A tapered shaft, split by one diagonal cut.</span></figcaption></figure>
+    <figure><canvas data-piece="q" data-side="w" width="220" height="320"></canvas><figcaption><b>Queen</b><span>Stepped body, fin crown, a disc that hovers above.</span></figcaption></figure>
+    <figure><canvas data-piece="k" data-side="b" width="220" height="320"></canvas><figcaption><b>King</b><span>The widest mass. Its cross floats free of the head.</span></figcaption></figure>
+  </div>
+</section>
+
+<section class="drawing">
+  <header><h2>Detail: the hand</h2><p>How a spectral hand enters, holds and leaves.</p></header>
+  <div class="figs three" id="hands">
+    <figure><canvas data-stage="outline" width="360" height="470"></canvas><figcaption><b>Arrives as a line</b><span>The outline is drawn first, in the player's colour. For a moment the hand is only a sketch in the air.</span></figcaption></figure>
+    <figure><canvas data-stage="full" width="360" height="470"></canvas><figcaption><b>Fills with night</b><span>Void-dark inside, with slow wisps and specks. A bright rim, fine crease lines at each joint, a cord bound three times at the wrist.</span></figcaption></figure>
+    <figure><canvas data-stage="release" width="360" height="470"></canvas><figcaption><b>Lets go</b><span>Fingers splay past their rest pose. The forearm dissolves first and the outline is the last thing to fade.</span></figcaption></figure>
+  </div>
+  <div class="timeline" aria-hidden="true">
+    <i style="flex:150;background:#c9a45c"></i><i style="flex:400;background:#8a7a56"></i><i style="flex:80;background:#ece3cc"></i><i style="flex:250;background:#a39d8d"></i><i style="flex:650;background:#57534b"></i><i style="flex:200;background:#a39d8d"></i><i style="flex:100;background:#ece3cc"></i><i style="flex:350;background:#c9a45c"></i>
+  </div>
+  <ol class="beats">
+    <li style="--c:#c9a45c"><b>Arrive</b><em>150 ms</em><span>Fast, with a smear on the leading edge. Then it waits over the board for as long as the player thinks.</span></li>
+    <li style="--c:#8a7a56"><b>Reach</b><em>400 ms, slow in</em><span>The target square brightens a quarter second before the hand commits. Fingers open wider before they close.</span></li>
+    <li style="--c:#ece3cc"><b>Close</b><em>80 ms</em><span>A grip shaped to the piece: fingertips on a pawn's head, a wrap around a rook, a pinch under a knight's overhang.</span></li>
+    <li style="--c:#a39d8d"><b>Lift</b><em>250 ms</em><span>The piece leaves the slab a beat after the hand rises, so it reads as heavy.</span></li>
+    <li style="--c:#57534b"><b>Carry</b><em>450 to 900 ms by distance</em><span>An arc, the wrist leading and the piece swinging a few degrees behind. The room dims one stop.</span></li>
+    <li style="--c:#a39d8d"><b>Set</b><em>200 ms, slow out</em><span>Stone meets stone. Neighbouring squares lift and settle in a ring.</span></li>
+    <li style="--c:#ece3cc"><b>Release</b><em>100 ms</em><span>Fingers spring open, overshoot, and settle.</span></li>
+    <li style="--c:#c9a45c"><b>Withdraw</b><em>350 ms, snap out</em><span>A slow start and a quick exit. Fill fades first, outline last.</span></li>
+  </ol>
+  <ul class="rules">
+    <li>Light moves before the limb does.</li>
+    <li>Slow in, snap out. No linear motion anywhere a viewer can see it.</li>
+    <li>While idle the hands hover, drum their fingers and flex.</li>
+    <li>The opponent's hands are always visible across the board, doing what that player is doing.</li>
+  </ul>
+</section>
+
+<section class="drawing">
+  <header><h2>Effects</h2><p>The same few shapes, escalating with the stakes.</p></header>
+  <div class="figs six" id="effects">
+    <figure><canvas data-fx="squares" width="240" height="200"></canvas><figcaption><b>Square states</b><span>Move, capture and danger never share a look.</span></figcaption></figure>
+    <figure><canvas data-fx="path" width="240" height="200"></canvas><figcaption><b>Path</b><span>A chalk line draws itself along the move, then a flat ribbon of light follows the piece.</span></figcaption></figure>
+    <figure><canvas data-fx="ripple" width="240" height="200"></canvas><figcaption><b>Ripple</b><span>Square plates lift and drop in a ring around a placed piece.</span></figcaption></figure>
+    <figure><canvas data-fx="capture" width="240" height="200"></canvas><figcaption><b>Capture</b><span>The taken piece comes apart into clean blocks and flat dust.</span></figcaption></figure>
+    <figure><canvas data-fx="surge" width="240" height="200"></canvas><figcaption><b>Surge</b><span>A strong move throws a hard-edged fan of light and lifts that side's seams.</span></figcaption></figure>
+    <figure><canvas data-fx="check" width="240" height="200"></canvas><figcaption><b>Check</b><span>Violet fog rolls in, cracks reach for the king, its eye narrows.</span></figcaption></figure>
+  </div>
+</section>
+
+<section class="drawing">
+  <header><h2>Atmosphere</h2><p>The room follows the engine's reading of the position.</p></header>
+  <div class="moods">
+    <div class="mood m-calm"><i></i><div><b>Calm</b><span>Cool light from the oculus, warm candles at the corners. Pieces breathe slowly.</span></div></div>
+    <div class="mood m-sharp"><i></i><div><b>Sharp</b><span>Candles gutter, the shaft of light narrows and turns teal, haze thickens. The drone rises a tone.</span></div></div>
+    <div class="mood m-check"><i></i><div><b>Check</b><span>Violet fog at floor level. Everything but the king and its attacker drops a stop.</span></div></div>
+    <div class="mood m-mate"><i></i><div><b>Mate</b><span>The slab breaks into flying plates around a single pillar of light. The loser's stones go dark.</span></div></div>
+  </div>
+</section>
+
+<section class="drawing">
+  <header><h2>Interface</h2><p>Cream on near-black, set slightly off square, as if laid on the table.</p></header>
+  <div class="ui">
+    <div class="card">
+      <p class="tag">Moves</p>
+      <div class="moves">
+        <span>1.</span><span>e4</span><span>e5</span>
+        <span>2.</span><span>Nf3</span><span>Nc6</span>
+        <span>3.</span><span>Bc4</span><span>Nf6</span>
+        <span>4.</span><span class="now">&hellip;</span><span></span>
+      </div>
+    </div>
+    <div class="card tilt">
+      <p class="tag">Hint</p>
+      <h3>The knight jumps</h3>
+      <p>It moves in an L: two squares one way, then one to the side. It is the only piece that can leap over others.</p>
+      <p class="note">Shown the first time you pick one up. Turn hints off in Settings.</p>
+    </div>
+    <div class="card tilt2">
+      <p class="tag">Before you let go</p>
+      <h3>This loses your knight</h3>
+      <p>A pawn takes it on d4 and you get nothing back.</p>
+      <div class="btns"><span class="btn solid">Take it back</span><span class="btn warn">Play it anyway</span></div>
+    </div>
+  </div>
+  <div class="strip" aria-label="Camera switcher">
+    <span class="tag">Camera</span>
+    <span class="cam on">Top</span><span class="cam">Side</span><span class="cam">Shoulder</span><span class="cam">Eyes</span><span class="cam">Orbit</span>
+  </div>
+  <div class="specimen">
+    <div><p class="tag">Display: Big Shoulders</p><p class="big" style="font-family:var(--display);font-weight:900;text-transform:uppercase">Checkmate</p><p>Tall, condensed capitals for the few words that matter. Its stencil cut marks sheets and settings.</p></div>
+    <div><p class="tag">Voice: Fraunces</p><p class="big" style="font-family:var(--voice);font-style:italic;font-weight:400">your king is in danger</p><p>A soft old-style serif for everything the game says to you in plain language.</p></div>
+    <div><p class="tag">Record: DM Mono</p><p class="big" style="font-family:var(--mono);font-size:34px;line-height:1.3">3. Bc4 Nf6</p><p>Notation, clocks and coordinates, in figures that line up.</p></div>
+  </div>
+</section>
+
+<p class="colophon"><b>Everything on this sheet is original.</b> The reference was studied for its vocabulary: silhouette hands with a drawn edge, flat lit squares, stone chess pieces, mint and ivory light, violet for the decisive moment. No models, textures, audio, logos, names or likenesses from Deadlock are used, and the brutalist chapel, the stacked pieces, the threads and the two-light scheme are this project's own.</p>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var DPR = Math.min(window.devicePixelRatio || 1, 2);
+  var REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var D2R = Math.PI / 180;
+  var MONO = '"DM Mono", ui-monospace, Consolas, monospace';
+
+  function fit(c) {
+    var W = +c.getAttribute("width"), H = +c.getAttribute("height");
+    if (!c._w) { c._w = W; c._h = H; }
+    c.width = c._w * DPR; c.height = c._h * DPR;
+    var x = c.getContext("2d");
+    x.setTransform(DPR, 0, 0, DPR, 0, 0);
+    return x;
+  }
+  function rng(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a |= 0; a = (a + 0x6d2b79f5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function rgba(hex, a) {
+    var n = parseInt(hex.slice(1), 16);
+    return "rgba(" + (n >> 16) + "," + ((n >> 8) & 255) + "," + (n & 255) + "," + a + ")";
+  }
+  function grain(x, W, H, seed, amount, size) {
+    var r = rng(seed), n = Math.round((W * H) / (size * size) * 0.55);
+    for (var i = 0; i < n; i++) {
+      var v = r();
+      x.fillStyle = v > 0.5 ? "rgba(255,250,235," + (amount * (v - 0.5) * 2) + ")" : "rgba(0,0,0," + (amount * (0.5 - v) * 2.4) + ")";
+      x.fillRect(r() * W, r() * H, size * (0.6 + r()), size * (0.6 + r()));
+    }
+  }
+  function blotches(x, W, H, seed, n, a) {
+    var r = rng(seed);
+    for (var i = 0; i < n; i++) {
+      var cx = r() * W, cy = r() * H, rad = (0.08 + r() * 0.25) * Math.max(W, H);
+      var g = x.createRadialGradient(cx, cy, 0, cx, cy, rad);
+      var dark = r() > 0.5;
+      g.addColorStop(0, dark ? "rgba(0,0,0," + a + ")" : "rgba(255,248,230," + a * 0.7 + ")");
+      g.addColorStop(1, "rgba(0,0,0,0)");
+      x.fillStyle = g; x.fillRect(0, 0, W, H);
+    }
+  }
+
+  var IV = { face: "#cfc4aa", lit: "#efe6cf", shade: "#8d846d", deep: "#5f5947", seam: "#f6dc92", eye: "#fff6d8", glow: "#eac873" };
+  var VO = { face: "#1f2321", lit: "#3b443f", shade: "#0c0e0d", deep: "#060707", seam: "#59e5cc", eye: "#c3fbf2", glow: "#59e5cc" };
+
+  /* ------------------------------------------------------------------ hand */
+  var HW = 520, HH = 720, HOX = 260, HOY = 400;
+  function capsule(x, s) {
+    var a = s.a, b = s.b, th = Math.atan2(b[1] - a[1], b[0] - a[0]);
+    x.beginPath();
+    x.arc(a[0], a[1], a[2], th + Math.PI / 2, th - Math.PI / 2);
+    x.arc(b[0], b[1], b[2], th - Math.PI / 2, th + Math.PI / 2);
+    x.closePath();
+  }
+  function poly(x, pts) {
+    x.beginPath();
+    var n = pts.length;
+    for (var i = 0; i < n; i++) {
+      var p = pts[i], q = pts[(i + 1) % n], mx = (p[0] + q[0]) / 2, my = (p[1] + q[1]) / 2;
+      if (i === 0) x.moveTo(mx, my);
+      var q2 = pts[(i + 2) % n];
+      x.quadraticCurveTo(q[0], q[1], (q[0] + q2[0]) / 2, (q[1] + q2[1]) / 2);
+    }
+    x.closePath();
+  }
+  function shapePath(x, s) { if (s.poly) poly(x, s.poly); else capsule(x, s); }
+
+  function handGeom(pose) {
+    var S = [], tips = [], joints = [];
+    var spread = pose.spread, curl = pose.curl;
+    S.push({ a: [0, 20, 34], b: [0, 250, 42] });
+    S.push({ poly: [[-37, 26], [37, 26], [50, -36], [51, -96], [30, -116], [-10, -124], [-46, -112], [-53, -66], [-47, -14]] });
+    S.push({ a: [-34, -40, 24], b: [-26, -4, 23] });
+    S.push({ a: [34, -28, 20], b: [38, -76, 18] });
+    var F = [
+      { m: [-35, -106], len: 118, r: 13.0, ang: -10, bend: 4.5 },
+      { m: [-10, -117], len: 132, r: 13.6, ang: -2.5, bend: 1.5 },
+      { m: [15, -112], len: 122, r: 12.7, ang: 5, bend: -3 },
+      { m: [37, -98], len: 95, r: 11.0, ang: 15, bend: -5 }
+    ];
+    var seg = [0.46, 0.3, 0.24];
+    for (var i = 0; i < 4; i++) {
+      var f = F[i], c = curl[i + 1];
+      var ang = (-90 + f.ang * spread) * D2R, px = f.m[0], py = f.m[1], r = f.r;
+      joints.push({ p: [px, py], ang: ang, r: r, k: 0 });
+      for (var k = 0; k < 3; k++) {
+        var L = f.len * seg[k] * Math.cos(Math.min(1.3, c * (k + 1) * 0.5));
+        ang += f.bend * D2R * (0.6 + c * 2.2) * (k > 0 ? 1 : 0.4);
+        var nx = px + Math.cos(ang) * L, ny = py + Math.sin(ang) * L, nr = r * (k === 2 ? 0.8 : 0.92);
+        S.push({ a: [px, py, r], b: [nx, ny, nr] });
+        px = nx; py = ny; r = nr;
+        if (k < 2) joints.push({ p: [px, py], ang: ang, r: r, k: k + 1 });
+      }
+      tips[i + 1] = { p: [px, py], ang: ang, r: r };
+    }
+    var tc = curl[0], ta = (-90 - 50 * (0.55 + 0.45 * spread) + tc * 26) * D2R;
+    var tx = -40, ty = -20, tr = 18;
+    var TL = [50, 43, 35], TB = [0, 9, 10];
+    for (var j = 0; j < 3; j++) {
+      ta += TB[j] * D2R * (0.5 + tc * 2);
+      var tnx = tx + Math.cos(ta) * TL[j], tny = ty + Math.sin(ta) * TL[j], tnr = tr * (j === 2 ? 0.78 : 0.86);
+      S.push({ a: [tx, ty, tr], b: [tnx, tny, tnr] });
+      tx = tnx; ty = tny; tr = tnr;
+      if (j < 2) joints.push({ p: [tx, ty], ang: ta, r: tr, k: j + 1 });
+    }
+    tips[0] = { p: [tx, ty], ang: ta, r: tr };
+    return { S: S, tips: tips, joints: joints, F: F };
+  }
+
+  function makeHand(rim, glow, seed) {
+    var c = document.createElement("canvas"), o = document.createElement("canvas"), w = document.createElement("canvas");
+    c.width = o.width = HW * DPR; c.height = o.height = HH * DPR;
+    w.width = w.height = 384;
+    var wx = w.getContext("2d"), r = rng(seed);
+    for (var i = 0; i < 70; i++) {
+      wx.save();
+      wx.translate(r() * 384, r() * 384); wx.rotate(-1.2 + r() * 0.7); wx.scale(1, 0.22 + r() * 0.2);
+      var rad = 26 + r() * 60, g = wx.createRadialGradient(0, 0, 0, 0, 0, rad);
+      g.addColorStop(0, rgba(glow, 0.1 + r() * 0.16)); g.addColorStop(1, rgba(glow, 0));
+      wx.fillStyle = g; wx.beginPath(); wx.arc(0, 0, rad, 0, 7); wx.fill();
+      wx.restore();
+    }
+    var specks = [];
+    for (var s = 0; s < 90; s++) specks.push([-150 + r() * 300, -250 + r() * 420, 0.5 + r() * 1.1, r() * 6.3, 0.6 + r() * 1.6]);
+    var motes = [];
+    for (var m = 0; m < 70; m++) motes.push([r(), r(), r(), r()]);
+    return { c: c, o: o, w: w, cx: c.getContext("2d"), ox: o.getContext("2d"), rim: rim, glow: glow, specks: specks, motes: motes };
+  }
+
+  function renderHand(h, P) {
+    var g = handGeom(P.pose), S = g.S, i, x = h.cx, o = h.ox, t = P.t || 0;
+    var d0 = P.dissolve === undefined ? 70 : P.dissolve, d1 = d0 + (P.dissolveLen || 150);
+    function base(ctx) { ctx.setTransform(DPR, 0, 0, DPR, HOX * DPR, HOY * DPR); }
+    function fade(ctx) {
+      ctx.globalCompositeOperation = "destination-out";
+      var gr = ctx.createLinearGradient(0, d0, 0, d1);
+      gr.addColorStop(0, "rgba(0,0,0,0)"); gr.addColorStop(1, "rgba(0,0,0,1)");
+      ctx.fillStyle = gr; ctx.fillRect(-HOX, d0, HW, HH);
+      ctx.globalCompositeOperation = "source-over";
+    }
+    /* outline: stroke every part, then knock the interior out, leaving the edge of the union */
+    o.setTransform(1, 0, 0, 1, 0, 0); o.clearRect(0, 0, h.o.width, h.o.height); base(o);
+    o.lineJoin = "round"; o.lineWidth = 3.6; o.strokeStyle = h.rim;
+    for (i = 0; i < S.length; i++) { shapePath(o, S[i]); o.stroke(); }
+    o.globalCompositeOperation = "destination-out"; o.fillStyle = "#000";
+    for (i = 0; i < S.length; i++) { shapePath(o, S[i]); o.fill(); }
+    o.globalCompositeOperation = "source-over";
+    fade(o);
+
+    /* fill */
+    x.setTransform(1, 0, 0, 1, 0, 0); x.clearRect(0, 0, h.c.width, h.c.height); base(x);
+    var fillA = P.stage === "outline" ? 0.1 : 0.9;
+    x.fillStyle = "rgba(5,8,6,1)";
+    for (i = 0; i < S.length; i++) { shapePath(x, S[i]); x.fill(); }
+    x.globalCompositeOperation = "source-atop";
+    if (P.stage !== "outline") {
+      var off = (t * 9) % 384;
+      x.globalAlpha = 0.5;
+      x.drawImage(h.w, -HOX, -HOY - off, 520, 520); x.drawImage(h.w, -HOX, -HOY - off + 520, 520, 520);
+      x.globalAlpha = 0.3;
+      x.drawImage(h.w, -HOX - 90, -HOY + 140 - ((t * 5) % 384), 620, 620);
+      x.globalAlpha = 1;
+      for (i = 0; i < h.specks.length; i++) {
+        var sp = h.specks[i], tw = 0.35 + 0.65 * Math.abs(Math.sin(t * sp[4] + sp[3]));
+        x.fillStyle = rgba(h.glow, 0.75 * tw);
+        x.fillRect(sp[0], sp[1] - ((t * 3) % 40), sp[2], sp[2]);
+      }
+    }
+    /* drawn detail: tendons, creases, nails */
+    x.strokeStyle = rgba(h.rim, P.stage === "outline" ? 0.5 : 0.3); x.lineWidth = 1; x.lineCap = "round";
+    for (i = 0; i < 4; i++) {
+      var m = g.F[i].m;
+      x.globalAlpha = 0.45; x.beginPath(); x.moveTo(m[0], m[1] + 10); x.quadraticCurveTo(m[0] * 0.6, -50, m[0] * 0.25, 4); x.stroke();
+    }
+    x.globalAlpha = 1;
+    for (i = 0; i < g.joints.length; i++) {
+      var jn = g.joints[i], nx = Math.cos(jn.ang + Math.PI / 2), ny = Math.sin(jn.ang + Math.PI / 2), ax = Math.cos(jn.ang), ay = Math.sin(jn.ang);
+      var wv = jn.r * 0.62;
+      for (var q = -1; q <= 1; q += 2) {
+        var ox = jn.p[0] + ax * q * 2.2, oy = jn.p[1] + ay * q * 2.2;
+        x.beginPath(); x.moveTo(ox - nx * wv, oy - ny * wv);
+        x.quadraticCurveTo(ox + ax * 2.2, oy + ay * 2.2, ox + nx * wv, oy + ny * wv); x.stroke();
+        if (jn.k === 2) break;
+      }
+    }
+    for (i = 0; i < 5; i++) {
+      var tp = g.tips[i];
+      x.save(); x.translate(tp.p[0] - Math.cos(tp.ang) * tp.r * 0.25, tp.p[1] - Math.sin(tp.ang) * tp.r * 0.25); x.rotate(tp.ang);
+      x.beginPath(); x.ellipse(0, 0, tp.r * 0.72, tp.r * 0.56, 0, 0, 7); x.stroke(); x.restore();
+    }
+    /* inner rim glow */
+    x.setTransform(1, 0, 0, 1, 0, 0);
+    x.shadowColor = h.glow; x.shadowBlur = 12 * DPR;
+    x.globalAlpha = P.stage === "outline" ? 0.3 : 0.7;
+    x.drawImage(h.o, 0, 0);
+    x.shadowBlur = 0; x.globalAlpha = 1;
+    base(x);
+    x.globalCompositeOperation = "source-over";
+    if (fillA < 1) {
+      x.globalCompositeOperation = "destination-in";
+      x.fillStyle = "rgba(0,0,0," + fillA + ")"; x.fillRect(-HOX, -HOY, HW, HH);
+      x.globalCompositeOperation = "source-over";
+    }
+    fade(x);
+    /* the forearm breaks into motes */
+    for (i = 0; i < h.motes.length; i++) {
+      var mo = h.motes[i], life = (mo[2] + t * (0.05 + mo[3] * 0.06)) % 1;
+      var my = d0 - 30 + mo[1] * (d1 - d0 + 70) + life * 46, mx = (mo[0] - 0.5) * (86 + life * 60) + Math.sin(t * 0.7 + mo[3] * 9) * 5;
+      var ma = Math.sin(life * Math.PI) * (P.stage === "outline" ? 0.35 : 0.8), ms = 1 + mo[3] * 2.2;
+      x.fillStyle = rgba(h.glow, ma); x.fillRect(mx, my, ms, ms);
+    }
+    /* cord bound three times at the wrist, with a small plumb weight */
+    if (d0 > 30) {
+      x.strokeStyle = h.rim; x.lineWidth = 1.5; x.globalAlpha = P.stage === "outline" ? 0.55 : 0.95;
+      for (i = 0; i < 3; i++) { x.beginPath(); x.moveTo(-35, 30 + i * 5.5); x.quadraticCurveTo(0, 36 + i * 5.5, 35.5, 30 + i * 5.5); x.stroke(); }
+      var sway = Math.sin(t * 1.1) * 4;
+      x.beginPath(); x.moveTo(24, 44); x.quadraticCurveTo(28 + sway * 0.4, 62, 26 + sway, 78); x.stroke();
+      x.fillStyle = h.rim; x.beginPath(); x.moveTo(26 + sway, 76); x.lineTo(30 + sway, 84); x.lineTo(26 + sway, 94); x.lineTo(22 + sway, 84); x.closePath(); x.fill();
+      x.globalAlpha = 1;
+    }
+    return g;
+  }
+  function placeHand(ctx, h, P, px, py, rot, sc) {
+    var g = renderHand(h, P);
+    ctx.save(); ctx.translate(px, py); ctx.rotate(rot); ctx.scale(sc, sc);
+    ctx.shadowColor = rgba(h.glow, 0.7); ctx.shadowBlur = 22 * DPR;
+    ctx.drawImage(h.o, -HOX, -HOY, HW, HH);
+    ctx.shadowBlur = 0;
+    ctx.drawImage(h.c, -HOX, -HOY, HW, HH);
+    ctx.drawImage(h.o, -HOX, -HOY, HW, HH);
+    ctx.restore();
+    var cs = Math.cos(rot) * sc, sn = Math.sin(rot) * sc;
+    return g.tips.map(function (tp) { return [px + tp.p[0] * cs - tp.p[1] * sn, py + tp.p[0] * sn + tp.p[1] * cs]; });
+  }
+
+  /* --------------------------------------------------------- plan pieces */
+  function planShape(x, type, s) {
+    x.beginPath();
+    var i, a;
+    if (type === "p") { for (i = 0; i < 8; i++) { a = (i + 0.5) * Math.PI / 4; x.lineTo(Math.cos(a) * s * 0.29, Math.sin(a) * s * 0.29); } }
+    else if (type === "r") { x.rect(-s * 0.31, -s * 0.31, s * 0.62, s * 0.62); }
+    else if (type === "n") { x.moveTo(-s * 0.22, s * 0.3); x.lineTo(s * 0.24, s * 0.3); x.lineTo(s * 0.28, -s * 0.04); x.lineTo(s * 0.13, -s * 0.36); x.lineTo(-s * 0.1, -s * 0.4); x.lineTo(-s * 0.28, -s * 0.12); }
+    else if (type === "b") { x.moveTo(0, -s * 0.36); x.lineTo(s * 0.3, 0); x.lineTo(0, s * 0.36); x.lineTo(-s * 0.3, 0); }
+    else if (type === "q") { x.arc(0, 0, s * 0.31, 0, 7); }
+    else { x.rect(-s * 0.34, -s * 0.34, s * 0.68, s * 0.68); }
+    x.closePath();
+  }
+  function planPiece(x, type, side, cx, cy, q, o) {
+    o = o || {};
+    var K = side === "w" ? IV : VO, lift = o.lift || 0, s = q * (1 + lift * 0.07), look = o.look || [0, 0], e = o.energy === undefined ? 0.6 : o.energy, i, a;
+    x.save(); x.translate(cx, cy); x.rotate(o.rot || 0);
+    x.shadowColor = "rgba(0,0,0,0.62)"; x.shadowBlur = (5 + lift * 9) * DPR; x.shadowOffsetX = (-4 - lift * 9) * DPR; x.shadowOffsetY = (6 + lift * 12) * DPR;
+    x.fillStyle = K.shade; planShape(x, type, s * 1.06); x.fill();
+    x.shadowColor = "transparent"; x.shadowBlur = 0; x.shadowOffsetX = 0; x.shadowOffsetY = 0;
+    x.fillStyle = K.face; planShape(x, type, s); x.fill();
+    x.strokeStyle = K.lit; x.lineWidth = 1.2; planShape(x, type, s); x.stroke();
+    /* upper module and its glowing seam */
+    x.shadowColor = K.glow; x.shadowBlur = (4 + e * 8) * DPR;
+    x.strokeStyle = rgba(K.seam, 0.35 + e * 0.55); x.lineWidth = 1.3;
+    if (type === "r") {
+      x.strokeRect(-s * 0.17, -s * 0.17, s * 0.34, s * 0.34);
+      x.shadowBlur = 0; x.fillStyle = K.deep;
+      x.fillRect(-s * 0.06, -s * 0.33, s * 0.12, s * 0.1); x.fillRect(-s * 0.06, s * 0.23, s * 0.12, s * 0.1);
+      x.fillRect(-s * 0.33, -s * 0.06, s * 0.1, s * 0.12); x.fillRect(s * 0.23, -s * 0.06, s * 0.1, s * 0.12);
+    } else if (type === "q") {
+      x.beginPath(); x.arc(0, 0, s * 0.18, 0, 7); x.stroke();
+      x.shadowBlur = 0; x.fillStyle = K.lit;
+      for (i = 0; i < 8; i++) { a = i * Math.PI / 4; x.save(); x.rotate(a); x.fillRect(-s * 0.035, -s * 0.42, s * 0.07, s * 0.12); x.restore(); }
+    } else if (type === "k") {
+      x.shadowBlur = 0; x.fillStyle = K.lit;
+      x.fillRect(-s * 0.26, -s * 0.07, s * 0.52, s * 0.14); x.fillRect(-s * 0.07, -s * 0.26, s * 0.14, s * 0.52);
+      x.shadowBlur = (4 + e * 8) * DPR; x.strokeRect(-s * 0.26, -s * 0.26, s * 0.52, s * 0.52);
+    } else if (type === "b") {
+      x.beginPath(); x.moveTo(-s * 0.13, s * 0.15); x.lineTo(s * 0.13, -s * 0.15); x.stroke();
+    } else if (type === "n") {
+      x.beginPath(); x.moveTo(-s * 0.2, -s * 0.02); x.lineTo(s * 0.22, s * 0.04); x.stroke();
+      x.shadowBlur = 0; x.strokeStyle = K.shade; x.lineWidth = 2;
+      for (i = 0; i < 3; i++) { x.beginPath(); x.moveTo(s * (0.06 + i * 0.07), s * 0.12); x.lineTo(s * (0.06 + i * 0.07), s * 0.26); x.stroke(); }
+    } else {
+      x.beginPath(); x.arc(0, 0, s * 0.16, 0, 7); x.stroke();
+    }
+    /* the eye */
+    x.shadowColor = K.glow; x.shadowBlur = (5 + e * 10) * DPR; x.fillStyle = K.eye;
+    var ex = look[0] * s * 0.05, ey = look[1] * s * 0.05;
+    if (type === "n") { x.fillRect(-s * 0.1 + ex, -s * 0.25 + ey, s * 0.18, s * 0.045); }
+    else if (type === "b") { x.beginPath(); x.arc(ex, ey, s * 0.035, 0, 7); x.fill(); }
+    else if (type === "r") { x.fillRect(-s * 0.05 + ex, -s * 0.015 + ey, s * 0.1, s * 0.03); }
+    else { x.beginPath(); x.arc(ex, ey, s * (type === "p" ? 0.055 : 0.06), 0, 7); x.fill(); }
+    x.restore();
+  }
+
+  /* ----------------------------------------------------------------- hero */
+  function hero() {
+    var c = document.getElementById("hero");
+    if (!c) return null;
+    var W = 1200, H = 760, q = 74, bx = 304, by = 84, B = q * 8, cx0 = bx + B / 2, cy0 = by + B / 2;
+    var bg = document.createElement("canvas"); bg.width = W * DPR; bg.height = H * DPR;
+    var b = bg.getContext("2d"); b.setTransform(DPR, 0, 0, DPR, 0, 0);
+    var i, j, r = rng(7);
+    /* chapel floor: cast panels with tie holes */
+    b.fillStyle = "#191815"; b.fillRect(0, 0, W, H);
+    blotches(b, W, H, 3, 26, 0.16); grain(b, W, H, 11, 0.07, 1.6);
+    for (i = 0; i <= 4; i++) { b.fillStyle = "rgba(0,0,0,0.5)"; b.fillRect(i * 300 - 1, 0, 2, H); b.fillStyle = "rgba(255,245,220,0.045)"; b.fillRect(i * 300 + 1, 0, 1, H); }
+    for (j = 0; j <= 4; j++) { b.fillStyle = "rgba(0,0,0,0.5)"; b.fillRect(0, j * 190 - 1, W, 2); b.fillStyle = "rgba(255,245,220,0.045)"; b.fillRect(0, j * 190 + 1, W, 1); }
+    for (i = 0; i < 4; i++) for (j = 0; j < 4; j++) for (var k = 0; k < 4; k++) {
+      var hx = i * 300 + (k % 2 ? 225 : 75), hy = j * 190 + (k < 2 ? 48 : 142);
+      b.fillStyle = "rgba(0,0,0,0.6)"; b.beginPath(); b.arc(hx, hy, 4.2, 0, 7); b.fill();
+      b.strokeStyle = "rgba(255,245,220,0.09)"; b.lineWidth = 1; b.beginPath(); b.arc(hx, hy, 4.6, 0.3, 2.6); b.stroke();
+    }
+    /* pool of light from the oculus */
+    var pool = b.createRadialGradient(cx0 + 20, cy0 - 30, 60, cx0, cy0, 470);
+    pool.addColorStop(0, "rgba(214,226,214,0.20)"); pool.addColorStop(0.62, "rgba(190,205,196,0.07)"); pool.addColorStop(1, "rgba(0,0,0,0)");
+    b.fillStyle = pool; b.fillRect(0, 0, W, H);
+    /* chalk sigil on the floor */
+    b.save(); b.translate(cx0, cy0); b.strokeStyle = "rgba(236,227,204,0.23)"; b.lineWidth = 1.4;
+    b.setLineDash([22, 5, 3, 5]); b.beginPath(); b.arc(0, 0, 402, 0, 7); b.stroke();
+    b.setLineDash([]); b.beginPath(); b.arc(0, 0, 434, 0, 7); b.stroke();
+    b.lineWidth = 1;
+    for (i = 0; i < 64; i++) { var ta = i * Math.PI / 32, long = i % 4 === 0; b.beginPath(); b.moveTo(Math.cos(ta) * 402, Math.sin(ta) * 402); b.lineTo(Math.cos(ta) * (long ? 434 : 412), Math.sin(ta) * (long ? 434 : 412)); b.stroke(); }
+    for (i = 0; i < 16; i++) {
+      var ga = i * Math.PI / 8 + Math.PI / 16;
+      b.save(); b.rotate(ga); b.translate(418, 0); b.rotate(Math.PI / 2);
+      b.beginPath();
+      if (i % 4 === 0) { b.moveTo(-6, 5); b.lineTo(0, -6); b.lineTo(6, 5); b.closePath(); }
+      else if (i % 4 === 1) { b.arc(0, 0, 5, 0.6, 5.2); }
+      else if (i % 4 === 2) { b.moveTo(-6, 0); b.lineTo(6, 0); b.moveTo(0, -6); b.lineTo(0, 6); }
+      else { b.rect(-4.5, -4.5, 9, 9); }
+      b.stroke(); b.restore();
+    }
+    b.restore();
+    /* slab: hard shadow, border, squares, brass inlay */
+    var m = 28;
+    b.fillStyle = "rgba(0,0,0,0.6)"; b.beginPath();
+    b.moveTo(bx - m, by - m); b.lineTo(bx - m - 26, by - m + 34); b.lineTo(bx - m - 26, by + B + m + 34); b.lineTo(bx + B + m - 26, by + B + m + 34); b.lineTo(bx + B + m, by + B + m); b.closePath(); b.fill();
+    b.fillStyle = "#3a372f"; b.fillRect(bx - m, by - m, B + 2 * m, B + 2 * m);
+    b.save(); b.beginPath(); b.rect(bx - m, by - m, B + 2 * m, B + 2 * m); b.clip();
+    b.translate(bx - m, by - m); blotches(b, B + 2 * m, B + 2 * m, 5, 14, 0.12); grain(b, B + 2 * m, B + 2 * m, 23, 0.1, 1.4); b.restore();
+    b.strokeStyle = "rgba(255,246,222,0.22)"; b.lineWidth = 1; b.strokeRect(bx - m + 0.5, by - m + 0.5, B + 2 * m - 1, B + 2 * m - 1);
+    for (i = 0; i < 8; i++) for (j = 0; j < 8; j++) {
+      var light = (i + j) % 2 === 0;
+      b.fillStyle = light ? "#8b8473" : "#201f1c";
+      b.fillRect(bx + i * q, by + j * q, q, q);
+    }
+    b.save(); b.beginPath(); b.rect(bx, by, B, B); b.clip(); b.translate(bx, by);
+    blotches(b, B, B, 9, 18, 0.1); grain(b, B, B, 31, 0.09, 1.3); b.restore();
+    b.strokeStyle = "rgba(160,128,62,0.75)"; b.lineWidth = 1.2;
+    for (i = 0; i <= 8; i++) { b.beginPath(); b.moveTo(bx + i * q, by); b.lineTo(bx + i * q, by + B); b.stroke(); b.beginPath(); b.moveTo(bx, by + i * q); b.lineTo(bx + B, by + i * q); b.stroke(); }
+    b.fillStyle = "rgba(201,164,92,0.6)"; b.font = "500 11px " + MONO; b.textAlign = "center"; b.textBaseline = "middle";
+    for (i = 0; i < 8; i++) { b.fillText("abcdefgh"[i], bx + i * q + q / 2, by + B + m / 2 + 1); b.fillText(String(8 - i), bx - m / 2, by + i * q + q / 2); }
+    /* tallow candles at the corners */
+    var candles = [[bx - m - 30, by - m - 22], [bx + B + m + 26, by - m - 18], [bx - m - 26, by + B + m + 22], [bx + B + m + 32, by + B + m + 20]];
+    candles.forEach(function (cd) {
+      b.fillStyle = "rgba(0,0,0,0.55)"; b.beginPath(); b.ellipse(cd[0] - 5, cd[1] + 6, 11, 9, 0, 0, 7); b.fill();
+      b.fillStyle = "#b9ae93"; b.beginPath(); b.arc(cd[0], cd[1], 8.5, 0, 7); b.fill();
+      b.fillStyle = "#e6dcc0"; b.beginPath(); b.arc(cd[0] + 1, cd[1] - 1, 6, 0, 7); b.fill();
+    });
+
+    var POS = { a8: "br", c8: "bb", d8: "bq", e8: "bk", f8: "bb", h8: "br", a7: "bp", b7: "bp", c7: "bp", d7: "bp", f7: "bp", g7: "bp", h7: "bp", c6: "bn", f6: "bn", e5: "bp", c4: "wb", e4: "wp", f3: "wn", a2: "wp", b2: "wp", c2: "wp", d2: "wp", f2: "wp", g2: "wp", h2: "wp", a1: "wr", b1: "wn", c1: "wb", d1: "wq", e1: "wk", h1: "wr" };
+    function sq(n) { return [bx + ("abcdefgh".indexOf(n[0]) + 0.5) * q, by + (8 - +n[1] + 0.5) * q]; }
+    var ivory = makeHand("#f1dfa6", "#eac873", 41), voidh = makeHand("#a9f3e4", "#59e5cc", 97);
+    var x = fit(c);
+    var noise = document.createElement("canvas"); noise.width = 300; noise.height = 190;
+    grain(noise.getContext("2d"), 300, 190, 77, 0.5, 1);
+
+    function square(n, kind, t) {
+      var p = sq(n), x0 = p[0] - q / 2, y0 = p[1] - q / 2, br = 0.5 + 0.5 * Math.sin(t * 1.6 + x0 * 0.01);
+      if (kind === "move") {
+        x.fillStyle = rgba("#eadbb0", 0.62 + 0.12 * br); x.fillRect(x0 + 3, y0 + 3, q - 6, q - 6);
+        x.shadowColor = "#eadbb0"; x.shadowBlur = 14 * DPR; x.strokeStyle = "#fffeee"; x.lineWidth = 2; x.strokeRect(x0 + 3, y0 + 3, q - 6, q - 6); x.shadowBlur = 0;
+      } else if (kind === "from") {
+        x.strokeStyle = rgba("#eadbb0", 0.75); x.lineWidth = 1.4; x.setLineDash([5, 4]); x.strokeRect(x0 + 4, y0 + 4, q - 8, q - 8); x.setLineDash([]);
+      }
+      if (kind === "risk" || kind === "caprisk") {
+        x.save(); x.beginPath(); x.rect(x0 + 3, y0 + 3, q - 6, q - 6); x.clip();
+        x.strokeStyle = rgba("#8a68b4", 0.5 + 0.2 * br); x.lineWidth = 2;
+        for (var d = -q; d < q * 2; d += 8) { x.beginPath(); x.moveTo(x0 + d, y0 + q); x.lineTo(x0 + d + q, y0); x.stroke(); }
+        x.restore();
+        x.strokeStyle = "#8a68b4"; x.lineWidth = 1.5; x.strokeRect(x0 + 3, y0 + 3, q - 6, q - 6);
+      }
+      if (kind === "caprisk") {
+        x.shadowColor = "#d0634a"; x.shadowBlur = 10 * DPR; x.strokeStyle = "#d0634a"; x.lineWidth = 3; var L = 17;
+        [[0, 0, 1, 1], [1, 0, -1, 1], [0, 1, 1, -1], [1, 1, -1, -1]].forEach(function (cn) {
+          var px = x0 + 3 + cn[0] * (q - 6), py = y0 + 3 + cn[1] * (q - 6);
+          x.beginPath(); x.moveTo(px + cn[2] * L, py); x.lineTo(px, py); x.lineTo(px, py + cn[3] * L); x.stroke();
+        });
+        x.shadowBlur = 0;
+      }
+    }
+
+    function draw(t) {
+      x.setTransform(DPR, 0, 0, DPR, 0, 0);
+      x.drawImage(bg, 0, 0, W, H);
+      var drift = [Math.sin(t * 0.55) * 7, Math.cos(t * 0.43) * 5];
+      var hp = [948 + drift[0], 690 + drift[1]], hrot = (-50 + Math.sin(t * 0.37) * 1.6) * D2R;
+      var tipGuess = [hp[0] - 202, hp[1] - 170];
+      square("f3", "from", t); square("g5", "move", t); square("h4", "move", t); square("g1", "move", t);
+      square("d4", "risk", t); square("e5", "caprisk", t);
+      /* candle glow */
+      candles.forEach(function (cd, i) {
+        var fl = 0.8 + 0.2 * Math.sin(t * (7 + i) + i * 2) * Math.sin(t * 3.1 + i);
+        var g = x.createRadialGradient(cd[0], cd[1], 0, cd[0], cd[1], 150 * fl);
+        g.addColorStop(0, "rgba(255,214,140," + 0.6 * fl + ")"); g.addColorStop(0.22, "rgba(240,180,96," + 0.2 * fl + ")"); g.addColorStop(1, "rgba(240,180,96,0)");
+        x.globalCompositeOperation = "lighter"; x.fillStyle = g; x.fillRect(cd[0] - 160, cd[1] - 160, 320, 320); x.globalCompositeOperation = "source-over";
+        x.fillStyle = "#fff3cf"; x.beginPath(); x.arc(cd[0] + 1, cd[1] - 1, 2.2, 0, 7); x.fill();
+      });
+      Object.keys(POS).forEach(function (n) {
+        var p = sq(n), side = POS[n][0], type = POS[n][1], sel = n === "f3";
+        var dx = tipGuess[0] - p[0], dy = tipGuess[1] - p[1], dl = Math.hypot(dx, dy) || 1;
+        var near = Math.max(0, 1 - dl / 420), breathe = 0.5 + 0.5 * Math.sin(t * 0.9 + p[0] * 0.02 + p[1] * 0.013);
+        var o = { look: [dx / dl, dy / dl], energy: sel ? 1 : 0.28 + 0.3 * breathe + 0.3 * near, lift: sel ? 0.55 + 0.1 * Math.sin(t * 1.3) : 0 };
+        if (type === "n") o.rot = sel ? Math.atan2(dy, dx) + Math.PI / 2 : (side === "w" ? 0 : Math.PI) + (n === "f6" ? 0.5 : n === "c6" ? -0.3 : 0.25);
+        if (side === "b" && type !== "n") o.rot = Math.PI;
+        if (n === "e5") { o.rot = Math.PI + Math.sin(t * 9) * 0.03; o.energy = 0.25; }
+        planPiece(x, type, side, p[0] + (n === "e5" ? Math.sin(t * 11) * 0.8 : 0), p[1], q, o);
+      });
+      /* far hand, waiting at its edge and drumming */
+      var drum = [0.2, 0, 0, 0, 0].map(function (v, i) { return i === 0 ? 0.25 : 0.32 + 0.3 * Math.max(0, Math.sin(t * 5.2 - i * 0.95)); });
+      placeHand(x, voidh, { t: t + 9, pose: { spread: 0.9, curl: drum }, dissolve: 40, dissolveLen: 110 }, 850 + Math.sin(t * 0.3) * 3, -118, 195 * D2R, 1.04);
+      /* near hand, considering the knight */
+      var curl = [0.42, 0.34, 0.32, 0.26, 0.24].map(function (v, i) { return v + 0.05 * Math.sin(t * 1.25 + i * 1.7); });
+      var tips = placeHand(x, ivory, { t: t, pose: { spread: 0.82 + 0.04 * Math.sin(t * 0.7), curl: curl }, dissolve: 52, dissolveLen: 130 }, hp[0], hp[1], hrot, 1.1);
+      var kn = sq("f3");
+      x.save(); x.lineWidth = 1.4; x.shadowColor = "#eac873"; x.shadowBlur = 8 * DPR;
+      [[0, [-10, 12]], [1, [0, -12]], [2, [12, 2]]].forEach(function (pr, i) {
+        var tp = tips[pr[0]], ex = kn[0] + pr[1][0], ey = kn[1] + pr[1][1];
+        x.strokeStyle = rgba("#fbeebc", 0.72 + 0.25 * Math.sin(t * 2.2 + i * 2));
+        x.beginPath(); x.moveTo(tp[0], tp[1]); x.quadraticCurveTo((tp[0] + ex) / 2 + 6, (tp[1] + ey) / 2 + 10, ex, ey); x.stroke();
+        x.fillStyle = "#fff6d8"; x.beginPath(); x.arc(ex, ey, 1.8, 0, 7); x.fill();
+      });
+      x.restore();
+      /* haze and vignette */
+      var v = x.createRadialGradient(cx0, cy0, 260, cx0, cy0, 760);
+      v.addColorStop(0, "rgba(8,7,6,0)"); v.addColorStop(1, "rgba(8,7,6,0.86)");
+      x.fillStyle = v; x.fillRect(0, 0, W, H);
+      x.globalAlpha = 0.07; x.globalCompositeOperation = "overlay";
+      for (var gx = 0; gx < W; gx += 300) for (var gy = 0; gy < H; gy += 190) x.drawImage(noise, gx, gy);
+      x.globalAlpha = 1; x.globalCompositeOperation = "source-over";
+    }
+    return { el: c, draw: draw };
+  }
+
+  /* --------------------------------------------------------- hand stages */
+  function handStages() {
+    var out = [];
+    Array.prototype.forEach.call(document.querySelectorAll("#hands canvas"), function (c, idx) {
+      var x = fit(c), W = 360, H = 470, stage = c.getAttribute("data-stage");
+      var h = stage === "release" ? makeHand("#a9f3e4", "#59e5cc", 5 + idx) : makeHand("#f1dfa6", "#eac873", 5 + idx);
+      function draw(t) {
+        x.setTransform(DPR, 0, 0, DPR, 0, 0);
+        x.fillStyle = "#12110f"; x.fillRect(0, 0, W, H);
+        var g = x.createRadialGradient(W / 2, H * 0.36, 10, W / 2, H * 0.4, 300);
+        g.addColorStop(0, "rgba(120,116,104,0.20)"); g.addColorStop(1, "rgba(0,0,0,0)");
+        x.fillStyle = g; x.fillRect(0, 0, W, H);
+        var P;
+        if (stage === "outline") P = { stage: "outline", t: t, pose: { spread: 0.95, curl: [0.2, 0.16, 0.14, 0.14, 0.16] }, dissolve: 60, dissolveLen: 150 };
+        else if (stage === "full") P = { t: t, pose: { spread: 1 + 0.03 * Math.sin(t * 0.8), curl: [0.3, 0.22, 0.2, 0.2, 0.24].map(function (v, i) { return v + 0.05 * Math.sin(t * 1.1 + i * 1.6); }) }, dissolve: 70, dissolveLen: 150 };
+        else P = { t: t, pose: { spread: 1.75 + 0.05 * Math.sin(t * 1.4), curl: [0, 0, 0, 0, 0] }, dissolve: -60, dissolveLen: 150 };
+        placeHand(x, h, P, W / 2 + 8, H * 0.66, 0, 0.88);
+      }
+      out.push({ el: c, draw: draw });
+    });
+    return out;
+  }
+
+  /* ------------------------------------------------------------ finishes */
+  function finishes() {
+    Array.prototype.forEach.call(document.querySelectorAll("#finishes canvas"), function (c, idx) {
+      var x = fit(c), W = 240, H = 180, mat = c.getAttribute("data-mat"), r = rng(100 + idx), i;
+      if (mat === "formwork") {
+        x.fillStyle = "#4a463f"; x.fillRect(0, 0, W, H); blotches(x, W, H, 2, 10, 0.14);
+        for (i = 0; i < 6; i++) { var y = i * 30; x.fillStyle = "rgba(0,0,0,0.28)"; x.fillRect(0, y, W, 1.5); x.fillStyle = "rgba(255,246,222,0.07)"; x.fillRect(0, y + 1.5, W, 1);
+          for (var k = 0; k < 26; k++) { x.fillStyle = "rgba(0,0,0," + (0.03 + r() * 0.07) + ")"; x.fillRect(r() * W, y + 3 + r() * 24, 20 + r() * 90, 0.8); } }
+        grain(x, W, H, 4, 0.1, 1.3);
+        [[60, 45], [180, 45], [60, 135], [180, 135]].forEach(function (p) { x.fillStyle = "rgba(0,0,0,0.6)"; x.beginPath(); x.arc(p[0], p[1], 5, 0, 7); x.fill(); x.strokeStyle = "rgba(255,246,222,0.16)"; x.beginPath(); x.arc(p[0], p[1], 5.6, 0.4, 2.6); x.stroke(); });
+      } else if (mat === "limestone") {
+        x.fillStyle = "#cfc4aa"; x.fillRect(0, 0, W, H); blotches(x, W, H, 6, 8, 0.08); grain(x, W, H, 8, 0.22, 1.7); grain(x, W, H, 9, 0.12, 0.9);
+        var lg = x.createLinearGradient(0, 0, W, H); lg.addColorStop(0, "rgba(255,250,235,0.18)"); lg.addColorStop(1, "rgba(60,50,30,0.22)"); x.fillStyle = lg; x.fillRect(0, 0, W, H);
+      } else if (mat === "basalt") {
+        x.fillStyle = "#1a1d1c"; x.fillRect(0, 0, W, H); grain(x, W, H, 12, 0.1, 1);
+        for (i = 0; i < 120; i++) { x.fillStyle = "rgba(0,0,0,0.55)"; x.beginPath(); x.arc(r() * W, r() * H, 0.4 + r() * 1.2, 0, 7); x.fill(); }
+        var sh = x.createLinearGradient(30, 0, 200, H); sh.addColorStop(0, "rgba(180,220,210,0)"); sh.addColorStop(0.45, "rgba(180,220,210,0.13)"); sh.addColorStop(0.55, "rgba(180,220,210,0.03)"); sh.addColorStop(1, "rgba(180,220,210,0)"); x.fillStyle = sh; x.fillRect(0, 0, W, H);
+      } else if (mat === "brass") {
+        x.fillStyle = "#3a372f"; x.fillRect(0, 0, W, H); grain(x, W, H, 14, 0.1, 1.3);
+        x.strokeStyle = "#a08040"; x.lineWidth = 3; x.beginPath(); x.moveTo(0, 60); x.lineTo(W, 60); x.moveTo(80, 0); x.lineTo(80, H); x.moveTo(160, 0); x.lineTo(160, H); x.moveTo(0, 120); x.lineTo(W, 120); x.stroke();
+        x.strokeStyle = "rgba(255,230,160,0.35)"; x.lineWidth = 1; x.beginPath(); x.moveTo(0, 59); x.lineTo(W, 59); x.moveTo(79, 0); x.lineTo(79, H); x.moveTo(159, 0); x.lineTo(159, H); x.moveTo(0, 119); x.lineTo(W, 119); x.stroke();
+        x.strokeStyle = "#a08040"; x.lineWidth = 2; x.beginPath(); x.arc(120, 90, 19, 0, 7); x.moveTo(120, 71); x.lineTo(136, 100); x.lineTo(104, 100); x.closePath(); x.stroke();
+      } else if (mat === "light") {
+        x.fillStyle = "#201f1c"; x.fillRect(0, 0, W, H); grain(x, W, H, 16, 0.08, 1.3);
+        x.fillStyle = "rgba(234,219,176,0.4)"; x.fillRect(64, 34, 112, 112);
+        x.shadowColor = "#eadbb0"; x.shadowBlur = 22 * DPR; x.strokeStyle = "#fffeee"; x.lineWidth = 2.5; x.strokeRect(64, 34, 112, 112); x.strokeRect(64, 34, 112, 112); x.shadowBlur = 0;
+      } else {
+        x.fillStyle = "#050806"; x.fillRect(0, 0, W, H);
+        for (i = 0; i < 46; i++) { x.save(); x.translate(r() * W, r() * H); x.rotate(-1 + r() * 0.5); x.scale(1, 0.25); var rad = 20 + r() * 50, g = x.createRadialGradient(0, 0, 0, 0, 0, rad); g.addColorStop(0, "rgba(89,229,204," + (0.05 + r() * 0.1) + ")"); g.addColorStop(1, "rgba(89,229,204,0)"); x.fillStyle = g; x.beginPath(); x.arc(0, 0, rad, 0, 7); x.fill(); x.restore(); }
+        for (i = 0; i < 80; i++) { x.fillStyle = "rgba(195,251,242," + (0.2 + r() * 0.7) + ")"; var s = 0.6 + r() * 1.3; x.fillRect(r() * W, r() * H, s, s); }
+        var eg = x.createLinearGradient(0, 0, 46, 0); eg.addColorStop(0, "rgba(169,243,228,0.95)"); eg.addColorStop(0.12, "rgba(89,229,204,0.5)"); eg.addColorStop(1, "rgba(89,229,204,0)"); x.fillStyle = eg; x.fillRect(0, 0, 46, H);
+      }
+    });
+  }
+
+  /* ---------------------------------------------------------- elevations */
+  function block(x, K, cx, top, w, h, o) {
+    o = o || {};
+    var wt = o.wTop === undefined ? w : o.wTop, sh = o.shift || 0, l = cx - w / 2, rr = cx + w / 2, lt = cx - wt / 2 + sh, rt = cx + wt / 2 + sh;
+    x.fillStyle = K.face; x.beginPath(); x.moveTo(l, top + h); x.lineTo(rr, top + h); x.lineTo(rt, top); x.lineTo(lt, top); x.closePath(); x.fill();
+    var a = Math.max(3, w * 0.15);
+    x.fillStyle = K.lit; x.beginPath(); x.moveTo(l, top + h); x.lineTo(l + a, top + h); x.lineTo(lt + a * wt / w, top); x.lineTo(lt, top); x.closePath(); x.fill();
+    x.fillStyle = K.shade; x.beginPath(); x.moveTo(rr - a * 1.3, top + h); x.lineTo(rr, top + h); x.lineTo(rt, top); x.lineTo(rt - a * 1.3 * wt / w, top); x.closePath(); x.fill();
+    x.fillStyle = K.lit; x.fillRect(lt, top, rt - lt, 1.2);
+  }
+  function seam(x, K, cx, y, w) { x.save(); x.shadowColor = K.glow; x.shadowBlur = 9 * DPR; x.fillStyle = K.seam; x.fillRect(cx - w / 2, y, w, 2.2); x.fillRect(cx - w / 2, y, w, 2.2); x.restore(); }
+  function eye(x, K, cx, cy, w, h, round) { x.save(); x.shadowColor = K.glow; x.shadowBlur = 12 * DPR; x.fillStyle = K.eye; x.beginPath(); if (round) x.arc(cx, cy, w, 0, 7); else x.rect(cx - w / 2, cy - h / 2, w, h); x.fill(); x.fill(); x.restore(); }
+  function elevations() {
+    Array.prototype.forEach.call(document.querySelectorAll("#elevations canvas"), function (c) {
+      var x = fit(c), W = 220, H = 320, type = c.getAttribute("data-piece"), K = c.getAttribute("data-side") === "w" ? IV : VO, G = 290, cx = 114, i, y;
+      var bgc = x.createLinearGradient(0, 0, 0, H); bgc.addColorStop(0, "#0e0d0b"); bgc.addColorStop(0.75, "#1c1a17"); bgc.addColorStop(1, "#24221e"); x.fillStyle = bgc; x.fillRect(0, 0, W, H);
+      var shaft = x.createLinearGradient(40, 0, 190, 0); shaft.addColorStop(0, "rgba(200,212,204,0)"); shaft.addColorStop(0.5, "rgba(200,212,204,0.10)"); shaft.addColorStop(1, "rgba(200,212,204,0)"); x.fillStyle = shaft; x.fillRect(40, 0, 150, G);
+      x.fillStyle = "rgba(236,227,204,0.28)"; x.font = "400 9.5px " + MONO; x.textAlign = "left"; x.textBaseline = "middle";
+      for (i = 0; i <= 1; i++) { x.fillRect(8, G - i * 141, 12, 1); x.fillText(i + " sq", 24, G - i * 141 - 7); }
+      x.fillRect(8, G - 240, 12, 1); x.fillText("1.7", 24, G - 240 - 7);
+      x.fillRect(8, G - 240, 1, 240);
+      x.fillStyle = "rgba(0,0,0,0.5)"; x.beginPath(); x.ellipse(cx + 22, G + 4, 62, 7, 0, 0, 7); x.fill();
+      x.fillStyle = "#2c2a25"; x.fillRect(0, G, W, H - G); x.fillStyle = "rgba(255,246,222,0.14)"; x.fillRect(0, G, W, 1);
+      if (type === "p") {
+        block(x, K, cx, G - 14, 84, 14); block(x, K, cx, G - 72, 60, 56, { wTop: 46 }); seam(x, K, cx, G - 75.5, 44);
+        block(x, K, cx, G - 122, 58, 46); eye(x, K, cx, G - 99, 8.5, 0, true);
+      } else if (type === "r") {
+        block(x, K, cx, G - 16, 98, 16); block(x, K, cx, G - 110, 74, 94);
+        x.fillStyle = K.deep; for (i = -1; i <= 1; i++) x.fillRect(cx + i * 20 - 3, G - 92, 6, 40);
+        eye(x, K, cx, G - 62, 4, 16, false);
+        seam(x, K, cx, G - 113.5, 72); block(x, K, cx, G - 132, 100, 18);
+        for (i = -1; i <= 1; i++) block(x, K, cx + i * 38, G - 153, 22, 21);
+      } else if (type === "n") {
+        block(x, K, cx, G - 16, 92, 16); block(x, K, cx + 6, G - 88, 64, 72); seam(x, K, cx + 6, G - 91.5, 62);
+        block(x, K, cx, G - 126, 56, 34, { wTop: 50, shift: -8 }); seam(x, K, cx - 8, G - 129.5, 48);
+        x.fillStyle = K.face; x.beginPath(); x.moveTo(cx - 62, G - 130); x.lineTo(cx + 26, G - 130); x.lineTo(cx + 26, G - 178); x.lineTo(cx - 40, G - 178); x.closePath(); x.fill();
+        x.fillStyle = K.lit; x.beginPath(); x.moveTo(cx - 62, G - 130); x.lineTo(cx - 50, G - 130); x.lineTo(cx - 30, G - 178); x.lineTo(cx - 40, G - 178); x.closePath(); x.fill();
+        x.fillStyle = K.shade; x.fillRect(cx + 14, G - 178, 12, 48); x.fillStyle = K.lit; x.fillRect(cx - 40, G - 178, 66, 1.2);
+        for (i = 0; i < 3; i++) block(x, K, cx + 34 + i * 10, G - 172 + i * 12, 7, 34 - i * 8);
+        eye(x, K, cx - 26, G - 156, 20, 5, false);
+      } else if (type === "b") {
+        block(x, K, cx, G - 16, 88, 16); block(x, K, cx, G - 104, 60, 88, { wTop: 40 }); seam(x, K, cx, G - 107.5, 38);
+        block(x, K, cx, G - 118, 66, 10); seam(x, K, cx, G - 121.5, 44);
+        block(x, K, cx, G - 182, 46, 60);
+        x.save(); x.shadowColor = K.glow; x.shadowBlur = 10 * DPR; x.strokeStyle = K.eye; x.lineWidth = 3; x.beginPath(); x.moveTo(cx - 15, G - 134); x.lineTo(cx + 13, G - 174); x.stroke(); x.stroke(); x.restore();
+        block(x, K, cx, G - 196, 16, 12);
+      } else if (type === "q") {
+        block(x, K, cx, G - 16, 100, 16); block(x, K, cx, G - 74, 74, 58); seam(x, K, cx, G - 77.5, 56);
+        block(x, K, cx, G - 149, 54, 71); eye(x, K, cx, G - 116, 7, 0, true); seam(x, K, cx, G - 152.5, 52);
+        block(x, K, cx, G - 163, 86, 10);
+        for (i = -2; i <= 2; i++) block(x, K, cx + i * 18, G - 163 - (34 - Math.abs(i) * 5), 8, 34 - Math.abs(i) * 5);
+        seam(x, K, cx, G - 210, 46); block(x, K, cx, G - 221, 62, 8);
+      } else {
+        block(x, K, cx, G - 18, 106, 18); block(x, K, cx, G - 110, 82, 92);
+        x.fillStyle = K.deep; x.fillRect(cx - 4, G - 96, 8, 60); eye(x, K, cx, G - 66, 4, 30, false);
+        seam(x, K, cx, G - 113.5, 80); block(x, K, cx, G - 126, 104, 12); seam(x, K, cx, G - 129.5, 58);
+        block(x, K, cx, G - 178, 62, 48); eye(x, K, cx, G - 154, 7.5, 0, true);
+        seam(x, K, cx, G - 188, 30);
+        block(x, K, cx, G - 240, 13, 44); block(x, K, cx, G - 227, 40, 12);
+      }
+    });
+  }
+
+  /* -------------------------------------------------------------- effects */
+  function effects() {
+    Array.prototype.forEach.call(document.querySelectorAll("#effects canvas"), function (c, idx) {
+      var x = fit(c), W = 240, H = 200, fx = c.getAttribute("data-fx"), r = rng(300 + idx), i, j;
+      x.fillStyle = "#1b1a17"; x.fillRect(0, 0, W, H); grain(x, W, H, 50 + idx, 0.07, 1.4);
+      function tile(px, py, s, lightSq) { x.fillStyle = lightSq ? "#8b8473" : "#201f1c"; x.fillRect(px, py, s, s); x.strokeStyle = "rgba(160,128,62,0.7)"; x.lineWidth = 1; x.strokeRect(px + 0.5, py + 0.5, s - 1, s - 1); }
+      if (fx === "squares") {
+        var s = 62, y0 = 69, xs = [14, 89, 164];
+        for (i = 0; i < 3; i++) tile(xs[i], y0, s, i % 2 === 0);
+        x.fillStyle = "rgba(234,219,176,0.7)"; x.fillRect(xs[0] + 3, y0 + 3, s - 6, s - 6);
+        x.shadowColor = "#eadbb0"; x.shadowBlur = 14 * DPR; x.strokeStyle = "#fffeee"; x.lineWidth = 2; x.strokeRect(xs[0] + 3, y0 + 3, s - 6, s - 6); x.shadowBlur = 0;
+        x.shadowColor = "#d0634a"; x.shadowBlur = 10 * DPR; x.strokeStyle = "#d0634a"; x.lineWidth = 3;
+        [[0, 0, 1, 1], [1, 0, -1, 1], [0, 1, 1, -1], [1, 1, -1, -1]].forEach(function (cn) { var px = xs[1] + 3 + cn[0] * (s - 6), py = y0 + 3 + cn[1] * (s - 6); x.beginPath(); x.moveTo(px + cn[2] * 15, py); x.lineTo(px, py); x.lineTo(px, py + cn[3] * 15); x.stroke(); });
+        x.shadowBlur = 0;
+        x.save(); x.beginPath(); x.rect(xs[2] + 3, y0 + 3, s - 6, s - 6); x.clip(); x.strokeStyle = "rgba(138,104,180,0.7)"; x.lineWidth = 2;
+        for (i = -s; i < s * 2; i += 8) { x.beginPath(); x.moveTo(xs[2] + i, y0 + s); x.lineTo(xs[2] + i + s, y0); x.stroke(); } x.restore();
+        x.strokeStyle = "#8a68b4"; x.lineWidth = 1.5; x.strokeRect(xs[2] + 3, y0 + 3, s - 6, s - 6);
+      } else if (fx === "path") {
+        for (i = 0; i < 4; i++) for (j = 0; j < 3; j++) tile(8 + i * 56, 16 + j * 56, 56, (i + j) % 2 === 0);
+        x.save(); x.shadowColor = "#f8f6ed"; x.shadowBlur = 7 * DPR; x.fillStyle = "rgba(248,246,237,0.8)";
+        x.beginPath(); x.moveTo(36, 152); x.quadraticCurveTo(104, 146, 204, 50); x.lineTo(204, 41); x.quadraticCurveTo(112, 128, 36, 145); x.closePath(); x.fill(); x.restore();
+        x.strokeStyle = "rgba(236,227,204,0.9)"; x.lineWidth = 1.3; x.setLineDash([7, 3, 2, 3]); x.beginPath(); x.moveTo(36, 156); x.lineTo(36, 44); x.lineTo(204, 44); x.stroke(); x.setLineDash([]);
+        [[36, 156], [36, 44], [204, 44]].forEach(function (p, k) { x.beginPath(); if (k === 1) { x.rect(p[0] - 5, p[1] - 5, 10, 10); } else { x.arc(p[0], p[1], 6, 0, 7); } x.stroke(); });
+      } else if (fx === "ripple") {
+        var cs = 38, ox = 25, oy = 5;
+        for (i = 0; i < 5; i++) for (j = 0; j < 5; j++) {
+          var d = Math.max(Math.abs(i - 2), Math.abs(j - 2)), lift = d === 1 ? 7 : d === 2 ? 2.5 : 0;
+          x.save(); x.shadowColor = "rgba(0,0,0,0.75)"; x.shadowBlur = lift * 1.6 * DPR; x.shadowOffsetX = -lift * 0.8 * DPR; x.shadowOffsetY = lift * 1.4 * DPR;
+          x.fillStyle = (i + j) % 2 === 0 ? (d === 1 ? "#a8a08c" : "#8b8473") : (d === 1 ? "#34322d" : "#201f1c");
+          x.fillRect(ox + i * cs + 1.5 + lift * 0.3, oy + j * cs + 1.5 - lift, cs - 3, cs - 3); x.restore();
+        }
+        x.strokeStyle = "rgba(255,254,238,0.85)"; x.shadowColor = "#eadbb0"; x.shadowBlur = 10 * DPR; x.lineWidth = 1.6; x.strokeRect(ox + cs - 4, oy + cs - 11, cs * 3 + 8, cs * 3 + 8); x.shadowBlur = 0;
+        planPiece(x, "p", "w", ox + 2.5 * cs, oy + 2.5 * cs, 46, { energy: 1 });
+      } else if (fx === "capture") {
+        x.fillStyle = "#2c2a25"; x.fillRect(0, 168, W, 32);
+        [[92, 150, 30], [126, 158, 24], [152, 148, 20], [66, 160, 18]].forEach(function (p) { x.fillStyle = "rgba(205,196,170,0.82)"; x.beginPath(); x.arc(p[0], p[1], p[2], 0, 7); x.fill(); });
+        [[120, 96, 44, 30, -0.35], [70, 70, 30, 22, 0.5], [168, 62, 26, 34, 0.25], [108, 38, 36, 12, -0.12], [186, 118, 20, 14, 0.9], [44, 118, 22, 16, -0.7]].forEach(function (p) {
+          x.save(); x.translate(p[0], p[1]); x.rotate(p[4]); block(x, VO, 0, -p[3] / 2, p[2], p[3]); x.restore();
+        });
+        x.save(); x.shadowColor = "#59e5cc"; x.shadowBlur = 10 * DPR; x.fillStyle = "#59e5cc";
+        for (i = 0; i < 16; i++) { var a = r() * 6.3, d2 = 20 + r() * 70; x.save(); x.translate(118 + Math.cos(a) * d2, 86 + Math.sin(a) * d2 * 0.8); x.rotate(a); x.fillRect(0, 0, 3 + r() * 7, 1.6); x.restore(); }
+        x.restore();
+      } else if (fx === "surge") {
+        x.fillStyle = "#2c2a25"; x.fillRect(0, 170, W, 30);
+        x.save(); x.translate(120, 172);
+        for (i = 0; i < 9; i++) {
+          var a0 = (-164 + i * 18.5) * D2R, a1 = a0 + (i % 2 ? 6 : 11) * D2R, L = i % 2 ? 190 : 150;
+          var g = x.createLinearGradient(0, 0, Math.cos(a0) * L, Math.sin(a0) * L); g.addColorStop(0, "rgba(246,220,146,0.95)"); g.addColorStop(1, "rgba(246,220,146,0.08)");
+          x.fillStyle = g; x.beginPath(); x.moveTo(0, 0); x.lineTo(Math.cos(a0) * L, Math.sin(a0) * L); x.lineTo(Math.cos(a1) * L, Math.sin(a1) * L); x.closePath(); x.fill();
+        }
+        x.restore();
+        block(x, IV, 120, 156, 72, 14); block(x, IV, 120, 106, 50, 48, { wTop: 40 }); seam(x, IV, 120, 100.5, 44); block(x, IV, 120, 60, 48, 38); eye(x, IV, 120, 79, 8, 0, true);
+      } else {
+        var vg = x.createLinearGradient(0, 60, 0, H); vg.addColorStop(0, "rgba(113,82,148,0)"); vg.addColorStop(1, "rgba(113,82,148,0.85)"); x.fillStyle = "#130d18"; x.fillRect(0, 0, W, H); x.fillStyle = vg; x.fillRect(0, 0, W, H);
+        x.fillStyle = "#1d1524"; x.fillRect(0, 172, W, 28);
+        x.strokeStyle = "rgba(195,251,242,0.8)"; x.lineWidth = 1.2; x.shadowColor = "#59e5cc"; x.shadowBlur = 6 * DPR;
+        [[0, 196, 40, 186, 78, 190, 96, 180], [240, 190, 200, 184, 170, 192, 146, 181], [30, 200, 62, 192, 90, 196, 104, 186]].forEach(function (p) { x.beginPath(); x.moveTo(p[0], p[1]); x.lineTo(p[2], p[3]); x.lineTo(p[4], p[5]); x.lineTo(p[6], p[7]); x.stroke(); });
+        x.shadowBlur = 0;
+        block(x, IV, 120, 158, 86, 14); block(x, IV, 120, 96, 64, 62); seam(x, IV, 120, 92.5, 62); block(x, IV, 120, 84, 82, 9); block(x, IV, 120, 46, 48, 36);
+        eye(x, IV, 120, 64, 14, 2.4, false);
+        block(x, IV, 120, 6, 10, 30); block(x, IV, 120, 15, 30, 9);
+      }
+    });
+  }
+
+  /* ------------------------------------------------------------------ run */
+  function start() {
+    finishes(); elevations(); effects();
+    var live = [], h = hero();
+    if (h) live.push(h);
+    live = live.concat(handStages());
+    live.forEach(function (l) { l.on = true; l.draw(2.4); });
+    if (REDUCED) return;
+    if ("IntersectionObserver" in window) {
+      var io = new IntersectionObserver(function (es) { es.forEach(function (e) { live.forEach(function (l) { if (l.el === e.target) l.on = e.isIntersecting; }); }); }, { rootMargin: "80px" });
+      live.forEach(function (l) { io.observe(l.el); });
+    }
+    var last = 0;
+    function loop(ms) {
+      if (ms - last > 32) { last = ms; var t = 2.4 + ms / 1000; for (var i = 0; i < live.length; i++) if (live[i].on) live[i].draw(t); }
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+  }
+  if (document.fonts && document.fonts.ready) { document.fonts.ready.then(start, start); } else { start(); }
+})();
+</script>
+</body>
+</html>

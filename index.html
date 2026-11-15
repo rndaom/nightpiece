@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#090b07" />
+    <meta name="description" content="Nightpiece is chess in 3D in your browser: play the computer at six levels, a friend by link, two at one screen, or ranked matches with ratings, with lessons for beginners." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Nightpiece" />
+    <meta property="og:description" content="Nightpiece is chess in 3D in your browser: play the computer at six levels, a friend by link, two at one screen, or ranked matches with ratings, with lessons for beginners." />
+    <!-- og:image and twitter:image are full addresses because some sites will not read a bare path. They name the Railway address and must change if a custom domain is adopted. -->
+    <meta property="og:image" content="https://nightpiece-production.up.railway.app/social.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Nightpiece" />
+    <meta name="twitter:description" content="Nightpiece is chess in 3D in your browser: play the computer at six levels, a friend by link, two at one screen, or ranked matches with ratings, with lessons for beginners." />
+    <meta name="twitter:image" content="https://nightpiece-production.up.railway.app/social.jpg" />
+    <!-- Without JavaScript nothing else is styled yet, so this card carries its own look. -->
+    <noscript>
+      <style>
+        .nojs { position: fixed; inset: 0; display: grid; place-items: center; padding: 16px; background: #090b07; color: #f7ead2; font: 500 15px/1.45 'Figtree Variable', system-ui, sans-serif; }
+        .nojs section { width: min(450px, 100%); padding: 22px; border: 1px solid rgba(247, 234, 210, 0.27); background: #1c1f18; box-shadow: 0 0 0 4px #10130d, 0 0 0 5px rgba(247, 234, 210, 0.12), 9px 11px 0 rgba(0, 0, 0, 0.5); transform: rotate(-1.1deg); }
+        .nojs b { display: inline-block; margin: -34px 0 12px -8px; padding: 6px 11px 5px; background: #f7ead2; color: #10130d; font: 800 11px/1 'Archivo Variable', 'Arial Black', Arial, sans-serif; letter-spacing: 0.1em; text-transform: uppercase; box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.74); transform: rotate(-1.6deg); }
+        .nojs h1 { margin: 0 0 8px; font: 900 34px/1.04 'Fraunces Variable', Georgia, serif; letter-spacing: -0.015em; }
+        .nojs p { margin: 0; color: rgba(247, 234, 210, 0.68); }
+      </style>
+    </noscript>
+    <title>Nightpiece</title>
+  </head>
+  <body>
+    <canvas id="scene" aria-label="Chess board"></canvas>
+    <div id="hud"></div>
+    <noscript>
+      <div class="nojs">
+        <section>
+          <b>Nightpiece</b>
+          <h1>This needs JavaScript</h1>
+          <p>Nightpiece draws its room and plays its chess with JavaScript, and your browser has it turned off. Turn it on for this page and reload.</p>
+        </section>
+      </div>
+    </noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

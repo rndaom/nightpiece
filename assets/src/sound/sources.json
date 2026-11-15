@@ -1,0 +1,792 @@
+[
+ {
+  "file": "foley-a/ceramic_clack/fs-plates-set-down-420440.ogg",
+  "url": "https://cdn.freesound.org/previews/420/420440_6893939-hq.ogg",
+  "sha256": "9c8b310ef3dab5b64a7e58b44626eaa9cbe7616feaf68830084ae66334213365",
+  "licence": "CC0 1.0",
+  "author": "davjanus",
+  "title": "Plates Set Down.wav",
+  "source": "https://freesound.org/people/davjanus/sounds/420440/"
+ },
+ {
+  "file": "foley-a/glass/fs-champagne-flute-hard-198388.ogg",
+  "url": "https://cdn.freesound.org/previews/198/198388_3008343-hq.ogg",
+  "sha256": "564c98865b417c72a1ad2e8933feb6513e8e6fd73feba153e9e5d6e8e99b7899",
+  "licence": "CC0 1.0",
+  "author": "ani_music",
+  "title": "ANI - Champagne flute - Hard 1a",
+  "source": "https://freesound.org/people/ani_music/sounds/198388/"
+ },
+ {
+  "file": "foley-a/glass/fs-crystal-wine-clink-178178.ogg",
+  "url": "https://cdn.freesound.org/previews/178/178178_971447-hq.ogg",
+  "sha256": "80efc6221fcddcc3742f1ec4dc5ab4a54d45d7f67e6b7955fccdc6a2c829a247",
+  "licence": "CC0 1.0",
+  "author": "lmr9",
+  "title": "Wine glass clink deeper.wav",
+  "source": "https://freesound.org/people/lmr9/sounds/178178/"
+ },
+ {
+  "file": "foley-a/glass/fs-glasses-clink-96k-269395.ogg",
+  "url": "https://cdn.freesound.org/previews/269/269395_5117539-hq.ogg",
+  "sha256": "562514930363bf21db28d98f233b171d5b4b2668f40e43b1f9d6d51584437072",
+  "licence": "CC0 1.0",
+  "author": "SirMediabert",
+  "title": "clink of glasses",
+  "source": "https://freesound.org/people/SirMediabert/sounds/269395/"
+ },
+ {
+  "file": "foley-a/glass/fs-wine-glass-hard-198401.ogg",
+  "url": "https://cdn.freesound.org/previews/198/198401_3008343-hq.ogg",
+  "sha256": "72ccddb75fa5a0c0deb676041b420d015a3cdbe7f8d9dcde1a7dfbe7756e8c61",
+  "licence": "CC0 1.0",
+  "author": "ani_music",
+  "title": "ANI - Wine Glass - Hard",
+  "source": "https://freesound.org/people/ani_music/sounds/198401/"
+ },
+ {
+  "file": "foley-a/low_boom/fs-church-door-shut-392240.ogg",
+  "url": "https://cdn.freesound.org/previews/392/392240_394283-hq.ogg",
+  "sha256": "75bea0135302de0ed2fd24c870ba92f5797b6d82a1ea2b988c219f7e1c9765b4",
+  "licence": "CC0 1.0",
+  "author": "gropkcor",
+  "title": "St Mullion Church Door Internal Shut_sel.wav",
+  "source": "https://freesound.org/people/gropkcor/sounds/392240/"
+ },
+ {
+  "file": "foley-a/low_boom/fs-door-smash-1-218890.ogg",
+  "url": "https://cdn.freesound.org/previews/218/218890_71257-hq.ogg",
+  "sha256": "69596b6b7d8c5ccf84509a9d6b37215f9bbee457f7a485b5deeeb2675b9156c5",
+  "licence": "CC0 1.0",
+  "author": "qubodup",
+  "title": "Door Smash 1",
+  "source": "https://freesound.org/people/qubodup/sounds/218890/"
+ },
+ {
+  "file": "foley-a/rock_crack/fs-kirkstall-rock-crumble-262118.ogg",
+  "url": "https://cdn.freesound.org/previews/262/262118_4883517-hq.ogg",
+  "sha256": "44b93f371edb3013714acc22786429f1a72d01c39f132ad487107daf0ef06f4a",
+  "licence": "CC0 1.0",
+  "author": "rokenjocu",
+  "title": "Kirkstall Rock Crumble .wav",
+  "source": "https://freesound.org/people/rokenjocu/sounds/262118/"
+ },
+ {
+  "file": "foley-a/rock_crack/fs-rock-destroy-524312.ogg",
+  "url": "https://cdn.freesound.org/previews/524/524312_6714882-hq.ogg",
+  "sha256": "31e5ea1b41ab814e324b2733d51c1e811b9f9107fac6444d9a74777d9092fd35",
+  "licence": "CC0 1.0",
+  "author": "Bertsz",
+  "title": "Rock destroy",
+  "source": "https://freesound.org/people/Bertsz/sounds/524312/"
+ },
+ {
+  "file": "foley-a/rock_crack/fs-rock-smash-512243.ogg",
+  "url": "https://cdn.freesound.org/previews/512/512243_7704891-hq.ogg",
+  "sha256": "6e145e60a65d648bd56f13e110045446c5aadade33bc58042e101afa3806d8fb",
+  "licence": "CC0 1.0",
+  "author": "NeoSpica",
+  "title": "Rock Smash",
+  "source": "https://freesound.org/people/NeoSpica/sounds/512243/"
+ },
+ {
+  "file": "foley-a/rock_crack/fs-stone-falls-breaks-109360.ogg",
+  "url": "https://cdn.freesound.org/previews/109/109360_1868848-hq.ogg",
+  "sha256": "de0d24a54234908a56dc4ca4d8f13ad3ba132d090e16360660a83b626990545c",
+  "licence": "CC0 1.0",
+  "author": "SoundCollectah",
+  "title": "stone falls and breaks low pitch.aiff",
+  "source": "https://freesound.org/people/SoundCollectah/sounds/109360/"
+ },
+ {
+  "file": "foley-a/rock_crack/fs-stones-falls-debris-550342.ogg",
+  "url": "https://cdn.freesound.org/previews/550/550342_9250976-hq.ogg",
+  "sha256": "705008239120f5f03ffa78e32c4d6cd9730a68d850f186502abe4d6bb05cfc6a",
+  "licence": "CC0 1.0",
+  "author": "Nox_Sound",
+  "title": "Foley_Stones_Falls_Debris_Stereo_DR05.wav",
+  "source": "https://freesound.org/people/Nox_Sound/sounds/550342/"
+ },
+ {
+  "file": "foley-a/rock_crack/fs-tumbling-rocks-stairs-488660.ogg",
+  "url": "https://cdn.freesound.org/previews/488/488660_9395330-hq.ogg",
+  "sha256": "997db9d5c8b8db17502eb4fdaa3d1180fa558b5aee73da6f6e41b66173a6d4ea",
+  "licence": "CC0 1.0",
+  "author": "Fission9",
+  "title": "Tumbling Rocks",
+  "source": "https://freesound.org/people/Fission9/sounds/488660/"
+ },
+ {
+  "file": "foley-a/rock_crack/oga-bfh1-rock-breaking-02.ogg",
+  "url": "https://opengameart.org/sites/default/files/sfx_breaking_and_falling.zip",
+  "sha256": "3e06b794511f693b6aaca5eee1d47491bab74d814746a68de6c8bf4eec744ccc",
+  "licence": "CC0 1.0",
+  "author": "rubberduck",
+  "title": "75 CC0 breaking/falling/hit - rock_breaking_02",
+  "source": "https://opengameart.org/content/75-cc0-breaking-falling-hit-sfx"
+ },
+ {
+  "file": "foley-a/stone_impact/fs-cobblestone-blocks-268055.ogg",
+  "url": "https://cdn.freesound.org/previews/268/268055_2795042-hq.ogg",
+  "sha256": "15b4c1c02114f6b80caf7e9328489d0fabf4c01498d52331b49deb2d3cc3c599",
+  "licence": "CC0 1.0",
+  "author": "jobel0092",
+  "title": "two large cobblestone blocks",
+  "source": "https://freesound.org/people/jobel0092/sounds/268055/"
+ },
+ {
+  "file": "foley-a/stone_impact/fs-rock-stone-hits-a-179365.ogg",
+  "url": "https://cdn.freesound.org/previews/179/179365_544580-hq.ogg",
+  "sha256": "8f79dc369931788eb27c6acbc8310fbe1a999307ca912bef38a10dfc496ac831",
+  "licence": "CC0 1.0",
+  "author": "lolamadeus",
+  "title": "Small Rock and Stone Hits.wav",
+  "source": "https://freesound.org/people/lolamadeus/sounds/179365/"
+ },
+ {
+  "file": "foley-a/stone_impact/fs-rock-stone-hits-b-179360.ogg",
+  "url": "https://cdn.freesound.org/previews/179/179360_544580-hq.ogg",
+  "sha256": "a23640a4e5ceb68c1e42a993b811c159b2a445b8649c0cbbca68c827bd9f0d92",
+  "licence": "CC0 1.0",
+  "author": "lolamadeus",
+  "title": "Small Rock and Stone Hits 2.wav",
+  "source": "https://freesound.org/people/lolamadeus/sounds/179360/"
+ },
+ {
+  "file": "foley-a/stone_impact/fs-stone-drop-ground-369981.ogg",
+  "url": "https://cdn.freesound.org/previews/369/369981_1196518-hq.ogg",
+  "sha256": "264133ceb061d98f1061d93fd03622f46b8d4eb230de1245b4a69bbf5c63c5fc",
+  "licence": "CC0 1.0",
+  "author": "northern87",
+  "title": "Stone dropping to ground_northern87",
+  "source": "https://freesound.org/people/northern87/sounds/369981/"
+ },
+ {
+  "file": "foley-a/stone_impact/fs-stone-knock-530354.ogg",
+  "url": "https://cdn.freesound.org/previews/530/530354_10106687-hq.ogg",
+  "sha256": "cb0a56ed9f4a71c8898a6b19164827e626ab43d94fd66f5c83471272f4ec5306",
+  "licence": "CC0 1.0",
+  "author": "danielpodlovics",
+  "title": "Stone.wav",
+  "source": "https://freesound.org/people/danielpodlovics/sounds/530354/"
+ },
+ {
+  "file": "foley-a/stone_impact/fs-stone-on-stone-bounce-364711.ogg",
+  "url": "https://cdn.freesound.org/previews/364/364711_2531187-hq.ogg",
+  "sha256": "aa44d288a1eee7e3d8e18826e827c4bcd14385af788d2619de839571b715867a",
+  "licence": "CC0 1.0",
+  "author": "alegemaate",
+  "title": "Stone dropping",
+  "source": "https://freesound.org/people/alegemaate/sounds/364711/"
+ },
+ {
+  "file": "foley-a/stone_scrape/fs-granite-block-move-543703.ogg",
+  "url": "https://cdn.freesound.org/previews/543/543703_11072224-hq.ogg",
+  "sha256": "aec2ac4316e6c4f1f15d961ddda828ba00050f1583e73c568961dd13ae6273ac",
+  "licence": "CC0 1.0",
+  "author": "200221-WeanBekker",
+  "title": "Moving Granite block.wav",
+  "source": "https://freesound.org/people/200221-WeanBekker/sounds/543703/"
+ },
+ {
+  "file": "foley-a/stone_scrape/fs-slab-grinding-heavy-844329.ogg",
+  "url": "https://cdn.freesound.org/previews/844/844329_17689204-hq.ogg",
+  "sha256": "0e9123c527cfe27ddc76ccd226cee1bb14ca7714b09404781c5d9fca79bfea05",
+  "licence": "CC0 1.0",
+  "author": "NahuelMartinez",
+  "title": "Stone Slab Door Grinding - Heavy Rock Scrape (Mono)",
+  "source": "https://freesound.org/people/NahuelMartinez/sounds/844329/"
+ },
+ {
+  "file": "foley-a/stone_scrape/oga-cinderblock-scrape-03.wav",
+  "url": "https://opengameart.org/sites/default/files/scrapes.zip",
+  "sha256": "5586c252106affc44e71fcc5781bafb7c6d6d49c301b92f69a210f0d7435d508",
+  "licence": "CC0 1.0",
+  "author": "AntumDeluge",
+  "title": "Scrapes - scrape-3",
+  "source": "https://opengameart.org/content/scrapes"
+ },
+ {
+  "file": "foley-a/stone_scrape/oga-stone-rock-wood-moved.mp3",
+  "url": "https://opengameart.org/sites/default/files/stone_rock_or_wood_moved_no_tick.mp3",
+  "sha256": "3521478b940968bb48c476a4e2e37cd2f3b864fe1b548b7d4868f339e405ab11",
+  "licence": "CC0 1.0",
+  "author": "omegagreg (original pauliuw)",
+  "title": "stone_rock_or_wood_moved_no_tick",
+  "source": "https://opengameart.org/content/stonerockorwoodmovednotick"
+ },
+ {
+  "file": "foley-b/breath_voice/fs-763894.mp3",
+  "url": "https://cdn.freesound.org/previews/763/763894_11744683-hq.mp3",
+  "sha256": "d8276a49c85b8973523c03c55e4473e228ed96195155cc4fa5ec921fdd1f590b",
+  "licence": "CC0 1.0",
+  "author": "ShangusBurger",
+  "title": "CRWDSing_U Ooh Vowel Sung Near F 02_ShaneVincent_GSC24_XY-AKG214-96k.wav",
+  "source": "https://freesound.org/people/ShangusBurger/sounds/763894/"
+ },
+ {
+  "file": "foley-b/breath_voice/fs-8067.mp3",
+  "url": "https://cdn.freesound.org/previews/8/8067_13439-hq.mp3",
+  "sha256": "634aa03b317ab2799b0a2d79db5b0480ae8fa3bb07092e3a59e31b498bb5c0bd",
+  "licence": "CC0 1.0",
+  "author": "annannienann",
+  "title": "Low_D_Arh.wav",
+  "source": "https://freesound.org/people/annannienann/sounds/8067/"
+ },
+ {
+  "file": "foley-b/clock/fs-117280.mp3",
+  "url": "https://cdn.freesound.org/previews/117/117280_1440889-hq.mp3",
+  "sha256": "257f84b33e99695f1da4c1bca3dd23c1a429d70c11d57af7d08485e1c17798e6",
+  "licence": "CC0 1.0",
+  "author": "Alexsani",
+  "title": "front tick.wav",
+  "source": "https://freesound.org/people/Alexsani/sounds/117280/"
+ },
+ {
+  "file": "foley-b/clock/fs-323626.mp3",
+  "url": "https://cdn.freesound.org/previews/323/323626_5503971-hq.mp3",
+  "sha256": "9202b3abb1a815c8a381d63b2dee402a1c1268729171376b3bf307d11af80d58",
+  "licence": "CC0 1.0",
+  "author": "Duasun",
+  "title": "Old clock tick-tock",
+  "source": "https://freesound.org/people/Duasun/sounds/323626/"
+ },
+ {
+  "file": "foley-b/cloth_skin/fs-315750.mp3",
+  "url": "https://cdn.freesound.org/previews/315/315750_1255091-hq.mp3",
+  "sha256": "f9cd54cdd66aa1aa18430fed07411cb194dfab35bdd98ca9db8191d76d44ef0d",
+  "licence": "CC0 1.0",
+  "author": "humga",
+  "title": "hands rubbing together",
+  "source": "https://freesound.org/people/humga/sounds/315750/"
+ },
+ {
+  "file": "foley-b/cloth_skin/fs-82723.mp3",
+  "url": "https://cdn.freesound.org/previews/82/82723_122637-hq.mp3",
+  "sha256": "a83108c85322838622cc59721a59e57a2fe229c56c9e0715ae14aa75765deb01",
+  "licence": "CC0 1.0",
+  "author": "prozaciswack",
+  "title": "HandsOnConcreteWithDirt.wav",
+  "source": "https://freesound.org/people/prozaciswack/sounds/82723/"
+ },
+ {
+  "file": "foley-b/cloth_skin/kenney-cloth-1.ogg",
+  "url": "https://opengameart.org/sites/default/files/RPGsounds_Kenney.zip",
+  "sha256": "ddb93a3671233f95da0e0b10367f082f7eb42fa6caaddcf776410aa8833c747d",
+  "licence": "CC0 1.0",
+  "author": "Kenney (Kenney Vleugels)",
+  "title": "cloth1",
+  "source": "https://opengameart.org/content/50-rpg-sound-effects"
+ },
+ {
+  "file": "foley-b/cloth_skin/kenney-creak-1.ogg",
+  "url": "https://opengameart.org/sites/default/files/RPGsounds_Kenney.zip",
+  "sha256": "8a346186fd297254248cab8e8117060a52a5cf2a84f603153a762108550ea95e",
+  "licence": "CC0 1.0",
+  "author": "Kenney (Kenney Vleugels)",
+  "title": "creak1",
+  "source": "https://opengameart.org/content/50-rpg-sound-effects"
+ },
+ {
+  "file": "foley-b/cloth_skin/owlish-cloth-01.wav",
+  "url": "https://opengameart.org/sites/default/files/MoreSounds.zip",
+  "sha256": "7a2ca69337c8c0524dde4f34aeefbcdc63a8c7528f62fd3e3a6ed98f4c1ff75e",
+  "licence": "CC0 1.0",
+  "author": "OwlishMedia",
+  "title": "Cloth_01",
+  "source": "https://opengameart.org/content/202-more-sound-effects"
+ },
+ {
+  "file": "foley-b/fire/fs-680476.mp3",
+  "url": "https://cdn.freesound.org/previews/680/680476_12896641-hq.mp3",
+  "sha256": "029125f44935a8bce56b0f6c5cd52742927a31b3ffd0cb38f366563b1613106c",
+  "licence": "CC0 1.0",
+  "author": "roisin.gleeson",
+  "title": "Candle wood wick flame mono 01.wav",
+  "source": "https://freesound.org/people/roisin.gleeson/sounds/680476/"
+ },
+ {
+  "file": "foley-b/heartbeat/fs-831630.mp3",
+  "url": "https://cdn.freesound.org/previews/831/831630_15956618-hq.mp3",
+  "sha256": "359e09aa506c6add034980a8c09fb4a73612334545d921f68c3e9db98997f479",
+  "licence": "CC0 1.0",
+  "author": "modusmogulus",
+  "title": "Real Heartbeat (DIY Stethoscope recording)",
+  "source": "https://freesound.org/people/modusmogulus/sounds/831630/"
+ },
+ {
+  "file": "foley-b/paper_card/bmac-card-contact1.wav",
+  "url": "https://opengameart.org/sites/default/files/contact1.wav",
+  "sha256": "6b5c7632849848604d4321e37af0a93369eda54d2190b433454151a3e9b81e86",
+  "licence": "CC0 1.0",
+  "author": "BMacZero",
+  "title": "Playing card contact 1",
+  "source": "https://opengameart.org/content/playing-card-sounds"
+ },
+ {
+  "file": "foley-b/paper_card/fs-464302.mp3",
+  "url": "https://cdn.freesound.org/previews/464/464302_775844-hq.mp3",
+  "sha256": "e0d672c802d714fd10f156355114faffa7e4698de5bd51bc567cf6434805ffa5",
+  "licence": "CC0 1.0",
+  "author": "eyesonlegs",
+  "title": "PaperSlide.wav",
+  "source": "https://freesound.org/people/eyesonlegs/sounds/464302/"
+ },
+ {
+  "file": "foley-b/paper_card/kenney-book-close.ogg",
+  "url": "https://opengameart.org/sites/default/files/RPGsounds_Kenney.zip",
+  "sha256": "81e976532565f4372abd14e83d2684195fa548d0a28d345de221e56052454f32",
+  "licence": "CC0 1.0",
+  "author": "Kenney (Kenney Vleugels)",
+  "title": "bookClose",
+  "source": "https://opengameart.org/content/50-rpg-sound-effects"
+ },
+ {
+  "file": "foley-b/paper_card/kenney-card-shove-2.ogg",
+  "url": "https://opengameart.org/sites/default/files/kenney_casino-audio.zip",
+  "sha256": "8e95c1d3ae94b5b91bc663432ad7c3bf4e03a541c22ec10fa51c65fe0e29054b",
+  "licence": "CC0 1.0",
+  "author": "Kenney (Kenney Vleugels)",
+  "title": "card-shove-2",
+  "source": "https://opengameart.org/content/54-casino-sound-effects-cards-dice-chips"
+ },
+ {
+  "file": "foley-b/paper_card/kenney-card-slide-5.ogg",
+  "url": "https://opengameart.org/sites/default/files/kenney_casino-audio.zip",
+  "sha256": "8638ab0c17f029aded0e27a4f9b9bb9f8c621b19a6e9975e855cb40ea63e2201",
+  "licence": "CC0 1.0",
+  "author": "Kenney (Kenney Vleugels)",
+  "title": "card-slide-5",
+  "source": "https://opengameart.org/content/54-casino-sound-effects-cards-dice-chips"
+ },
+ {
+  "file": "foley-b/paper_card/oga-bookflip-03.ogg",
+  "url": "https://opengameart.org/sites/default/files/book_flips_-_starninjas.zip",
+  "sha256": "ba66b947b6f53f557fa8db37413e66a2168c79ced10ca55a8abdfea134550817",
+  "licence": "CC0 1.0",
+  "author": "StarNinjas",
+  "title": "book_flip.3",
+  "source": "https://opengameart.org/content/10-book-page-flips"
+ },
+ {
+  "file": "foley-b/paper_card/oga-pencil-write.flac",
+  "url": "https://opengameart.org/sites/default/files/pencil.zip",
+  "sha256": "aa835e94c7bafed9e096684a709f20de806083da5511e284d802bd16e244c025",
+  "licence": "CC0 1.0",
+  "author": "AntumDeluge (from freesound sources pencil_write by NachtmahrTV, pencil_erase by damsur)",
+  "title": "pencil_write",
+  "source": "https://opengameart.org/content/pencil-sounds"
+ },
+ {
+  "file": "foley-b/room_tone/fs-131107.mp3",
+  "url": "https://cdn.freesound.org/previews/131/131107_623488-hq.mp3",
+  "sha256": "f54cae9999ad53cdb5d28950fd06be1a37e1b77324d0b3714ea18ec2511e8e36",
+  "licence": "CC0 1.0",
+  "author": "blaukreuz",
+  "title": "02 Mainz Cathedral western crypt.wav",
+  "source": "https://freesound.org/people/blaukreuz/sounds/131107/"
+ },
+ {
+  "file": "foley-b/room_tone/fs-557380.mp3",
+  "url": "https://cdn.freesound.org/previews/557/557380_8698364-hq.mp3",
+  "sha256": "8aad49440625739951134dde337cb6103d551f841b396a010280f03bcd9e2055",
+  "licence": "CC0 1.0",
+  "author": "Tonmeister88",
+  "title": "AMB_Wind_Howling_empty Church close to window_48kHz.wav",
+  "source": "https://freesound.org/people/Tonmeister88/sounds/557380/"
+ },
+ {
+  "file": "foley-b/whoosh/fs-391448.mp3",
+  "url": "https://cdn.freesound.org/previews/391/391448_7280678-hq.mp3",
+  "sha256": "e63988d56dc55cac97a72064bd1be9f0b763b0f67969e94f3b12cd25cb2406a3",
+  "licence": "CC0 1.0",
+  "author": "saturdaysoundguy",
+  "title": "Shirt Whoosh 1.wav",
+  "source": "https://freesound.org/people/saturdaysoundguy/sounds/391448/"
+ },
+ {
+  "file": "foley-b/whoosh/fs-427979.mp3",
+  "url": "https://cdn.freesound.org/previews/427/427979_2247456-hq.mp3",
+  "sha256": "1fcee738b55df8edbde03a13186e6c3ea9f61235827ec1a241eb5d393edad614",
+  "licence": "CC0 1.0",
+  "author": "Kinoton",
+  "title": "Short Whoosh, 13x",
+  "source": "https://freesound.org/people/Kinoton/sounds/427979/"
+ },
+ {
+  "file": "instruments/VCSL/Aerophones/Edge-blown Aerophones/Pipe Organ/Quiet Pedal/NT5_PedalQuiet_D#1_rr1.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Aerophones/Edge-blown%20Aerophones/Pipe%20Organ/Quiet%20Pedal/NT5_PedalQuiet_D%231_rr1.wav",
+  "sha256": "2a9ea128eb632baa1b221206b2f38f9d7b1f440566dea52fdb0ace1919a04305",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VCSL"
+ },
+ {
+  "file": "instruments/VCSL/Chordophones/Composite Chordophones/Concert Harp/KSHarp_A4_mf1.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Chordophones/Composite%20Chordophones/Concert%20Harp/KSHarp_A4_mf1.wav",
+  "sha256": "3665f3975cad4a33f46784aa4f896f4b4319ba2b7831e892d975bc38c9f09f23",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VCSL"
+ },
+ {
+  "file": "instruments/VCSL/Chordophones/Composite Chordophones/Concert Harp/KSHarp_C5_mf1.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Chordophones/Composite%20Chordophones/Concert%20Harp/KSHarp_C5_mf1.wav",
+  "sha256": "7c8b862f6fd3f1442ed87537af976d84bda8c05a5b4900e8907d570b5202a517",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VCSL"
+ },
+ {
+  "file": "instruments/VCSL/Chordophones/Composite Chordophones/Concert Harp/KSHarp_D4_mf1.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Chordophones/Composite%20Chordophones/Concert%20Harp/KSHarp_D4_mf1.wav",
+  "sha256": "ebfde8aab4411019e37e3426f4dd88d6a52a38c2d0261d7f10ec63d8ff584dc7",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VCSL"
+ },
+ {
+  "file": "instruments/VCSL/Chordophones/Composite Chordophones/Concert Harp/KSHarp_D6_mf1.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Chordophones/Composite%20Chordophones/Concert%20Harp/KSHarp_D6_mf1.wav",
+  "sha256": "b040b61fb279efa1a9b9c60dcbd8626a37f57ffb30f3b50747a2123ee4db5bd2",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VCSL"
+ },
+ {
+  "file": "instruments/VCSL/Chordophones/Composite Chordophones/Concert Harp/KSHarp_F4_mf1.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Chordophones/Composite%20Chordophones/Concert%20Harp/KSHarp_F4_mf1.wav",
+  "sha256": "db27ebbb37334c10e06f2ae63f4d9ff555e4d11704fcc6f0bcf503863867e577",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VCSL"
+ },
+ {
+  "file": "instruments/VCSL/Chordophones/Composite Chordophones/Concert Harp/KSHarp_F6_mf1.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Chordophones/Composite%20Chordophones/Concert%20Harp/KSHarp_F6_mf1.wav",
+  "sha256": "7cf4c012542df737be39900af262fdd980681956e734f43af106718184f34213",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VCSL"
+ },
+ {
+  "file": "instruments/VCSL/Idiophones/Friction Idiophones/Wine Glasses/Sustains/Slow/glass1_D#4_Slow_1_Main.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Idiophones/Friction%20Idiophones/Wine%20Glasses/Sustains/Slow/glass1_D%234_Slow_1_Main.wav",
+  "sha256": "6cdc2f602fac912a768561b3831ebb9099c884cb5ea76c88befedf545bab1997",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VCSL"
+ },
+ {
+  "file": "instruments/VCSL/Idiophones/Friction Idiophones/Wine Glasses/Sustains/Slow/glass2_F#4_Slow_1_Main.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Idiophones/Friction%20Idiophones/Wine%20Glasses/Sustains/Slow/glass2_F%234_Slow_1_Main.wav",
+  "sha256": "a6dea146ee3b11fb1d667742ac4a3c16f0bdb567103ef5602cdf3df163b52080",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VCSL"
+ },
+ {
+  "file": "instruments/VCSL/Idiophones/Friction Idiophones/Wine Glasses/Sustains/Slow/glass3_A#4_Slow_1_Main.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Idiophones/Friction%20Idiophones/Wine%20Glasses/Sustains/Slow/glass3_A%234_Slow_1_Main.wav",
+  "sha256": "b35da8d5c9ea4e24b33508094e3cb3e736e7ff5ea4517335844023f82c9bb503",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VCSL"
+ },
+ {
+  "file": "instruments/VCSL/Idiophones/Struck Idiophones/Gong 1/gong_f.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Idiophones/Struck%20Idiophones/Gong%201/gong_f.wav",
+  "sha256": "348226a7aceea02fa2d508f329283ea0329d76d21afa6f5a56af95bfaa037048",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VCSL"
+ },
+ {
+  "file": "instruments/VCSL/Idiophones/Struck Idiophones/Gong 1/gong_p.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Idiophones/Struck%20Idiophones/Gong%201/gong_p.wav",
+  "sha256": "3d103e1a7af12eeb17e0c5488f11933ca92b9fbdefa39b8020b64238da2db0d0",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VCSL"
+ },
+ {
+  "file": "instruments/VCSL/Idiophones/Struck Idiophones/Suspended Cymbal 1/susCymb1_bow_7.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Idiophones/Struck%20Idiophones/Suspended%20Cymbal%201/susCymb1_bow_7.wav",
+  "sha256": "5aa306be3e18db90c8ddcd40714687f5e89001c7f8cd7e26a11f10bc6fc7250b",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VCSL"
+ },
+ {
+  "file": "instruments/VCSL/Idiophones/Struck Idiophones/Suspended Cymbal 1/susCymb1_hit_mp1.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Idiophones/Struck%20Idiophones/Suspended%20Cymbal%201/susCymb1_hit_mp1.wav",
+  "sha256": "426238ad2bfadab07895c7b8f89204fed623d865693cc02d72c68627a86df75e",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VCSL"
+ },
+ {
+  "file": "instruments/VCSL/Idiophones/Struck Idiophones/Suspended Cymbal 1/susCymb1_hit_pp1.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Idiophones/Struck%20Idiophones/Suspended%20Cymbal%201/susCymb1_hit_pp1.wav",
+  "sha256": "d3221ae2c34233b1fa8ceb011ac91d9d3064a57bacff158e41fdef780ad575f8",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VCSL"
+ },
+ {
+  "file": "instruments/VCSL/Idiophones/Struck Idiophones/Tubular Bells 1/chimes_A#3_ff_rr1.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Idiophones/Struck%20Idiophones/Tubular%20Bells%201/chimes_A%233_ff_rr1.wav",
+  "sha256": "55fcfdb825026629670e3486f47762e6a3c4a89e138990fbd0e65c3f0a1d6a79",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VCSL"
+ },
+ {
+  "file": "instruments/VCSL/Idiophones/Struck Idiophones/Tubular Bells 1/chimes_C3_f_rr1.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Idiophones/Struck%20Idiophones/Tubular%20Bells%201/chimes_C3_f_rr1.wav",
+  "sha256": "76d51955e61e70e7a6b46a05865cd0f06f4948aaab97b1925f0f06f193f717f5",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VCSL"
+ },
+ {
+  "file": "instruments/VCSL/Idiophones/Struck Idiophones/Tubular Bells 1/chimes_D3_ff_rr1.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Idiophones/Struck%20Idiophones/Tubular%20Bells%201/chimes_D3_ff_rr1.wav",
+  "sha256": "ca1c64961ce8e96f6ea3ed3bf67bde09c0beb723b0fe346881b317695b1ce84f",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VCSL"
+ },
+ {
+  "file": "instruments/VCSL/Idiophones/Struck Idiophones/Tubular Bells 1/chimes_E3_ff_rr2.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Idiophones/Struck%20Idiophones/Tubular%20Bells%201/chimes_E3_ff_rr2.wav",
+  "sha256": "086a46cb560dae926014c0494965034aeecdffade7a1d6f54feda13274775a11",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VCSL"
+ },
+ {
+  "file": "instruments/VCSL/Idiophones/Struck Idiophones/Tubular Bells 1/chimes_G#3_ff_rr1.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Idiophones/Struck%20Idiophones/Tubular%20Bells%201/chimes_G%233_ff_rr1.wav",
+  "sha256": "ec7743ccc27b4546f51852965e7d96e97cc14270f6051040c2890fd4d34c24c2",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VCSL"
+ },
+ {
+  "file": "instruments/VCSL/Idiophones/Struck Idiophones/Vibraphone/Bowed/Vibes_bowed_D4_rr1_Main.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Idiophones/Struck%20Idiophones/Vibraphone/Bowed/Vibes_bowed_D4_rr1_Main.wav",
+  "sha256": "b5a6ab0a6c51b446832bc3686e27a62489f3169182ad4c872698912536d1ece6",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VCSL"
+ },
+ {
+  "file": "instruments/VCSL/Idiophones/Struck Idiophones/Vibraphone/Bowed/Vibes_bowed_G3_rr1_Main.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Idiophones/Struck%20Idiophones/Vibraphone/Bowed/Vibes_bowed_G3_rr1_Main.wav",
+  "sha256": "4b566300ee58c75de89e97278607f710ba0a807622582118d9f2e451d8bf573c",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VCSL"
+ },
+ {
+  "file": "instruments/VCSL/Membranophones/Struck Membranophones/Bass Drum 1/BDrumNew_hit_v3_rr1_Sum.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Membranophones/Struck%20Membranophones/Bass%20Drum%201/BDrumNew_hit_v3_rr1_Sum.wav",
+  "sha256": "a2d8829e8b2b59e8afb12fa396b01758827059339c2a84ad066d17b36c82d1ff",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VCSL"
+ },
+ {
+  "file": "instruments/VCSL/Membranophones/Struck Membranophones/Bass Drum 1/BDrumNew_hit_v5_rr1_Sum.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Membranophones/Struck%20Membranophones/Bass%20Drum%201/BDrumNew_hit_v5_rr1_Sum.wav",
+  "sha256": "642aaf3375eaff1307973f7de3ccbf74d18e71fb3cf9412e021b08fc3bf1981c",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VCSL"
+ },
+ {
+  "file": "instruments/VCSL/Membranophones/Struck Membranophones/Bass Drum 2/bassdrum_hit_ff.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Membranophones/Struck%20Membranophones/Bass%20Drum%202/bassdrum_hit_ff.wav",
+  "sha256": "d0ce17649553655127ee27dff312ece64c9ac698a9b66a470c3b51f244892c7b",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VCSL"
+ },
+ {
+  "file": "instruments/VCSL/Membranophones/Struck Membranophones/Bass Drum 2/bassdrum_hit_pp1.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Membranophones/Struck%20Membranophones/Bass%20Drum%202/bassdrum_hit_pp1.wav",
+  "sha256": "bdba260aa2a4db64b0e01960385de11f20ada1c216c4ebe86dc486a8331e0149",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VCSL"
+ },
+ {
+  "file": "instruments/VCSL/Membranophones/Struck Membranophones/Timpani 1/Hit/Timpani1_Hit_v4_rr1_Sum.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VCSL/c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e/Membranophones/Struck%20Membranophones/Timpani%201/Hit/Timpani1_Hit_v4_rr1_Sum.wav",
+  "sha256": "b51d81444425e1ba0c09d94dbdc384a8cd4b4681c42959cc8676ccaf6d6ea793",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VCSL"
+ },
+ {
+  "file": "instruments/VSCO-2-CE/Strings/Cello Section/spic/spic_E3_v2_RR1.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Cello%20Section/spic/spic_E3_v2_RR1.wav",
+  "sha256": "1daf39c60a6c83dfa941418a2ab51328f79ae738fe7c3e302e8395774eac8681",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VSCO-2-CE"
+ },
+ {
+  "file": "instruments/VSCO-2-CE/Strings/Cello Section/spic/spic_E3_v2_RR2.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Cello%20Section/spic/spic_E3_v2_RR2.wav",
+  "sha256": "38ba726d9c4d30870b84e06caad28fc39f84458dee439ccb016df4bbdc743809",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VSCO-2-CE"
+ },
+ {
+  "file": "instruments/VSCO-2-CE/Strings/Cello Section/trem/trem_E1_v1_1.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Cello%20Section/trem/trem_E1_v1_1.wav",
+  "sha256": "7c02541eb00c008c155fc9dc69fe22bc463c5557a03f1a7ce606fe84385ba48d",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VSCO-2-CE"
+ },
+ {
+  "file": "instruments/VSCO-2-CE/Strings/Cello Section/trem/trem_G1_v2_1.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Cello%20Section/trem/trem_G1_v2_1.wav",
+  "sha256": "3409e8c7c88c19d428fd136dcaf0dfe2738d87d8a9f137afc7c28188c7fba426",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VSCO-2-CE"
+ },
+ {
+  "file": "instruments/VSCO-2-CE/Strings/Cello Section/trem/trem_G3_v2_1.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Cello%20Section/trem/trem_G3_v2_1.wav",
+  "sha256": "a3212b4be7b86463f29280a1110c9805ace5a23d7113d62261bf6c4566a4658c",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VSCO-2-CE"
+ },
+ {
+  "file": "instruments/VSCO-2-CE/Strings/Solo Contrabass/Spic/BKCtbss_Spic_A1_v1_rr1.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Solo%20Contrabass/Spic/BKCtbss_Spic_A1_v1_rr1.wav",
+  "sha256": "32111c59f0e40962564221f9f9f003466c369fe18051f4ffaad3d8cd205ee23d",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VSCO-2-CE"
+ },
+ {
+  "file": "instruments/VSCO-2-CE/Strings/Solo Contrabass/Spic/BKCtbss_Spic_E1_v3_rr1.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Solo%20Contrabass/Spic/BKCtbss_Spic_E1_v3_rr1.wav",
+  "sha256": "08209aecd7ab8d6de7f3f4a442f12b108327f6c95ceb7fdff2657e149de03040",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VSCO-2-CE"
+ },
+ {
+  "file": "instruments/VSCO-2-CE/Strings/Solo Contrabass/Spic/BKCtbss_Spic_E1_v3_rr2.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Solo%20Contrabass/Spic/BKCtbss_Spic_E1_v3_rr2.wav",
+  "sha256": "9cc0f8272f00ee56c5bc85caccca76099d91f86ac6063d615cb5e283bfd84b4e",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VSCO-2-CE"
+ },
+ {
+  "file": "instruments/VSCO-2-CE/Strings/Solo Contrabass/Spic/BKCtbss_Spic_E2_v1_rr1.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Solo%20Contrabass/Spic/BKCtbss_Spic_E2_v1_rr1.wav",
+  "sha256": "747c4e51164d6582c9e253d3fa37aea939be691e95f1573f66b660137c0adcf5",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VSCO-2-CE"
+ },
+ {
+  "file": "instruments/VSCO-2-CE/Strings/Solo Contrabass/Spic/BKCtbss_Spic_E2_v1_rr2.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Solo%20Contrabass/Spic/BKCtbss_Spic_E2_v1_rr2.wav",
+  "sha256": "24b455de876987fcce1d09d7ec4766ed761eb7878614715090fefc69f4ee52ce",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VSCO-2-CE"
+ },
+ {
+  "file": "instruments/VSCO-2-CE/Strings/Solo Contrabass/SusNV/BKCtbss_SusNV_A1_v1_rr1.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Solo%20Contrabass/SusNV/BKCtbss_SusNV_A1_v1_rr1.wav",
+  "sha256": "06057880075d08c3f5a9df78bb7ec07f4cd41bd26e09a69f7a2e92cc66f308d9",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VSCO-2-CE"
+ },
+ {
+  "file": "instruments/VSCO-2-CE/Strings/Solo Contrabass/SusNV/BKCtbss_SusNV_A1_v3_rr1.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Solo%20Contrabass/SusNV/BKCtbss_SusNV_A1_v3_rr1.wav",
+  "sha256": "993b0f67c4050225d3d45cdc50c3362ec6026956b765a946498419541aa6e8c4",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VSCO-2-CE"
+ },
+ {
+  "file": "instruments/VSCO-2-CE/Strings/Solo Contrabass/SusNV/BKCtbss_SusNV_D1_v1_rr1.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Solo%20Contrabass/SusNV/BKCtbss_SusNV_D1_v1_rr1.wav",
+  "sha256": "d07634bec7bb0d736375bfb0c514f3d7586d9a625c4f56f4936556e247b33812",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VSCO-2-CE"
+ },
+ {
+  "file": "instruments/VSCO-2-CE/Strings/Solo Contrabass/SusNV/BKCtbss_SusNV_G#1_v1_rr1.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Solo%20Contrabass/SusNV/BKCtbss_SusNV_G%231_v1_rr1.wav",
+  "sha256": "c7adf9c807d5425e3ce88246a5ad716fdfa573b6b1185540052a5b5cf8118ac8",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VSCO-2-CE"
+ },
+ {
+  "file": "instruments/VSCO-2-CE/Strings/Solo Contrabass/SusNV/BKCtbss_SusNV_G#1_v3_rr1.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Solo%20Contrabass/SusNV/BKCtbss_SusNV_G%231_v3_rr1.wav",
+  "sha256": "f61ea9d3b6b11720752dc1d94101cdd49a9dafcb444527657c89e9312bc98842",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VSCO-2-CE"
+ },
+ {
+  "file": "instruments/VSCO-2-CE/Strings/Solo Contrabass/Trem/BKCtbss_Trem_E0_v2_rr1.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Solo%20Contrabass/Trem/BKCtbss_Trem_E0_v2_rr1.wav",
+  "sha256": "2c89e6dbfdbff999c3062f1cef172946ed2a65385aa3755b92fd3967349a193a",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VSCO-2-CE"
+ },
+ {
+  "file": "instruments/VSCO-2-CE/Strings/Viola Section/trem/Violas_trem_A3_v1_rr1.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Viola%20Section/trem/Violas_trem_A3_v1_rr1.wav",
+  "sha256": "1d224ad46a7f46204aed38758d9cc9e7325bd0ac028f0a1d1975aff680c675d9",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VSCO-2-CE"
+ },
+ {
+  "file": "instruments/VSCO-2-CE/Strings/Viola Section/trem/Violas_trem_C4_v2_rr1.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Viola%20Section/trem/Violas_trem_C4_v2_rr1.wav",
+  "sha256": "d3e0ff1979eb7981f8e89696ce4fe30d1cd721eb3daa5d560b146a1a418fcbcf",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VSCO-2-CE"
+ },
+ {
+  "file": "instruments/VSCO-2-CE/Strings/Violin Section/Trem/VlnEns_Trem_E4_v1.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Violin%20Section/Trem/VlnEns_Trem_E4_v1.wav",
+  "sha256": "9cccda56045581dce0f325cb62379d088b210eebe6ae252f72634caada264062",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VSCO-2-CE"
+ },
+ {
+  "file": "instruments/VSCO-2-CE/Strings/Violin Section/Trem/VlnEns_Trem_E4_v2.wav",
+  "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Violin%20Section/Trem/VlnEns_Trem_E4_v2.wav",
+  "sha256": "4b0e7479cd0029c93046e90abd687ff8073ecab5d4af91430ac67fab5ef7056a",
+  "licence": "CC0-1.0",
+  "author": "Versilian Studios",
+  "source": "https://github.com/sgossner/VSCO-2-CE"
+ }
+]
