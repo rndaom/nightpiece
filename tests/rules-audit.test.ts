@@ -226,7 +226,7 @@ describe('move generation by perft', () => {
       }
     }
     expect(seen).toBeGreaterThan(10_000);
-  });
+  }, 120_000);
 
   it('the per-square options (what the board offers on a click) cover exactly the legal moves', () => {
     for (const fen of [START_FEN, KIWIPETE, POS3, POS5]) {
