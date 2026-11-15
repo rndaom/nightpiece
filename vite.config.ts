@@ -1,6 +1,8 @@
 import preact from '@preact/preset-vite';
 import { defineConfig } from 'vitest/config';
+import { BRAND } from './src/app/brand.ts';
 import { capturePlugin } from './tools/dev/capture.ts';
+import { creditsPlugin } from './tools/dev/credits.ts';
 
 /**
  * Online play goes to the game's own server (npm run server), which the dev server passes it on to.
@@ -10,7 +12,7 @@ import { capturePlugin } from './tools/dev/capture.ts';
 const proxy = { '/ws': { target: `ws://127.0.0.1:${Number(process.env.GAME_PORT) || 8787}`, ws: true } };
 
 export default defineConfig({
-  plugins: [preact(), capturePlugin()],
+  plugins: [preact(), capturePlugin(), creditsPlugin(BRAND.name)],
   server: { host: '127.0.0.1', port: Number(process.env.DEV_PORT) || 5173, strictPort: true, proxy },
   preview: { host: '127.0.0.1', port: 4173, strictPort: true, proxy },
   build: {

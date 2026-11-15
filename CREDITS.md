@@ -37,6 +37,8 @@ The game bundles four, through the Fontsource packages (version 5.3.0):
 | Figtree | Running text | The Figtree Project Authors | SIL Open Font License 1.1 | <https://github.com/erikdkennedy/figtree> |
 | DM Mono | Notation, key caps | The DM Mono Project Authors | SIL Open Font License 1.1 | <https://github.com/googlefonts/dm-mono> |
 
+Each typeface's licence, with its own copyright notice, ships beside its font files as `assets/<typeface>-LICENSE.txt`, and the game's page of credits and licences (`credits.html`, made from this file, `LICENSE` and `LICENSE-ASSETS.md` by `tools/dev/credits.ts`) links to each.
+
 Two more are not part of the game. They are loaded from Google Fonts by `docs/visual-direction.html`, the page drawn for milestone 1, and were the game's display faces until the interface was redrawn:
 
 | Typeface | Authors | Licence | Source |

@@ -261,6 +261,12 @@ function Playbill({ app }: { app: App }) {
               Settings
             </button>
           </footer>
+          {/* Whose work the game is made with, and under what terms: a page of its own, so the game is not left. */}
+          <p class="bill-credits">
+            <a class="link" href={`${import.meta.env.BASE_URL}credits.html`} target="_blank" rel="noopener">
+              Credits and licences
+            </a>
+          </p>
         </div>
       </section>
     </div>
