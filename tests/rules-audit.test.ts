@@ -7,6 +7,7 @@
  * finding is proved, not merely claimed. When one is fixed, vitest says so (the `fails` test
  * starts passing, which fails it), and the mark comes off.
  */
+import { Chess } from 'chess.js';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import WebSocket from 'ws';
 import { type Running, startServer } from '../server/main.ts';
@@ -207,6 +208,25 @@ describe('move generation by perft', () => {
       expect(identityConsistent(g)).toBe(true);
     }
   }, 120_000);
+
+  it('the wrapper lists the very moves chess.js lists in full, in its order, through random games', () => {
+    const random = rng(31);
+    let seen = 0;
+    for (const fen of [START_FEN, KIWIPETE, POS3, POS5, '4k3/1P6/8/8/8/8/6p1/4K3 w - - 0 1', 'rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8']) {
+      for (let game = 0; game < 3; game++) {
+        const g = new Game(fen);
+        for (let ply = 0; ply < 60 && !g.status().over; ply++) {
+          const legal = g.moves();
+          const full = new Chess(g.fen()).moves({ verbose: true }).map((m) => ({ from: m.from, to: m.to, ...(m.promotion ? { promotion: m.promotion } : {}) }));
+          expect(legal).toEqual(full);
+          seen += legal.length;
+          const m = legal[Math.floor(random() * legal.length)]!;
+          g.move(m.from, m.to, m.promotion);
+        }
+      }
+    }
+    expect(seen).toBeGreaterThan(10_000);
+  });
 
   it('the per-square options (what the board offers on a click) cover exactly the legal moves', () => {
     for (const fen of [START_FEN, KIWIPETE, POS3, POS5]) {

@@ -469,7 +469,28 @@ export class Game {
   /** Every legal move in the position, each promotion choice separately. Cheap: nothing is judged. */
   moves(): { from: Square; to: Square; promotion?: PromotionKind }[] {
     if (this.status().over) return [];
-    return this.chess.moves({ verbose: true }).map((m) => ({ from: m.from, to: m.to, ...(m.promotion ? { promotion: m.promotion as PromotionKind } : {}) }));
+    // Square by square from a8 along each rank and castling last, which is the order chess.js lists them in itself.
+    const out: { from: Square; to: Square; promotion?: PromotionKind }[] = [];
+    const castling: { from: Square; to: Square }[] = [];
+    for (let rank = 7; rank >= 0; rank--) {
+      for (let file = 0; file < 8; file++) {
+        const from = squareOf(file, rank);
+        for (const w of this.written(from)) {
+          if (w.castle) castling.push({ from, to: w.to });
+          else out.push({ from, to: w.to, ...(w.promotion ? { promotion: w.promotion } : {}) });
+        }
+      }
+    }
+    return [...out, ...castling];
+  }
+
+  /**
+   * The legal moves of the piece on a square, read from the way chess.js writes them. Asking it
+   * for each move in full has it list every legal move again for every one of them, which made a
+   * whole position cost a millisecond; the written form is all that is needed to know a move.
+   */
+  private written(from: Square): Written[] {
+    return this.chess.moves({ square: from }).map((san) => readWritten(san, from));
   }
 
   /**
@@ -546,20 +567,20 @@ export class Game {
    */
   move(from: Square, to: Square, promotion?: PromotionKind): MoveEvent {
     if (this.status().over) throw new IllegalMoveError('The game is over');
-    const candidates = this.chess.moves({ square: from, verbose: true }).filter((m) => m.to === to);
-    const first = candidates[0];
+    const first = this.written(from).find((w) => w.to === to);
     if (!first) throw new IllegalMoveError(`Illegal move ${from}-${to}`);
-    const needsPromotion = first.isPromotion();
+    const needsPromotion = first.promotion !== undefined;
     if (needsPromotion && !promotion) throw new IllegalMoveError(`Move ${from}-${to} needs a promotion piece`);
 
     const mover = this.bySquare.get(from);
     if (!mover) throw new IllegalMoveError(`No tracked piece on ${from}`);
 
     // Everything the move touches is looked up before it is applied, so a failure leaves the game untouched.
-    const capSquare = takes(first) ? (first.isEnPassant() ? squareOf(fileOf(to), rankOf(from)) : to) : null;
+    // A pawn that takes on an empty square has taken in passing: its captive stands beside it.
+    const capSquare = first.capture ? (this.chess.get(to) ? to : squareOf(fileOf(to), rankOf(from))) : null;
     const victim = capSquare ? this.bySquare.get(capSquare) : undefined;
     if (capSquare && !victim) throw new IllegalMoveError(`No tracked piece to take on ${capSquare}`);
-    const castle: CastleSide | null = first.isKingsideCastle() ? 'k' : first.isQueensideCastle() ? 'q' : null;
+    const castle = first.castle;
     const rookFrom = castle ? squareOf(castle === 'k' ? 7 : 0, rankOf(from)) : null;
     const rookTo = castle ? squareOf(castle === 'k' ? 5 : 3, rankOf(from)) : null;
     const castler = rookFrom ? this.bySquare.get(rookFrom) : undefined;
@@ -728,6 +749,26 @@ export function tidyFen(fen: string): string {
     if (!real) fields[3] = '-';
   }
   return fields.join(' ');
+}
+
+/** A move as far as its written form tells it. */
+interface Written {
+  to: Square;
+  capture: boolean;
+  castle: CastleSide | null;
+  /** What the pawn becomes, in a move to the last rank. */
+  promotion?: PromotionKind;
+}
+
+/** Reads a move chess.js has written ("Nf3", "exd5", "e8=Q+", "O-O") for the piece on `from`. */
+function readWritten(san: string, from: Square): Written {
+  if (san.startsWith('O-O')) {
+    const castle: CastleSide = san.startsWith('O-O-O') ? 'q' : 'k';
+    return { to: squareOf(castle === 'k' ? 6 : 2, rankOf(from)), capture: false, castle };
+  }
+  const m = /([a-h][1-8])(?:=([QRBN]))?[+#]?$/.exec(san);
+  if (!m) throw new Error(`A move written in a way that cannot be read: ${san}`);
+  return { to: m[1] as Square, capture: san.includes('x'), castle: null, ...(m[2] ? { promotion: m[2].toLowerCase() as PromotionKind } : {}) };
 }
 
 /** chess.js reports en passant separately from ordinary captures; the game treats both as taking a piece. */
