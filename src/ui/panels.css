@@ -2077,3 +2077,86 @@ button.way:focus-visible .way-go {
     display: none;
   }
 }
+
+/* ───────────────────────────── A rule explained during an online game, on a phone ───────────────────────────── */
+
+/*
+ * On a phone held upright the room's card and a rule being explained stand in the one column
+ * over the keys, and there is not the height for both: the explanation ran down under the bar
+ * of keys, its own key out of reach. So while a rule is explained the room's card keeps only
+ * what cannot wait, the two clocks, side by side in one row (and with no clocks it stands
+ * aside until the rule is put away); the explanation comes first in the column, so that its key
+ * is in reach whatever stands with it. A draw waiting for this player's answer is left whole.
+ */
+@media (max-width: 760px) and (min-height: 501px) {
+  .rail-left:has(.card.explain) {
+    gap: 8px;
+  }
+  .rail-left .card.explain {
+    order: -1;
+  }
+  .rail-left:has(.card.explain) .card.room:not(.room-asked):not(:has(.players time)) {
+    display: none;
+  }
+  .rail-left:has(.card.explain) .card.room:not(.room-asked) {
+    padding: 4px 5px;
+  }
+  .rail-left:has(.card.explain) .card.room:not(.room-asked) > :not(.players) {
+    display: none;
+  }
+  .rail-left:has(.card.explain) .card.room:not(.room-asked) .players {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0;
+  }
+  /* Who the two are is said in the match bar: here each has its coin and its clock. */
+  .rail-left:has(.card.explain) .card.room:not(.room-asked) .players b,
+  .rail-left:has(.card.explain) .card.room:not(.room-asked) .players small,
+  .rail-left:has(.card.explain) .card.room:not(.room-asked) .players .players-you {
+    display: none;
+  }
+  .rail-left:has(.card.explain) .card.room:not(.room-asked) .players li {
+    justify-content: space-between;
+    min-height: 28px;
+  }
+}
+
+/* ───────────────────────────── A rule explained on a short phone ───────────────────────────── */
+
+/*
+ * A phone held upright that is 700 pixels tall or less has not the height for the card as it
+ * stands on a taller one: the board, framed above the card, would be pushed up under the match
+ * bar and the keys in the corner. So here the card is made as low as its words allow: closer
+ * set, and its key and the way to stop the explanations side by side in one row. What it takes
+ * is still measured, not assumed (Docking in Cards.tsx).
+ */
+@media (max-width: 760px) and (min-height: 501px) and (max-height: 700px) {
+  .hud:has(.card.explain) .rail.rail-left {
+    padding-top: 8px;
+    padding-bottom: 6px;
+  }
+  .rail-left .card.explain {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    column-gap: 14px;
+    padding: 11px 12px 9px;
+  }
+  .rail-left .card.explain h3 {
+    grid-column: 1 / -1;
+    margin-bottom: 3px;
+    font-size: 17px;
+  }
+  .rail-left .card.explain p:not(.ways-on) {
+    grid-column: 1 / -1;
+    margin-bottom: 0;
+    font-size: 12.5px;
+    line-height: 1.38;
+  }
+  .explain .choices {
+    margin: 8px 0 0;
+  }
+  .explain .ways-on {
+    justify-content: flex-end;
+    margin: 8px 0 0 !important;
+  }
+}
