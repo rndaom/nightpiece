@@ -44,10 +44,19 @@ function freePort(): Promise<number> {
 type Served = { child: ChildProcess; said: string[]; port: number };
 const running = new Set<ChildProcess>();
 
-/** Start the server once on a data folder of its own: with node and tsx (as the start command runs it), or through `npm run serve`. */
-function startOnce(dir: string, port: number, how: 'node' | 'npm'): Promise<Served> {
-  const [command, args] = how === 'npm' ? ['npm', ['run', 'serve']] : [process.execPath, ['--import', 'tsx', 'server/main.ts']];
-  const child = spawn(command as string, args as string[], {
+/**
+ * The command the host starts the server with, from `railway.json`. It names node itself: a stop sent
+ * to `npm run serve` reaches npm and the shell it runs, and on most hosts goes no further.
+ */
+function hostCommand(): string[] {
+  const config = JSON.parse(readFileSync(path.join(repo, 'railway.json'), 'utf8')) as { deploy: { startCommand: string } };
+  return config.deploy.startCommand.split(' ');
+}
+
+/** Start the server once on a data folder of its own: with node and tsx, or by the host's own start command. */
+function startOnce(dir: string, port: number, how: 'node' | 'host'): Promise<Served> {
+  const [command, ...args] = how === 'host' ? hostCommand() : [process.execPath, '--import', 'tsx', 'server/main.ts'];
+  const child = spawn(command === 'node' ? process.execPath : command!, args, {
     cwd: repo,
     env: { ...process.env, PORT: String(port), HOST: '127.0.0.1', DATA_DIR: dir, BEHIND_PROXY: '1' },
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -77,7 +86,7 @@ function startOnce(dir: string, port: number, how: 'node' | 'npm'): Promise<Serv
  * Start the server, on the port given (the one the last server had, which is free again a moment
  * after it stops) or on a free one. A port taken in the meantime is tried again, or another chosen.
  */
-async function serve(dir: string, port?: number, how: 'node' | 'npm' = 'node'): Promise<Served> {
+async function serve(dir: string, port?: number, how: 'node' | 'host' = 'node'): Promise<Served> {
   for (let attempt = 0; ; attempt++) {
     try {
       return await startOnce(dir, port ?? (await freePort()), how);
@@ -368,9 +377,9 @@ describe.each([
 });
 
 describe('stopping as the host stops it', () => {
-  it('`npm run serve`, sent SIGTERM, passes it on: the server writes everything down and stops cleanly', async () => {
+  it('the start command, sent SIGTERM, is the server itself: it writes everything down and stops cleanly', async () => {
     const dir = folder();
-    const served = await serve(dir, undefined, 'npm');
+    const served = await serve(dir, undefined, 'host');
     const room = newRoomName();
     const a = await connect(served.port, '198.51.100.7');
     const b = await connect(served.port, '198.51.100.8');
