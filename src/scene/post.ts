@@ -8,12 +8,17 @@
  */
 import {
   AdditiveBlending,
+  BufferGeometry,
   Color,
   CustomBlending,
   DepthTexture,
+  Float32BufferAttribute,
   HalfFloatType,
   LinearFilter,
+  type Material,
   Matrix4,
+  Mesh,
+  OrthographicCamera,
   type PerspectiveCamera,
   RawShaderMaterial,
   type Scene,
@@ -270,6 +275,11 @@ class GradePass extends Pass {
     this.quad.render(renderer);
   }
 
+  /** What the step is drawn with. */
+  get materials(): Material[] {
+    return [this.quad.material];
+  }
+
   override dispose(): void {
     this.quad.material.dispose();
     this.quad.dispose();
@@ -513,6 +523,11 @@ class AirPass extends Pass {
     renderer.autoClear = clears;
   }
 
+  /** What the step is drawn with. */
+  get materials(): Material[] {
+    return [this.gather.material, this.lay.material];
+  }
+
   override dispose(): void {
     this.gathered.dispose();
     this.gather.material.dispose();
@@ -751,6 +766,11 @@ class ShadePass extends Pass {
     renderer.autoClear = clears;
   }
 
+  /** What the step is drawn with. */
+  get materials(): Material[] {
+    return [this.gather.material, this.smooth.material, this.lay.material];
+  }
+
   override dispose(): void {
     this.gathered.dispose();
     this.smoothed.dispose();
@@ -961,6 +981,11 @@ class FocusPass extends Pass {
     this.mix.render(renderer);
   }
 
+  /** What the step is drawn with. */
+  get materials(): Material[] {
+    return [this.soften.material, this.blur.material, this.mix.material];
+  }
+
   override dispose(): void {
     this.softened.dispose();
     this.blurred.dispose();
@@ -970,6 +995,10 @@ class FocusPass extends Pass {
     }
   }
 }
+
+/** A shape with what a step of the chain is drawn on (a place and a place in the picture for each corner), and an eye to build its program for: neither is ever drawn. */
+const STEP_SHAPE = new BufferGeometry().setAttribute('position', new Float32BufferAttribute([-1, 3, 0, -1, -1, 0, 3, -1, 0], 3)).setAttribute('uv', new Float32BufferAttribute([0, 2, 0, 0, 2, 0], 2));
+const STEP_CAMERA = new OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
 export class Post {
   private composer: EffectComposer;
@@ -1084,6 +1113,33 @@ export class Post {
     } finally {
       this.renderer.setRenderTarget(before);
     }
+  }
+
+  /**
+   * Ask for the program of every step of the chain itself, as each will be drawn: the last to the
+   * screen, the others into a buffer. A chain made while another is still in use shares with it
+   * every program the two have in common, and only what differs is built. Returns the materials
+   * asked for; whether they are built yet is for `programsOf` to say.
+   */
+  compile(): Material[] {
+    const bloom = [this.bloom.materialHighPassFilter, ...this.bloom.separableBlurMaterials, this.bloom.compositeMaterial, this.bloom.blendMaterial];
+    const within: Material[] = [...(this.shade?.materials ?? []), ...this.air.materials, ...bloom, ...(this.focus?.materials ?? [])];
+    const last = this.grade.materials;
+    const before = this.renderer.getRenderTarget();
+    const mesh = new Mesh(STEP_SHAPE);
+    try {
+      for (const [materials, target] of [[within, this.composer.readBuffer], [last, null]] as const) {
+        this.renderer.setRenderTarget(target);
+        for (const material of materials) {
+          mesh.material = material;
+          // A step is drawn by itself, lit by nothing: so it is built by itself.
+          this.renderer.compile(mesh, STEP_CAMERA);
+        }
+      }
+    } finally {
+      this.renderer.setRenderTarget(before);
+    }
+    return [...within, ...last];
   }
 
   dispose(): void {

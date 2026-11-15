@@ -34,7 +34,7 @@ import type { PieceGrip } from '../hands/puppeteer';
 import { Stage } from '../hands/stage';
 import { BoardFx } from '../life/boardfx';
 import { Director } from '../life/director';
-import { boundSkins, texturesIn } from './ahead';
+import { boundSkins, type Built, materialsIn, programsOf, Staged, texturesIn, whenBuilt } from './ahead';
 import type { Assets } from './assets';
 import { Board } from './board';
 import { Casework } from './casework';
@@ -188,6 +188,7 @@ export class World {
     quality: Quality = 'medium',
   ) {
     this.quality = quality;
+    this.staged = new Staged(quality, (next, wanted) => this.readyFor(next, wanted), (next) => this.takeUp(next));
     watchStillness((still) => this.setStill(still));
     this.renderer = new WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
     this.renderer.outputColorSpace = SRGBColorSpace;
@@ -423,6 +424,7 @@ export class World {
     this.markers.setBoost(1.9);
     this.markers.setStone(true);
     this.post = post;
+    this.chains = { [this.quality]: post };
     this.post.setSmooth(this.smooth);
     this.shadowFrames = 4;
     this.resize(true);
@@ -448,6 +450,8 @@ export class World {
     this.markers.warm(this.renderer);
     this.sendAhead();
     await Promise.all([this.post.warm(this.scene, this.camera), this.stage?.warmPictures(this.renderer, this.camera)]);
+    // And what the other qualities are drawn with, so that a change of quality has nothing to build (see `setQuality`).
+    await this.warmOthers();
   }
 
   /**
@@ -684,8 +688,76 @@ export class World {
     this.shadowFrames = 4;
   }
 
-  setQuality(quality: Quality): void {
-    if (quality === this.quality) return;
+  /**
+   * Change the quality. Each quality is drawn with programs of its own (the board's glass, the
+   * hands to or from 'low', the chain that finishes the picture), and left to the frame after the
+   * change they were all built in it, which made that one frame many times too long. So they are
+   * built before the room is first shown, with everything else (`warm`), and each quality's chain
+   * is kept once made: the change is then taken up at once and costs a frame like any other.
+   * Should they not be built yet, they are asked for first, the game drawn as it was meanwhile,
+   * and the quality taken up when they are there. Resolves when the quality has been taken up, or
+   * given up for another asked for meanwhile.
+   */
+  setQuality(quality: Quality): Promise<void> {
+    return this.staged.ask(quality);
+  }
+
+  /** The quality last asked for, the one in use, and the making ready of one for the other. */
+  private staged: Staged<Quality>;
+  /** The chain that finishes the picture, one for each quality that has been drawn or made ready. One not in use is kept at no size. */
+  private chains: Partial<Record<Quality, Post>> = {};
+  /** Whether every quality's programs have been built. */
+  private prepared = false;
+
+  private chainFor(quality: Quality): Post {
+    return (this.chains[quality] ??= new Post(this.renderer, this.scene, this.camera, quality));
+  }
+
+  /**
+   * Ask for every program `quality` is drawn with, and return them all (with those of the scene
+   * as it is): whether each is built yet is for `whenBuilt` to wait on. The board's glass and the
+   * hands are set as they will be only for as long as it takes to ask, and set back before
+   * anything is drawn; each keeps the program of either form from then on. The chain is made
+   * beside the one in use, and the two share every program they have in common.
+   */
+  private askFor(quality: Quality): Built[] {
+    if (!this.post || !this.chapel) return [];
+    const was = this.quality;
+    this.chapel.glaze(quality);
+    this.stage?.setQuality(quality);
+    try {
+      void this.post.warm(this.scene, this.camera);
+      void this.stage?.warmPictures(this.renderer, this.camera);
+    } finally {
+      this.chapel.glaze(was);
+      this.stage?.setQuality(was);
+    }
+    return programsOf(this.renderer, [...materialsIn(this.scene), ...this.chainFor(quality).compile()]);
+  }
+
+  /** Build what every other quality is drawn with. Resolves when it is all built. */
+  private async warmOthers(): Promise<void> {
+    const programs: Built[] = [];
+    for (const quality of Object.keys(QUALITY) as Quality[]) {
+      if (quality !== this.quality) programs.push(...this.askFor(quality));
+    }
+    await whenBuilt(programs);
+    this.prepared = true;
+  }
+
+  /**
+   * Start on everything `quality` will be drawn with that is not built yet; resolves when it is
+   * built. Null if it all is, or before the room is in, when there is nothing to build for: the
+   * quality is then taken up at once.
+   */
+  private readyFor(quality: Quality, wanted: () => boolean): Promise<unknown> | null {
+    if (this.prepared || !this.post || !this.chapel) return null;
+    // Never longer than this: what is not built by then is built where it is first drawn.
+    return Promise.race([whenBuilt(this.askFor(quality), wanted), new Promise((resolve) => setTimeout(resolve, WARM_AT_MOST * 1000))]);
+  }
+
+  /** Draw at `quality` from the next frame on. */
+  private takeUp(quality: Quality): void {
     this.quality = quality;
     if (this.fx) this.fx.thin = quality === 'low';
     if (this.chapel) {
@@ -696,9 +768,11 @@ export class World {
       this.chapel.setQuality(quality);
     }
     if (this.post) {
-      this.post.dispose();
-      this.post = new Post(this.renderer, this.scene, this.camera, quality);
+      const before = this.post;
+      this.post = this.chainFor(quality);
       this.post.setSmooth(this.smooth);
+      // The chain put by keeps its programs, and gives back the pictures it drew into.
+      if (before !== this.post) before.setSize(1, 1, 1);
     }
     this.shadowFrames = 4;
     this.resize(true);

@@ -290,7 +290,7 @@ export class App {
     this.world = new World(canvas, ui.quality.value ?? 'medium');
     if (!ui.quality.value) {
       ui.quality.value = suggestQuality(this.world.renderer);
-      this.world.setQuality(ui.quality.value);
+      void this.world.setQuality(ui.quality.value);
     }
     this.rig = new CameraRig(this.world.camera);
     this.rig.mode = ui.cameraMode.value;
@@ -413,13 +413,15 @@ export class App {
     saveSettings();
   }
 
-  setQuality(quality: Quality): void {
+  /** Choose the quality. It is taken up once what it needs is built (see `World.setQuality`), which is when this resolves. */
+  setQuality(quality: Quality): Promise<void> {
     ui.quality.value = quality;
-    this.world.setQuality(quality);
+    const taken = this.world.setQuality(quality);
     markQualityChosen();
     saveSettings();
     this.pace.counted = 0;
     this.restoreScale();
+    return taken;
   }
 
   /**
@@ -430,7 +432,7 @@ export class App {
     forgetQualityChoice();
     const quality = suggestQuality(this.world.renderer);
     ui.quality.value = quality;
-    this.world.setQuality(quality);
+    void this.world.setQuality(quality);
     saveSettings();
     this.pace = { ms: 16.7, counted: 0 };
     this.restoreScale();
@@ -3022,7 +3024,7 @@ export class App {
     p.ms = 16.7;
     if (!next) return;
     ui.quality.value = next;
-    this.world.setQuality(next);
+    void this.world.setQuality(next);
     this.restoreScale();
     ui.notice.value = 'The picture quality has been lowered to keep the game smooth. You can change it in Settings.';
   }

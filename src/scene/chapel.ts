@@ -515,9 +515,20 @@ export class Chapel {
     this.mirror?.setSize(this.width, this.height);
     this.key.shadow.radius = shadowRadius(q.shadow, KEY_REACH, KEY_SOFT);
     this.shade.tMirror.value = this.mirror?.target.texture ?? null;
-    setGlass(this.materials.tilesDark, this.mirror !== null, q.glass);
-    setGlass(this.materials.tilesLight, this.mirror !== null, q.glass);
+    this.glaze(quality);
     this.moteCloud.geometry.setDrawRange(0, q.motes);
+  }
+
+  /**
+   * Set the board's glass as a quality draws it: whether it mirrors the room, and how finely. This
+   * alone of what a quality changes in the room is compiled into the squares' materials, so it can
+   * be set, the programs asked for, and set back, to have them built before the quality is taken up
+   * (see `World.setQuality`).
+   */
+  glaze(quality: Quality): void {
+    const q = QUALITY[quality];
+    setGlass(this.materials.tilesDark, q.mirror > 0, q.glass);
+    setGlass(this.materials.tilesLight, q.mirror > 0, q.glass);
   }
 
   private mirrorEvery = 1;

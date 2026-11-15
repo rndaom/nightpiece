@@ -55,7 +55,8 @@ export async function launch({ width = 1920, height = 1080, scale = 1, url = 'ht
   await page.waitForFunction(`${HANDLE} && ${HANDLE}.ui && ${HANDLE}.ui.ready.value === true`, { timeout: 60000 });
   /** Run a snippet in the page with `app`, `ui` and `args` in scope. Await inside it freely. */
   const ev = (body, ...args) => page.evaluate(new Function('...args', `const h = ${HANDLE}; const app = h.app; const ui = h.ui; return (async () => { ${body} })();`), ...args);
-  if (quality) await ev(`app.setQuality(args[0]);`, quality);
+  // A quality is taken up once what it needs is built, a moment after it is asked for.
+  if (quality) await ev(`await app.setQuality(args[0]);`, quality);
   return {
     browser,
     page,
