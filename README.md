@@ -47,7 +47,7 @@ Other commands:
 
 ## Hosting it
 
-The server holds each online game and checks every move. By default it answers only on the machine it runs on; `npm run serve -- --host 0.0.0.0` lets other machines on the network join. Settings can be given on the command line or in the environment:
+The server holds each online game and checks every move. By default it answers only on the machine it runs on; `npm run serve -- --host 0.0.0.0` lets other machines on the network join. A host that stops the server with a signal should start it as `node --import tsx server/main.ts` and not through npm, which does not always pass the signal on; the server then writes its games down before it stops. Settings can be given on the command line or in the environment:
 
 | Setting | Default | Meaning |
 |---|---|---|
