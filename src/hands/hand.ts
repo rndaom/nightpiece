@@ -190,6 +190,8 @@ export class Hand {
   dissolve = 0;
   /** Small unprompted finger movements while the hand waits. 0 stills them. */
   restless = 1;
+  /** The index held out a little and swung to one side or the other, in radians, on top of whatever pose the hand has: a finger wagged. */
+  wagged = 0;
   /**
    * How much at its ease the hand is, 0 to 1: one with nothing to do breathes, a slow wave that
    * opens and closes it from the little finger across to the index. One at work does not.
@@ -575,6 +577,14 @@ export class Hand {
         if (finger === f.finger && f.age < FIDGET) this.applied[o]! -= this.restless * f.depth * Math.sin(Math.PI * Math.pow(f.age / FIDGET, 0.6));
       }
     }
+    if (this.wagged !== 0) {
+      // Straightened as it swings: a finger that is wagged is held out to be.
+      const o = FINGERS.indexOf('index') * ANGLES;
+      const out = Math.min(1, Math.abs(this.wagged) * 8);
+      this.applied[o]! *= 1 - 0.7 * out;
+      this.applied[o + 1]! *= 1 - 0.7 * out;
+      this.applied[o + 3]! += this.wagged;
+    }
     if (this.drum.rounds > 0) {
       const d = this.drum;
       d.age += dt;
@@ -676,6 +686,21 @@ export class Hand {
     }
     this.plumb.position.copy(anchor);
     this.plumb.quaternion.setFromUnitVectors(DOWN, vTemp2.copy(this.bob).sub(anchor).normalize());
+  }
+
+  /** Where the weight on its cord is, in the room. */
+  weightWorld(out = new Vector3()): Vector3 {
+    return out.copy(this.bob);
+  }
+
+  /** The weight is given a push, in the room's terms: it swings from it, and is left to. */
+  pullWeight(push: Vector3): void {
+    this.bobVelocity.add(push);
+  }
+
+  /** How fast the weight is swinging. */
+  get weightSpeed(): number {
+    return this.bobVelocity.length();
   }
 
   dispose(): void {

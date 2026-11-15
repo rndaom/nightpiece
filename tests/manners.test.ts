@@ -25,6 +25,18 @@ const facts = (more: Partial<Told> = {}): Told => ({
   checks: 0,
   lesson: false,
   timed: false,
+  held: 0,
+  again: 0,
+  captive: null,
+  candle: false,
+  computer: false,
+  feint: false,
+  mates: false,
+  hemmed: false,
+  backRank: false,
+  found: null,
+  queens: 0,
+  poked: null,
   ...more,
 });
 
@@ -400,6 +412,134 @@ describe('the table as it stands', () => {
   });
 });
 
+
+describe('waiting, thinking, and what is found on the board', () => {
+  /** How often `name` is chosen at `at`, over many games, with these facts. */
+  const share = (at: Parameters<Manners['choose']>[0], name: string, more: Partial<Told>, games = 2000) => {
+    let chosen = 0;
+    for (let game = 0; game < games; game++) {
+      const rows = new Manners();
+      rows.begin(`game-${game}`);
+      if (rows.choose(at, facts(more)) === name) chosen++;
+    }
+    return chosen / games;
+  };
+  const once = (at: Parameters<Manners['choose']>[0], more: Partial<Told>) => {
+    const rows = new Manners();
+    rows.begin('one game');
+    return rows.choose(at, facts(more));
+  };
+
+  it('cracks knuckles before the first move in about one game in five, and only with the hands of the player who moves first', () => {
+    expect(share('sit', 'knuckles', { side: 'w' })).toBeGreaterThan(0.15);
+    expect(share('sit', 'knuckles', { side: 'w' })).toBeLessThan(0.25);
+    expect(share('sit', 'knuckles', { side: 'b' })).toBe(0);
+    expect(share('sit', 'knuckles', { side: 'w', ply: 1 })).toBe(0);
+  });
+
+  it('climbs the ladder of impatience past drumming only without a clock, and only for the player kept waiting', () => {
+    const rung = (waited: number, more: Partial<Told> = {}) => share('wait', 'look-at-the-cord', { waited, ...more }) + share('wait', 'lie-on-the-rail', { waited, ...more });
+    expect(share('wait', 'look-at-the-cord', { waited: 49 })).toBe(0);
+    expect(share('wait', 'look-at-the-cord', { waited: 50 })).toBeGreaterThan(0.15);
+    expect(share('wait', 'lie-on-the-rail', { waited: 74 })).toBe(0);
+    expect(share('wait', 'lie-on-the-rail', { waited: 75 })).toBeGreaterThan(0.08);
+    expect(rung(200, { timed: true })).toBe(0);
+    expect(rung(200, { toMove: true })).toBe(0);
+    // In a game against a clock the drumming is as far as it goes.
+    expect(share('wait', 'drum-on-the-rail', { waited: 200, timed: true }, 4000)).toBeGreaterThan(0);
+  });
+
+  it('looks at a captive seldom, and never at a pawn or with nothing taken; warms a hand seldom, and only where a candle burns', () => {
+    expect(share('wait', 'captives', { waited: 10, captive: 'n' }, 4000)).toBeGreaterThan(0.01);
+    expect(share('wait', 'captives', { waited: 10, captive: 'n' }, 4000)).toBeLessThan(0.05);
+    expect(share('wait', 'captives', { waited: 10, captive: 'p' })).toBe(0);
+    expect(share('wait', 'captives', { waited: 10 })).toBe(0);
+    expect(share('wait', 'captives', { waited: 10, captive: 'q', toMove: true })).toBe(0);
+    expect(share('wait', 'candle', { waited: 12, candle: true }, 4000)).toBeGreaterThan(0.01);
+    expect(share('wait', 'candle', { waited: 12, candle: true }, 4000)).toBeLessThan(0.05);
+    expect(share('wait', 'candle', { waited: 12 })).toBe(0);
+  });
+
+  it('wags a finger at a stone left after a second and a half, and then not for six plies', () => {
+    const rows = new Manners();
+    rows.begin('a game');
+    expect(rows.choose('think', facts({ toMove: true, held: 1.4 }))).toBeNull();
+    expect(rows.choose('think', facts({ toMove: true, held: 1.5 }))).toBe('second-thought');
+    expect(rows.choose('think', facts({ toMove: true, held: 3, ply: 6 }))).toBeNull();
+    expect(rows.choose('think', facts({ toMove: true, held: 3, ply: 7 }))).toBe('second-thought');
+    // A ritual, though a small one: it is not shown to a player who is not to move.
+    expect(once('think', { toMove: false, held: 3 })).toBeNull();
+  });
+
+  it('sets a stone straight the third time it is turned to in a turn, once', () => {
+    const rows = new Manners();
+    rows.begin('a game');
+    expect(rows.choose('think', facts({ toMove: true, again: 1 }))).toBeNull();
+    expect(rows.choose('think', facts({ toMove: true, again: 2 }))).toBe('jadoube');
+    expect(rows.choose('think', facts({ toMove: true, again: 3 }))).toBeNull();
+    expect(rows.choose('think', facts({ toMove: true, again: 2, ply: 1 }))).toBe('jadoube');
+  });
+
+  it("feints with the computer's hand about one move in twelve, and never in a lesson, in a game between two people, or with nothing to feint at", () => {
+    const feint = (more: Partial<Told>) => share('think', 'feint', { computer: true, feint: true, ...more }, 4000);
+    expect(feint({})).toBeGreaterThan(0.05);
+    expect(feint({})).toBeLessThan(0.12);
+    expect(feint({ lesson: true })).toBe(0);
+    expect(feint({ plain: true })).toBe(0);
+    expect(feint({ feint: false })).toBe(0);
+    expect(feint({ computer: false })).toBe(0);
+  });
+
+  it('knows the king stepped up, the knight home again, the copy and the third queen for what they are', () => {
+    const king = moved({ kind: 'k', from: 'e1', to: 'e2' });
+    expect(once('set', { ply: 3, move: king, found: 'bongcloud' })).toBe('bongcloud');
+    expect(once('set', { ply: 4, side: 'b', move: { ...king, by: 'b', from: 'e8', to: 'e7' }, found: 'bongcloud-both' })).toBe('bongcloud-both');
+    expect(once('set', { ply: 3, move: king, found: 'bongcloud', lesson: true })).not.toBe('bongcloud');
+    const knight = moved({ kind: 'n', from: 'f3', to: 'g1' });
+    expect(share('set', 'home-again', { ply: 3, move: knight, found: 'home-again' }, 4000)).toBeGreaterThan(0.04);
+    expect(share('set', 'home-again', { ply: 3, move: knight, found: 'home-again' }, 4000)).toBeLessThan(0.13);
+    expect(share('set', 'home-again', { ply: 3, move: knight })).toBe(0);
+    expect(once('after', { ply: 8, side: 'w', move: moved({ by: 'b', kind: 'b', from: 'f8', to: 'c5' }), found: 'copycat' })).toBe('copycat');
+    expect(once('after', { ply: 8, side: 'b', move: moved({ by: 'b', kind: 'b', from: 'f8', to: 'c5' }), found: 'copycat' })).toBeNull();
+    const queen = moved({ from: 'b7', to: 'b8', becomes: 'q' });
+    expect(once('after', { side: 'b', move: queen, queens: 3 })).toBe('third-queen');
+    expect(once('after', { side: 'b', move: queen, queens: 2 })).toBeNull();
+    expect(once('after', { side: 'w', move: queen, queens: 3 })).toBeNull();
+    // Made into a knight with two queens standing: that is "really?", as ever.
+    expect(once('after', { side: 'b', move: { ...queen, becomes: 'n' }, queens: 2 })).toBe('really');
+  });
+
+  it('answers a mate by what gave it: the exactest that fits, and the plain claim most times for a plain one', () => {
+    const mate = (more: Partial<Told>) => ({ result: 'checkmate' as const, happened: true, winner: 'w' as const, side: 'w' as const, ply: 40, ...more });
+    const rook = moved({ kind: 'r', from: 'a1', to: 'a8' });
+    expect(once('end', mate({ move: rook, backRank: true }))).toBe('back-rank');
+    expect(once('end', mate({ move: moved({ kind: 'k', from: 'e1', to: 'g1', castle: 'short' }) }))).toBe('mate-by-castling');
+    expect(once('end', mate({ move: moved({ kind: 'q', from: 'd8', to: 'h4' }), ply: 4 }))).toBe('early-mate');
+    // On the back rank and early at once: the rank, which says more.
+    expect(once('end', mate({ move: rook, backRank: true, ply: 10 }))).toBe('back-rank');
+    expect(share('end', 'laid-down', mate({ move: moved({ kind: 'q', from: 'd1', to: 'h5' }) }))).toBeGreaterThan(0.15);
+    expect(share('end', 'laid-down', mate({ move: moved({ kind: 'q', from: 'd1', to: 'h5' }) }))).toBeLessThan(0.25);
+    // Not for the loser's hands, nor for a mate only being shown as it was left.
+    expect(once('end', mate({ move: rook, backRank: true, side: 'b' }))).toBeNull();
+    expect(once('end', mate({ move: rook, backRank: true, happened: false }))).toBeNull();
+    // At the set: the knight that smothers is patted, and the pawn that mates hops.
+    expect(once('set', { move: moved({ kind: 'n', from: 'g5', to: 'f7' }), mates: true, hemmed: true, ply: 30 })).toBe('smothered');
+    expect(once('set', { move: moved({ kind: 'n', from: 'g5', to: 'f7' }), mates: true, hemmed: false, ply: 30 })).not.toBe('smothered');
+    expect(once('set', { move: moved({ from: 'g6', to: 'g7' }), mates: true, ply: 30 })).toBe('mate-by-pawn');
+    expect(once('set', { move: moved({ from: 'g7', to: 'g8', becomes: 'q' }), mates: true, ply: 30 })).toBe('snap');
+  });
+
+  it('may be set off by the player again and again, and only by what the player did', () => {
+    const rows = new Manners();
+    rows.begin('a game');
+    for (let i = 0; i < 3; i++) expect(rows.choose('poke', facts({ poked: 'wave' }))).toBe('wave');
+    expect(rows.choose('poke', facts({ poked: 'weight' }))).toBe('weight-pulled');
+    expect(rows.choose('poke', facts({ poked: 'back' }))).toBe('back');
+    expect(rows.choose('poke', facts())).toBeNull();
+    // Even by a player who has asked for less motion: they asked for this.
+    expect(rows.choose('poke', facts({ poked: 'wave', quiet: true }))).toBe('wave');
+  });
+});
 
 describe('what is part of a move', () => {
   const ROW = told({ name: 'flourish', at: 'set', when: [always], rarity: 'seldom' });

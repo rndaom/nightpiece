@@ -1,6 +1,6 @@
 # The hands' manners
 
-A design for the small things the hands do that are not chess: the knuckle crack, the tipped king, the scuffle at a stalemate. Written 14 November 2026. Steps 1 to 4 of section 8 (the table, the three props, the endings and setting down) are built; the rest is not.
+A design for the small things the hands do that are not chess: the knuckle crack, the tipped king, the scuffle at a stalemate. Written 14 November 2026. All six steps of section 8 are built, some of it smaller than written here; what was left out is listed there.
 
 The aim is the thing Valve's games have and most do not: characters that answer what you do, in ways you notice on your tenth game and tell someone about. It is not a Valve game and takes nothing of theirs; it takes the method.
 
@@ -75,7 +75,7 @@ interface Manner<F extends Told> {
 }
 ```
 
-`Moment` is one of: `sit` (the hands have arrived), `wait` (an idle tick, with the seconds waited), `think` (the pointer has done something), `set` (a piece is about to be set down, so the carry itself can differ), `after` (a move has landed), `offer` (a draw offered, refused or taken back), `end` (the game is over).
+`Moment` is one of: `sit` (the hands have arrived), `wait` (an idle tick, with the seconds waited), `think` (the pointer has done something), `set` (a piece is about to be set down, so the carry itself can differ), `after` (a move has landed), `offer` (a draw offered, refused or taken back), `end` (the game is over), `poke` (the player has done something to their own hands: section 5.9).
 
 Choosing is Ruskin's rule: of the rows whose every condition holds, the one with the most conditions wins; a tie is settled by the seeded draw. So `end` + `mate` plays the claim that exists now; `end` + `mate` + `by a knight` + `king hemmed in by its own` plays the smothered mate, and nothing has to be told to stand aside for it.
 
@@ -385,6 +385,35 @@ Not built, or built smaller than written above:
 - **After it, as it was.** Really? and the checks were already gestures after the move.
 
 And what is part of a move is chosen alike on every screen. It goes by the room's seed, the ply and the game's own moves, and by nothing a screen has to itself: the budget is counted from the manners the game's moves were set down with, which a screen that comes to the game late counts again from its moves (`Stage.seatTaken`); a `seldom` row's chance is not made less by its having been seen before in the sitting; and a player who has asked for less motion is shown only the rituals, while their screen counts what it does not show them as spent, as the other screen does. Only what goes by each screen's own time (sitting down, waiting and thinking: the drumming and the steeple) goes by what that screen has seen and timed, and those may differ between screens as the time each keeps does; they spend only what the moves have left of the budget. Tests: `tests/setting-down.test.ts` ("the next player is not kept waiting"), `tests/manners-screens.test.ts` (a screen come to the game late, after a game of its own, sets the stones down as the one that saw it all), and the table's own in `tests/manners.test.ts`.
+
+**Built, 15 November: step 5, waiting and thinking.** New rows: `knuckles` at the sitting; `look-at-the-cord`, `lie-on-the-rail`, `captives` and `candle` in the waiting; `second-thought`, `jadoube` and `feint` in the thinking. The table is now told how long a stone was held before it was let go, how many times the same stone has been turned to this turn, the greatest stone the waiter has taken, whether a candle stands by the waiter's hand, and whether the hand is the computer's. The gestures are in `src/hands/puppeteer.ts` (`steeple` with its cracks, `crackOne`, `lookAtCord`, `lieOnRail`, `warm`, `wag`, `adjust`, `feint`); the stage is given the corner flames by the room (`Stage.setCandles`) and keeps, for the game, which hand has been burned. A hand lying on the rail asleep starts awake when the move comes, a third as large as at a check. The computer waits for its feint before it reaches for the stone it means; in a lesson, and for a player who has asked for less motion, there is none. Tests: `tests/waiting-thinking.test.ts`.
+
+Not built, or built smaller than written above:
+- **Knuckles.** The hands meet as for the steeple and the fingertips are pressed and bent back, once and hard; they are not laced, not turned palm outward, and do not push toward the board. Three to five cracks. The back rank does not glance up. Void's answer is one finger cracked, a quarter of the times, some seconds after.
+- **The grudge, this or that, counting, you are in check, the clock, the weight, lace.** Not built.
+- **The ladder.** The cord and the rail are Often, not certain, and neither is played against a clock. The lying hand taps every two seconds and stops at two minutes; a sleeper's twitches are the hand's own slack drift.
+- **Captives.** The stone is lifted from the drawer, held up and stood back; it is not turned in the fingers, and it stands back as it stood.
+- **The candle.** The flame does not lean. The hand that was burned rests further from its corner for the rest of the game, on that screen.
+- **Second thought.** Played only when another stone is turned to after the long hold. The stone passed over blinks; its head does not drop.
+- **J'adoube.** It is the third turning-to in one turn, not the second, and is a dip of the hand in thought with the stone's blink; the stone is not turned, and there is no fourth time.
+- **The feint.** The other stone is any with a legal move, by the seed and the ply.
+- **Sounds.** The cracks are heard as a stone set down, softly, and the burn as a stone touched.
+
+**Built, 15 November: step 6, found on the board, the mates by kind, and what the player sets off.** New rows: `bongcloud`, `bongcloud-both`, `home-again`, `smothered` and `mate-by-pawn` at the set; `copycat` and `third-queen` after it; `back-rank`, `mate-by-castling`, `early-mate` and `laid-down` at the end; `wave`, `weight-pulled` and `back` at the new moment `poke`. The stage keeps the game's moves as they were played (who, which stone, from, to, what was taken) and reads the patterns from them, so a screen come late reads the same. A mate by kind is the winner's: a prelude (the sweep along the rank, the bow, the thumb brushed across the fingertips) and then the claim as before, or the king laid on its side after it. The pointer is followed over the player's own resting hands (`src/hands/shake.ts` counts the turns back), a press on a weight pushes it and the hand looks, and a page come back to after a minute starts its hands awake (`App`, `World.pointerAt`, `World.cameBack`). None of the three is sent to the other player or touches their hands, and none spends the budget. Tests: `tests/found-on-the-board.test.ts`, and the table's own in `tests/manners.test.ts`.
+
+Not built, or built smaller than written above:
+- **The Bongcloud.** The pat is part of the move; the other side's hands turn palm up after it, as for really?. The four hands do not lift for the second: each side's right gives the thumb.
+- **The copycat.** Always, not Once, so that every screen sees it; it can only happen at one ply of a game.
+- **Home again.** The flick goes on after the stone is down and is cut short by the next move, as the pat is.
+- **A third queen.** The hands slacken for a second where they rest.
+- **The back rank.** Read simply: a king mated on its home rank by a rook or queen come onto that rank. The hand rises where it is and sweeps above the crowns.
+- **Smothered.** The knight is patted. The king's own stones do not turn away.
+- **By a pawn.** The hop goes on after the stone is down.
+- **Early.** Mate by the fourteenth ply. The thumb is brushed twice across the fingertips; the hand then rises as a winner's does, quietly, and the mated king does not look back.
+- **Laid down.** About one plain mate in five, by the seed. The king is laid over gently by the winner's hand and does not rock.
+- **The wave.** Fingers only, and not again for twenty seconds. A touch screen has no pointer to shake.
+- **The weight, pulled.** The hand looks at its weight; it does not wait for it or stop it.
+- **Frames.** Each was filmed headless from the Shoulder camera, and the candle, the captive, the sweep and the king laid down from the side as well (`tmp/backlog/manners56.mjs`). The candle and the drawer are at the edge of the Shoulder's picture. How any of it reads in motion, and whether it is funny, has not been judged: that needs the running game.
 
 ## 9. How it is judged
 

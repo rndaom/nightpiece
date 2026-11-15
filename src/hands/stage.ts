@@ -16,7 +16,8 @@ import { Girth } from './girth';
 import { type Ending, isEnding, playEnding } from './endings';
 import { Ground } from './ground';
 import { type HandTemplate, PALM_FOCUS } from './hand';
-import { draw, Manners, type Moved, type Told } from './manners';
+import { draw, type Found, Manners, type Moved, type Poked, type Told } from './manners';
+import { Shake } from './shake';
 import { ARM_GONE_BEFORE, ARM_WHOLE_TO, NEAR_GONE_IN, NEAR_WHOLE_TO, RIM } from './material';
 import { type Arm, type CarryOptions, type PieceGrip, Puppeteer } from './puppeteer';
 import { Silhouette } from './silhouette';
@@ -90,9 +91,36 @@ const SETTLES: [number, number, number][] = [[0.02, 0.14, 0.15]];
 /**
  * What the hands do that can be heard, apart from the stones: a fingertip on the case or on a stone,
  * a stone going over or rapped on the board, two hands meeting, glass struck on glass (the scuffle),
- * the pump of a handshake, and fingers snapped.
+ * the pump of a handshake, fingers snapped, a knuckle cracked, and a hand come too near a flame.
  */
-export type Heard = 'tap' | 'knock' | 'meet' | 'chime' | 'pump' | 'snap';
+export type Heard = 'tap' | 'knock' | 'meet' | 'chime' | 'pump' | 'snap' | 'crack' | 'burn';
+
+/** The hands have been in the room this long when they are asked what they make of sitting down. */
+const SITS_AFTER = 1.6;
+/** Void's answer to knuckles cracked comes this long after, one time in this many. */
+const ANSWERS_AFTER = 4.2;
+const ANSWERS = 1 / 4;
+/** A hand kept waiting this long has gone to sleep on the rail, if it was lying there. */
+const ASLEEP_AFTER = 120;
+/** A captive is held up this long to be looked at, this high; and the hand that lost it feels it this much. */
+const CAPTIVE_SECONDS = 0.9;
+const CAPTIVE_UP = 0.8;
+const CAPTIVE_FELT = 0.12;
+/** A stone has been turned to, and not only passed over, when a hand has hung over it this long; and one turned to a third time is set straight when it has hung this long. */
+const VISIT = 0.35;
+const ADJUST_AFTER = 0.45;
+/** How far round a stone is turned, and back, as it is set straight. */
+const ADJUST_TURN = 0.09;
+/** A pawn that has given mate hops this high, this long after it is let go. */
+const HOP = 0.09;
+const HOP_AFTER = 0.3;
+/** The winner's hand comes back to lay the mated king down this long after the mate. */
+const LAID_AFTER = 4.4;
+/** How near the pointer must be to a resting hand's palm to be over it, and to a weight to pull it, as shares of the picture's height; how hard a pulled weight is pushed; and how long a hand that has waved does not wave again. */
+const HAND_NEAR = 0.11;
+const WEIGHT_NEAR = 0.035;
+const WEIGHT_PUSH = 3.4;
+const WAVE_REST = 20;
 
 /** What stones are worth, as players count them: what `Told.ahead` is counted in. */
 const WORTH: Record<Kind, number> = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
@@ -169,9 +197,20 @@ export class Stage {
   private last: Side | null = null;
   private offering: Side | null = null;
   private refused = false;
-  /** For each ply played: what its move took, and whether it gave check. And the move last made. */
-  private record: { took: Kind | null; check: boolean }[] = [];
+  /** For each ply played: its move, what it took, and whether it gave check. And the move last made, and what was told of it. */
+  private record: Played[] = [];
   private moved: Moved | null = null;
+  private told: Partial<Told> = {};
+  /** The stone each side's hand hangs over in thought, and since when; and how many times each stone has been turned to and let go this turn. */
+  private thought: Record<Side, { id: number; since: number; adjusted: boolean } | null> = { w: null, b: null };
+  private visits: Record<Side, Map<number, number>> = { w: new Map(), b: new Map() };
+  /** The flames of the candles at the corners of the board; and the ones a hand has been burned at in this game. */
+  private candles: Vector3[] = [];
+  private burned = new Set<Vector3>();
+  /** How the pointer has been moving over each resting hand; when a hand last waved back; and which way the last weight was pushed. */
+  private shakes = new Map<object, Shake>();
+  private waved = -Infinity;
+  private pushed = 1;
   /** The game is a lesson; it is played against a clock. */
   private lesson = false;
   private timed = false;
@@ -249,6 +288,9 @@ export class Stage {
     this.refused = false;
     this.record = [];
     this.moved = null;
+    this.told = {};
+    this.forget();
+    this.burned.clear();
     this.tails = { w: null, b: null };
     this.ply = 0;
     this.since = this.time;
@@ -269,12 +311,12 @@ export class Stage {
    * game that is joined part of the way through, after the piece layer has set up the position.
    */
   seatTaken(history: MoveEvent[]): void {
-    this.record = history.map((e) => ({ took: e.captured?.kind ?? null, check: e.status.inCheck }));
+    this.record = history.map(played);
     // How each of those moves was set down is chosen again, as every other screen chose it, so that
     // what the moves have spent of the game's budget is counted here too (manners.ts).
     history.forEach((e, i) => {
       this.ply = i + 1;
-      this.manners.choose('set', this.facts(e.side, { move: movedBy(e), tookBefore: this.record[i - 1]?.took ?? null, quiet: false }));
+      this.manners.choose('set', this.facts(e.side, { ...this.tellOf(e, i), quiet: false }));
     });
     this.ply = history.length;
     this.moved = null;
@@ -295,6 +337,17 @@ export class Stage {
   appear(): void {
     this.hands.w.appear();
     this.hands.b.appear();
+    // Sitting down (manners.ts): once they are drawn in, if no move has been made by then.
+    const generation = this.generation;
+    void this.tweens.wait(SITS_AFTER).then(() => {
+      if (generation === this.generation && this.ply === 0 && this.turn !== null) this.sit();
+    });
+  }
+
+  /** Where the candles at the corners of the board burn. */
+  setCandles(flames: Vector3[]): void {
+    this.candles = flames.map((f) => f.clone());
+    this.burned.clear();
   }
 
   /** Whose turn it is, so that their hands lean in and the other's sit back. Null when the game is over. */
@@ -309,7 +362,80 @@ export class Stage {
     // The player to move has turned to the board: what is left of the other's move gives way.
     if (square) this.cut(opposite(side));
     const puppet = square ? this.pieces.puppetAt(square) : null;
-    this.hands[side].consider(puppet && puppet.side === side ? puppet : null);
+    const mine = puppet && puppet.side === side ? puppet : null;
+    const before = this.thought[side];
+    const left = before && before.id !== mine?.id ? before : null;
+    this.hands[side].consider(mine);
+    if (left) {
+      const held = this.time - left.since;
+      if (held >= VISIT) this.visits[side].set(left.id, (this.visits[side].get(left.id) ?? 0) + 1);
+      // Second thought (manners.ts): left for another after a while, the finger wags as the hand goes, and the stone passed over lets its eye fall.
+      const was = this.pieces.puppet(left.id);
+      if (mine && was && this.manners.choose('think', this.facts(side, { held })) === 'second-thought') {
+        this.hands[side].wag(this.hands[side].armOver(was));
+        this.pieces.blink(left.id);
+      }
+    }
+    if (!mine) this.thought[side] = null;
+    else if (before?.id !== mine.id) this.thought[side] = { id: mine.id, since: this.time, adjusted: false };
+  }
+
+  /**
+   * The computer is about to move the stone on `from`, and could have moved one of those on
+   * `others`: now and then its hand goes to one of those first, and thinks better of it
+   * (manners.ts, the feint). Resolves when it has, at once if it does not.
+   */
+  async feint(side: Side, from: Square, others: Square[]): Promise<void> {
+    const could = others.filter((square) => square !== from && this.pieces.puppetAt(square)?.side === side);
+    if (this.manners.choose('think', this.facts(side, { computer: true, feint: could.length > 0 })) !== 'feint') return;
+    const puppet = this.pieces.puppetAt(could[Math.floor(draw(this.seedNow(), this.ply, 'feint, at which') * could.length)]!);
+    if (puppet) await this.hands[side].feint(puppet);
+  }
+
+  /**
+   * What the player at this screen does to their own hands (manners.ts, `Poked`): the pointer is at
+   * (`x`, `y`) in the picture, each from -1 to 1, `pressed` if it has just been pressed there, and
+   * `sides` are the hands this screen moves. A pointer shaken over a resting hand is waved back at;
+   * a weight that is pressed on is set swinging.
+   */
+  pointer(camera: Camera, x: number, y: number, sides: readonly Side[], pressed: boolean): void {
+    const aspect = (camera as { aspect?: number }).aspect ?? 1;
+    const near = (p: Vector3) => {
+      const seen = p.project(camera);
+      return seen.z < 1 ? Math.hypot((seen.x - x) * aspect, seen.y - y) / 2 : Infinity;
+    };
+    for (const side of sides) {
+      const player = this.hands[side];
+      for (const arm of [player.right, player.left]) {
+        if (pressed) {
+          if (near(arm.hand.weightWorld(this.mote)) > WEIGHT_NEAR) continue;
+          // Pushed across the picture, one way and then the other.
+          this.pushed = -this.pushed;
+          arm.hand.pullWeight(this.mote.setFromMatrixColumn(camera.matrixWorld, 0).multiplyScalar(WEIGHT_PUSH * this.pushed));
+          this.poke(side, 'weight', arm);
+          return;
+        }
+        let shake = this.shakes.get(arm);
+        if (!shake) this.shakes.set(arm, (shake = new Shake()));
+        const over = !arm.busy && !arm.considering && !arm.gesturing && near(arm.hand.toWorld(PALM_FOCUS, this.mote)) < HAND_NEAR;
+        if (!over) shake.clear();
+        else if (shake.feed((x * aspect) / 2, this.time)) this.poke(side, 'wave', arm);
+      }
+    }
+  }
+
+  /** The player at this screen has done something to `side`'s hands, which are theirs: what the hands make of it, if anything. */
+  poke(side: Side, what: Poked, arm: Arm = this.hands[side].right): boolean {
+    if (what === 'wave' && this.time - this.waved < WAVE_REST) return false;
+    if (what === 'back' && this.turn === null) return false;
+    if (this.manners.choose('poke', this.facts(side, { poked: what })) === null) return false;
+    const player = this.hands[side];
+    if (what === 'wave') {
+      this.waved = this.time;
+      player.wave(0, true, arm);
+    } else if (what === 'weight') player.lookAtWeight(arm);
+    else player.wakes();
+    return true;
   }
 
   // -- what the hands make of the game: told by the director, which knows what a move meant --
@@ -380,6 +506,27 @@ export class Stage {
     const act = () => {
       for (const side of ['w', 'b'] as const) this.hands[side].outcome(winner === null ? 'drawn' : winner === side ? 'won' : 'lost', happened, struck);
     };
+    // Mate, by what gave it (manners.ts): something of the winner's own before the hands claim it, or after.
+    const mate = happened && struck && winner ? this.manners.choose('end', this.facts(winner, { ...this.told, toMove: false, result: 'checkmate', winner, happened: true })) : null;
+    if (winner && (mate === 'back-rank' || mate === 'mate-by-castling' || mate === 'early-mate')) {
+      const victor = this.hands[winner];
+      this.hands[opposite(winner)].outcome('lost', true, true);
+      void (async () => {
+        await this.free();
+        if (end !== this.ends) return;
+        await (mate === 'back-rank' ? this.sweepRank(winner) : mate === 'mate-by-castling' ? victor.bow() : victor.brush());
+        // An early mate is not claimed: the hand that brushed it off only comes to hang as a winner's does.
+        if (end === this.ends) victor.outcome('won', true, mate !== 'early-mate');
+      })();
+      return null;
+    }
+    if (winner && mate === 'laid-down') {
+      void (async () => {
+        await this.free();
+        await this.tweens.wait(LAID_AFTER);
+        if (end === this.ends) await this.layDown(winner, end);
+      })();
+    }
     // A king is being laid down: the hands act the ending out when it is down, and not across it.
     if (this.tipping && happened) void this.tipping.then(() => end === this.ends && act());
     else act();
@@ -499,10 +646,11 @@ export class Stage {
     }
     this.ply++;
     this.last = e.side;
-    const tookBefore = this.record[this.ply - 2]?.took ?? null;
     this.record.length = this.ply - 1;
-    this.record.push({ took: e.captured?.kind ?? null, check: e.status.inCheck });
+    this.record.push(played(e));
+    const told = (this.told = this.tellOf(e, this.ply - 1));
     this.moved = movedBy(e);
+    this.forget();
     // Whoever was passing the time while this move was waited for has done with it.
     this.hands.w.attend();
     this.hands.b.attend();
@@ -514,7 +662,9 @@ export class Stage {
     const left: Promise<unknown>[] = [];
     const cuts: (() => void)[] = [];
     // How the stone is to be set down, if it is to be set down in a way of its own (manners.ts).
-    const manner = this.manners.choose('set', this.facts(e.side, { move: this.moved, tookBefore }));
+    const manner = this.manners.choose('set', this.facts(e.side, told));
+    // A king that has castled is patted, now and then; one stepped up on its side's second move always is, and a knight that has smothered a king.
+    const pats = manner === 'pat' ? (e.castle === 'q' ? 2 : 1) : manner === 'bongcloud' || manner === 'bongcloud-both' || manner === 'smothered' ? 1 : 0;
 
     // Castling takes both hands at once: the hand on the rook's side takes the rook, the other the king.
     const rook = e.rook ? this.pieces.hold(e.rook.id) : null;
@@ -589,10 +739,10 @@ export class Stage {
             until: gone,
             onBeat: beats,
             ...(passing ? { rap: (at: Vector3) => this.heard?.('knock', at, 0.6) } : {}),
-            ...(manner === 'pat'
+            ...(pats > 0
               ? {
                   pat: {
-                    taps: e.castle === 'q' ? 2 : 1,
+                    taps: pats,
                     patted: (at: Vector3) => this.patted(mover, at),
                     patting: (rest: Promise<void>) => {
                       left.push(rest);
@@ -617,6 +767,13 @@ export class Stage {
           });
           return;
         }
+        if (manner === 'home-again') {
+          // Never mind: a flick of the fingers, as the game goes on.
+          left.push(player.flick(moverArm));
+          cuts.push(() => player.letBe(moverArm));
+        }
+        // A pawn that has given mate hops where it stands.
+        if (manner === 'mate-by-pawn') left.push(this.hop(mover, generation));
         if (!e.promotion) return;
         const becomes = e.promotion;
         if (manner !== 'snap') return this.recast(mover, becomes, generation);
@@ -675,7 +832,20 @@ export class Stage {
     this.since = this.time;
     // What the other side's hands make of it.
     const other = opposite(e.side);
-    if (this.manners.choose('after', this.facts(other, { move: this.moved, tookBefore })) === 'really') this.hands[other].really(e.promotion === 'b');
+    const after = this.manners.choose('after', this.facts(other, told));
+    if (after === 'really') this.hands[other].really(e.promotion === 'b');
+    else if (after === 'third-queen') this.hands[other].slacken();
+    else if (after === 'copycat') {
+      // As one tests a mirror: and the mirror is a little late.
+      this.hands.w.wave(0.3);
+      this.hands.b.wave(0.6);
+    }
+    // The king stepped up: the other side's hands turn palm up at it; and if theirs has just done the same, a thumb from each player.
+    if (manner === 'bongcloud') this.hands[other].really(true);
+    else if (manner === 'bongcloud-both') {
+      this.hands[e.side].thumb(0.9);
+      this.hands[other].thumb(1.02);
+    }
   }
 
   /** Play a take-back that the rules core has already applied. */
@@ -691,6 +861,8 @@ export class Stage {
     this.ply = Math.max(0, this.ply - 1);
     this.record.length = this.ply;
     this.moved = null;
+    this.told = {};
+    this.forget();
     this.last = opposite(e.side);
     this.since = this.time;
     // Whatever the move being taken back had ended, it has not ended now.
@@ -749,6 +921,7 @@ export class Stage {
     this.hands.w.update(dt, time);
     this.hands.b.update(dt, time);
     this.silhouette.touch();
+    this.adjusting();
     this.ground.begin();
     for (const side of ['w', 'b'] as const) {
       const player = this.hands[side];
@@ -836,6 +1009,18 @@ export class Stage {
       checks: 0,
       lesson: this.lesson,
       timed: this.timed,
+      held: 0,
+      again: 0,
+      captive: null,
+      candle: false,
+      computer: false,
+      feint: false,
+      mates: false,
+      hemmed: false,
+      backRank: false,
+      found: null,
+      queens: 0,
+      poked: null,
       ...more,
     };
   }
@@ -885,24 +1070,213 @@ export class Stage {
   /** A player's hands have had nothing to do for a while: whether they do something out of the ordinary about it. */
   private idle(side: Side): boolean {
     if (this.turn === null) return false;
-    const name = this.manners.choose('wait', this.facts(side));
-    if (name === 'drum-on-the-rail') this.hands[side].drumOnRail((at, strength) => this.heard?.('tap', at, strength));
+    const captive = this.captive(side);
+    const flame = this.flameBy(side);
+    const name = this.manners.choose('wait', this.facts(side, { captive: captive?.kind ?? null, candle: flame !== null }));
+    const tap = (at: Vector3, strength: number) => this.heard?.('tap', at, strength);
+    if (name === 'drum-on-the-rail') this.hands[side].drumOnRail(tap);
     else if (name === 'steeple') this.hands[side].steeple((at) => this.heard?.('meet', at, 0.5));
+    else if (name === 'look-at-the-cord') this.hands[side].lookAtCord();
+    else if (name === 'lie-on-the-rail') this.hands[side].lieOnRail(tap, () => this.time - this.since >= ASLEEP_AFTER);
+    else if (name === 'captives' && captive) this.lookAt(side, captive);
+    else if (name === 'candle' && flame) {
+      this.burned.add(flame);
+      this.hands[side].warm(flame, (at) => this.heard?.('burn', at, 1));
+    }
     return name !== null;
+  }
+
+  /** Sitting down: Ivory's hands crack their knuckles, some games; and now and then Void's answer, late and small. */
+  private sit(): void {
+    if (this.manners.choose('sit', this.facts('w')) !== 'knuckles') return;
+    const crack = (at: Vector3, strength: number) => this.heard?.('crack', at, strength);
+    this.hands.w.steeple(undefined, crack);
+    if (draw(this.seedNow(), 0, 'knuckles, answered') >= ANSWERS) return;
+    const generation = this.generation;
+    void this.tweens.wait(ANSWERS_AFTER).then(() => {
+      if (generation === this.generation && this.ply === 0) this.hands.b.crackOne(crack);
+    });
+  }
+
+  /** A new turn, or a new game: nobody is thinking of any stone yet, and none has been turned to. */
+  private forget(): void {
+    this.thought = { w: null, b: null };
+    this.visits.w.clear();
+    this.visits.b.clear();
+  }
+
+  /** J'adoube (manners.ts): a stone turned to for the third time in one turn is set straight by the hand that hangs over it. */
+  private adjusting(): void {
+    for (const side of ['w', 'b'] as const) {
+      const thought = this.thought[side];
+      const again = thought ? (this.visits[side].get(thought.id) ?? 0) : 0;
+      if (!thought || thought.adjusted || again < 2 || this.time - thought.since < ADJUST_AFTER) continue;
+      thought.adjusted = true;
+      const puppet = this.pieces.puppet(thought.id);
+      if (!puppet || this.manners.choose('think', this.facts(side, { again })) !== 'jadoube') continue;
+      this.hands[side].adjust(puppet, (at) => {
+        this.heard?.('tap', at, 0.6);
+        this.pieces.blink(puppet.id);
+        this.turned(puppet);
+      });
+    }
+  }
+
+  /** A stone is turned a little on its square, and back to where it faced: unless a hand takes it up meanwhile. */
+  private turned(puppet: Puppet): void {
+    const generation = this.generation;
+    const group = puppet.group;
+    const facing = group.rotation.y;
+    const mine = () => generation === this.generation && this.pieces.puppet(puppet.id)?.group === group && !this.arms().some((arm) => arm.held?.puppet === puppet || arm.busy);
+    let over = false;
+    void this.tweens.run({
+      duration: 0.3,
+      ease: (k) => k,
+      update: (k) => {
+        if (over) return;
+        if (!mine()) {
+          // (Whatever has it now puts it as it should be.)
+          over = true;
+          return;
+        }
+        group.rotation.y = facing + (k >= 1 ? 0 : ADJUST_TURN * Math.sin(Math.PI * k));
+      },
+    });
+  }
+
+  /** The greatest stone `side` has taken that stands in its drawers, if it has taken any. */
+  private captive(side: Side): Puppet | null {
+    let best: Puppet | null = null;
+    for (const id of this.slots[side].keys()) {
+      const puppet = this.pieces.puppet(id);
+      if (puppet && (!best || WORTH[puppet.kind] > WORTH[best.kind])) best = puppet;
+    }
+    return best;
+  }
+
+  /**
+   * Captives (manners.ts): the hand on that side takes the stone up from the drawer, holds it up to
+   * look at, and stands it back where it stood. Across the board, the hands that lost it curl a little.
+   */
+  private lookAt(side: Side, captive: Puppet): void {
+    const player = this.hands[side];
+    const arm = player.armFor(captive.group.position.x);
+    if (arm.busy || this.tails[side]) return;
+    const generation = this.generation;
+    const spot = captive.group.position.clone();
+    const done = player.carry(arm, captive, spot, { energy: 0, apex: CAPTIVE_UP, show: CAPTIVE_SECONDS }).then(() => {
+      if (this.tails[side] === tail) this.tails[side] = null;
+    });
+    // It is that side's to finish before its hands are wanted for a move of its own.
+    const tail: Tail = { cut: () => undefined, done };
+    this.tails[side] = tail;
+    void this.tweens.wait(1.1).then(() => {
+      if (generation === this.generation && this.tails[side] === tail) this.hands[opposite(side)].wince(CAPTIVE_FELT);
+    });
+  }
+
+  /** The candle that burns under one of `side`'s hands, if there is one it has not been burned at in this game. */
+  private flameBy(side: Side): Vector3 | null {
+    const end = side === 'w' ? 1 : -1;
+    for (const flame of this.candles) if (flame.z * end > 0 && !this.burned.has(flame)) return flame;
+    return null;
+  }
+
+  /** What is told of a move, the `index`th of the game, to the manners: the move, and what the board and the record show with it. */
+  private tellOf(e: MoveEvent, index: number): Partial<Told> {
+    const loser = opposite(e.side);
+    const mates = e.status.result === 'checkmate';
+    let king: Square | null = null;
+    if (mates) for (const square of SQUARES) if (this.pieces.kindAt(square) === 'k' && this.pieces.puppetAt(square)?.side === loser) king = square;
+    let queens = e.promotion === 'q' ? 1 : 0;
+    for (const p of this.pieces.standing()) if (p.kind === 'q' && p.side === e.side) queens++;
+    const home = loser === 'w' ? '1' : '8';
+    return {
+      move: movedBy(e),
+      tookBefore: this.record[index - 1]?.took ?? null,
+      found: this.found(index),
+      mates,
+      hemmed: king !== null && neighbours(king).every((square) => this.pieces.puppetAt(square)?.side === loser),
+      backRank: king !== null && king[1] === home && e.piece.to[1] === home && (e.piece.kind === 'r' || e.piece.kind === 'q'),
+      queens,
+    };
+  }
+
+  /** What the record shows, that the `index`th move of the game was the last of (manners.ts, `Found`). */
+  private found(index: number): Found | null {
+    const m = this.record[index];
+    if (!m) return null;
+    // A king stepped straight up from where it began, on its side's second move.
+    const stepped = (at: number) => {
+      const r = this.record[at];
+      return (at === 2 || at === 3) && r !== undefined && r.kind === 'k' && r.from === (r.by === 'w' ? 'e1' : 'e8') && r.to === (r.by === 'w' ? 'e2' : 'e7');
+    };
+    if (stepped(index)) return stepped(index - 1) ? 'bongcloud-both' : 'bongcloud';
+    // Void's first four moves, Ivory's own seen in a glass.
+    if (index === 7) {
+      const across = (a: Square, b: Square) => a[0] === b[0] && Number(a[1]) + Number(b[1]) === 9;
+      let mirrored = true;
+      for (let i = 0; i < 8; i += 2) {
+        const ivory = this.record[i];
+        const dark = this.record[i + 1];
+        mirrored &&= ivory !== undefined && dark !== undefined && ivory.by === 'w' && dark.by === 'b' && ivory.kind === dark.kind && across(ivory.from, dark.from) && across(ivory.to, dark.to);
+      }
+      if (mirrored) return 'copycat';
+    }
+    // A knight back on the square it began the game on.
+    if (m.kind === 'n' && ['b1', 'g1', 'b8', 'g8'].includes(m.to)) {
+      const first = this.record.find((r) => r.id === m.id);
+      if (first && first !== m && first.from === m.to) return 'home-again';
+    }
+    return null;
+  }
+
+  /** A pawn that has given mate hops where it stands, once it has been let go. */
+  private async hop(pawn: Puppet, generation: number): Promise<void> {
+    await this.tweens.wait(HOP_AFTER);
+    const group = pawn.group;
+    const stood = group.position.y;
+    const mine = () => generation === this.generation && this.pieces.puppet(pawn.id)?.group === group;
+    await this.tweens.run({ duration: 0.26, ease: (k) => k, update: (k) => mine() && (group.position.y = stood + (k >= 1 ? 0 : HOP * Math.sin(Math.PI * k))) });
+    if (mine()) this.heard?.('knock', group.position, 0.4);
+  }
+
+  /** The back rank: the winner's hand sweeps along the rank the mated king is shut in on, above the crowns. */
+  private sweepRank(winner: Side): Promise<void> {
+    const rank = winner === 'w' ? '8' : '1';
+    // From the winner's own right to their left.
+    const [from, to] = winner === 'w' ? (['h', 'a'] as const) : (['a', 'h'] as const);
+    return this.hands[winner].sweep(squareCenter(`${from}${rank}` as Square), squareCenter(`${to}${rank}` as Square));
+  }
+
+  /** Laid down: the winner's hand lays the mated king on its side, gently. Respect, not triumph. */
+  private async layDown(winner: Side, end: number): Promise<void> {
+    let king: Puppet | null = null;
+    for (const p of this.pieces.standing()) if (p.kind === 'k' && p.side !== winner) king = p;
+    if (!king || this.fallen || this.tipping) return;
+    const tipping: Promise<void> = this.tip(king, () => undefined, (at, strength) => this.heard?.('knock', at, 0.3 * strength), winner).finally(() => {
+      if (this.tipping === tipping) this.tipping = null;
+    });
+    this.tipping = tipping;
+    await tipping;
+    // The hand that did it goes back to hang as a winner's does.
+    if (end === this.ends) this.hands[winner].outcome('won', false);
   }
 
   /**
    * A king is laid down by its own player's hand: pushed until it goes by itself, and then it
    * falls, strikes the board and rocks until it is still.
    */
-  private async tip(king: Puppet, down: () => void, knock: (at: Vector3, strength: number) => void): Promise<void> {
+  private async tip(king: Puppet, down: () => void, knock: (at: Vector3, strength: number) => void, by: Side = king.side): Promise<void> {
     const generation = this.generation;
     const base = king.group.position.clone();
     const facing = king.group.rotation.y;
     const fall = chooseFall(king, this.around(), FORWARD[king.side]);
     this.fallen = { group: king.group, id: king.id, base, facing };
     const live = () => generation === this.generation && this.fallen?.group === king.group;
-    const player = this.hands[king.side];
+    const player = this.hands[by];
+    // Laid down by the other player's hand, it is let down slowly, and does not rock.
+    const gently = by !== king.side;
     const spot = new Vector3();
     let pushed = 0;
     await player.tip(king, (share) => {
@@ -917,8 +1291,8 @@ export class Stage {
     const from = fall.tips * pushed;
     if (fall.rest > from + 1e-3) {
       await this.tweens.run({
-        duration: 0.2 + 0.16 * (fall.rest - from),
-        ease: (k) => k * k,
+        duration: (0.2 + 0.16 * (fall.rest - from)) * (gently ? 2.4 : 1),
+        ease: gently ? Easing.inOutSine : (k) => k * k,
         update: (k) => live() && layOver(king, base, facing, fall, from + (fall.rest - from) * k),
       });
       if (!live()) return;
@@ -928,7 +1302,7 @@ export class Stage {
     if (!fall.leans) struck.y = base.y;
     down();
     knock(struck, fall.leans ? 0.45 : 1);
-    for (const [back, seconds, strength] of fall.leans ? SETTLES : ROCKS) {
+    for (const [back, seconds, strength] of fall.leans || gently ? SETTLES : ROCKS) {
       await this.tweens.run({
         duration: seconds,
         ease: (k) => k,
@@ -1053,6 +1427,37 @@ export class Stage {
       },
     });
   }
+}
+
+/** A move as the record keeps it: who made it, with which stone, from where to where, what it took, and whether it gave check. */
+interface Played {
+  by: Side;
+  id: number;
+  kind: Kind;
+  from: Square;
+  to: Square;
+  took: Kind | null;
+  check: boolean;
+}
+
+function played(e: MoveEvent): Played {
+  return { by: e.side, id: e.piece.id, kind: e.piece.kind, from: e.piece.from, to: e.piece.to, took: e.captured?.kind ?? null, check: e.status.inCheck };
+}
+
+const SQUARES: Square[] = [];
+for (const file of 'abcdefgh') for (const rank of '12345678') SQUARES.push(`${file}${rank}` as Square);
+
+/** The squares beside a square, on the board. */
+function neighbours(square: Square): Square[] {
+  const out: Square[] = [];
+  for (let df = -1; df <= 1; df++) {
+    for (let dr = -1; dr <= 1; dr++) {
+      const file = square.charCodeAt(0) - 97 + df;
+      const rank = Number(square[1]) + dr;
+      if ((df !== 0 || dr !== 0) && file >= 0 && file < 8 && rank >= 1 && rank <= 8) out.push(`${String.fromCharCode(97 + file)}${rank}` as Square);
+    }
+  }
+  return out;
 }
 
 /** A move, as the manners are told it. */

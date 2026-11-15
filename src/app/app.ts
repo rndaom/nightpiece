@@ -78,6 +78,8 @@ const SIDES = ['w', 'b'] as const;
 /** The computer's hand dwells on a piece for at least this long before taking it, and it never answers faster than the second figure. */
 const DWELL = 0.6;
 const QUICKEST_REPLY = 1.2;
+/** The page has been away a long while when it was hidden this many milliseconds: the hands show it when it is come back to. */
+const AWAY_LONG = 60_000;
 /** A screen this many moves behind the server (a watcher's tab left in the background, say) jumps to the present. */
 const TOO_FAR_BEHIND = 3;
 
@@ -2217,6 +2219,9 @@ export class App {
     if (this.reply !== reply) return;
     // Its hand goes to a stone of the game as it stands, so the board must be showing that.
     this.leaveView();
+    // Now and then to another stone first, that it could have moved: any of them, never its second choice.
+    await this.world.feint(opposite(mode.side), move.from, [...new Set(this.game.moves().map((m) => m.from))]);
+    if (this.reply !== reply) return;
     this.world.consider(opposite(mode.side), move.from);
     await this.world.tweens.wait(Math.max(DWELL, QUICKEST_REPLY - (this.time - began)));
     if (this.reply !== reply) return;
@@ -2642,6 +2647,9 @@ export class App {
 
     c.addEventListener('pointerdown', (ev) => {
       if (ev.button !== 0) return;
+      // A press on the weight that hangs from one of the player's own hands sets it swinging.
+      const frame = c.getBoundingClientRect();
+      this.world.pointerAt(((ev.clientX - frame.left) / frame.width) * 2 - 1, -(((ev.clientY - frame.top) / frame.height) * 2 - 1), SIDES.filter((side) => this.owns(side)), true);
       // A press while the case is opening finishes it, and does nothing more.
       if (this.world.unpacking) return this.world.finishUnpack();
       if (ev.pointerType === 'touch') {
@@ -2669,6 +2677,8 @@ export class App {
         ((ev.clientX - rect.left) / rect.width) * 2 - 1,
         -(((ev.clientY - rect.top) / rect.height) * 2 - 1),
       );
+      // Shaken over one of the player's own hands, it is waved back at.
+      if (ev.pointerType !== 'touch') this.world.pointerAt(this.rig.pointer.x, this.rig.pointer.y, SIDES.filter((side) => this.owns(side)), false);
       const p = this.press;
       if (p) {
         if (p.id !== ev.pointerId) return;
@@ -2756,8 +2766,17 @@ export class App {
     // Back to the page after it was hidden (another tab, another app, the screen locked): the sound
     // is started again if the system stopped it, and the connections to the server are checked at
     // once, not after the long silence that would otherwise tell a dead one.
+    let hiddenAt: number | null = null;
     document.addEventListener?.('visibilitychange', () => {
-      if (!document.hidden) this.wake();
+      if (document.hidden) {
+        hiddenAt = performance.now();
+        return;
+      }
+      this.wake();
+      // Left for a minute and more with a game on: the player's own hands start awake.
+      const away = hiddenAt === null ? 0 : performance.now() - hiddenAt;
+      hiddenAt = null;
+      if (away >= AWAY_LONG && !this.game.status().over) this.world.cameBack(SIDES.filter((side) => this.owns(side)));
     });
 
     window.addEventListener('keydown', (ev) => {

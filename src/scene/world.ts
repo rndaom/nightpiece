@@ -479,6 +479,8 @@ export class World {
     // Someone who has asked their machine for less motion gets the hands' rituals and none of their idling about.
     this.stage.quiet = this.still;
     this.stage.heard = (what, at, strength) => this.director?.heard(what, at, strength);
+    // The tallest candle at each corner of the board: what the hands that rest over them may warm themselves at.
+    this.stage.setCandles(assets.room.flames.slice(0, assets.room.plinthFlames).filter((_, i) => i % 3 === 0));
     this.scene.add(this.stage.root);
     this.pieces.handsOn = true;
     // While the case is shut, or opening, the hands wait for it.
@@ -671,6 +673,29 @@ export class World {
   /** A player turns their thought to a square (their hand goes to hover over it), or away from the board. */
   consider(side: Side, square: Square | null): void {
     this.stage?.consider(side, square);
+  }
+
+  /**
+   * The computer is about to move the stone on `from`, and could have moved one of those on
+   * `others`: now and then its hand goes to one of those first (the hands' manners, the feint).
+   * Resolves when it has, at once if it does not.
+   */
+  feint(side: Side, from: Square, others: Square[]): Promise<void> {
+    return this.stage?.feint(side, from, others) ?? Promise.resolve();
+  }
+
+  /**
+   * Where the pointer is in the picture (each way from -1 to 1), `pressed` if it has just been
+   * pressed there, for the hands this screen moves (`sides`): shaken over one of them at rest, it
+   * is waved back at; pressed on a weight, that is set swinging.
+   */
+  pointerAt(x: number, y: number, sides: readonly Side[], pressed: boolean): void {
+    this.stage?.pointer(this.camera, x, y, sides, pressed);
+  }
+
+  /** The page has been come back to after a long while away: the hands this screen moves start awake. */
+  cameBack(sides: readonly Side[]): void {
+    for (const side of sides) this.stage?.poke(side, 'back');
   }
 
   /** Whose turn it is, for the hands' bearing. Null when the game is over. */

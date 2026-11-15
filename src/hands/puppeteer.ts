@@ -246,6 +246,8 @@ class Arm {
   acts = 0;
   /** The same for what has been asked of `swayed` and the rest. */
   leans = 0;
+  /** How many gestures have been asked of the arm and are waiting their moment: it is not to be given a lesser one meanwhile. */
+  pending = 0;
   /** True while a gesture is being made, and while that gesture has the hand somewhere of its own choosing and not about where it rests. */
   gesturing = false;
   acting = false;
@@ -256,6 +258,10 @@ class Arm {
    */
   planted = false;
   plants = 0;
+  /** How far a hand in thought has come down toward the stone it is over, from where it hangs: see `Puppeteer.adjust`. */
+  dip = 0;
+  /** How much farther from where it would rest a hand keeps, upward: one that has been burned (see `Puppeteer.warm`). */
+  wary = 0;
   /** A piece the hand hangs over as it would in thought, threads and all, though nobody is thinking: see `Puppeteer.tip`. */
   musing: { puppet: Puppet; grip: PieceGrip } | null = null;
   /** True while the gesture the arm is making is one that only passes the time (on the rail, or with the other hand): a move by anybody ends it. */
@@ -818,6 +824,8 @@ const STEEPLE_IN = 0.4;
 const STEEPLE_ROLL = -1.5;
 const STEEPLE_PRESS = 0.1;
 const STEEPLE_SHY = 0.05;
+/** And for knuckles to be cracked, as much nearer as this, once: the fingers are bent well back. */
+const KNUCKLE_PRESS = 0.2;
 /** They come this near to one another with their fingers straight, before the fingers bend to meet. */
 const STEEPLE_NEARLY = 0.3;
 /** Half the thickness of a fingertip: how far from the middle each of two that meet is. */
@@ -911,6 +919,39 @@ const SNAPPED: Pose = (() => {
 const REALLY: Partial<Bearing> = { x: 0.1, y: 0.35, z: 0.05, tip: -0.05, turn: -2.75, glow: 0.3 };
 const REALLY_TURNS = 1.3;
 const REALLY_HOLDS = 0.8;
+
+/** A hand that has gone to sleep on the rail, or been left with the page hidden, starts awake as at a check, but this much of it. */
+const STARTS_AWAKE = 1 / 3;
+/** A wrist turned over to be looked at, where a watch would be; and how long it is looked at. */
+const CORD_LOOKED_AT: Partial<Bearing> = { y: 0.45, z: -0.15, tip: -0.3, turn: -1.9, glow: 0.3 };
+const CORD_HOLDS = 1.5;
+/** A hand that lies down on the rail sinks this much from where it drums, and is tipped this much flatter; it taps once in this many seconds; and it lies no longer than this. */
+const LIES_LOWER = 0.07;
+const LIES_FLATTER = 0.06;
+const TAP_EVERY = 2;
+const LIES_AT_MOST = 900;
+/** A hand warms itself this far above a flame, for this long; this far above it is too near; and a hand that has been burned rests this much higher after. */
+const WARMS_AT = 0.95;
+const WARMS_FOR = 1.6;
+const BURNS_AT = 0.55;
+const WARY = 0.42;
+const WARMING = between(POSES.relaxed, POSES.splay, 0.7);
+/** A finger wagged: how far to each side, and how long the whole of it takes. */
+const WAG = 0.09;
+const WAG_SECONDS = 0.36;
+/** How far a hand in thought comes down to set a stone straight, and to begin to close on one it will not take; and how long it hangs over that one first. */
+const ADJUST_DIP = 0.34;
+const FEINT_DIP = 0.12;
+const FEINT_HANGS = 0.5;
+/** A hand shut with its thumb out, and how far it is rolled for the thumb to stand uppermost. */
+const THUMB_UP: Pose = (() => {
+  const p = POSES.fist.slice() as Pose;
+  setFinger(p, 'thumb', [-0.1, 0, 0, 0.55, 0.1]);
+  return p;
+})();
+const THUMB_TURN = -1.5;
+/** How high over the board a hand sweeps along a rank: clear of a king's crown. */
+const SWEEPS_AT = 3.4;
 
 export type Reach = 'over' | 'under';
 export interface Beside {
@@ -1059,6 +1100,8 @@ export class Puppeteer {
   idle: ((attentive: boolean) => boolean) | null = null;
   /** True while the two hands have their fingertips set down on each other's. */
   private paired = false;
+  /** The arm that lies on the rail asleep, if one does (see `lieOnRail`). */
+  private sleeper: Arm | null = null;
   /** True while this player's offer of a draw stands; and how it was answered, once it has been. */
   private offering = false;
   private answered: 'refused' | 'withdrawn' | null = null;
@@ -1094,6 +1137,7 @@ export class Puppeteer {
     this.mood = 'play';
     this.resting = POSES.relaxed;
     this.offering = false;
+    this.sleeper = null;
     for (const arm of [this.right, this.left]) {
       this.still(arm);
       arm.leans++;
@@ -1108,6 +1152,9 @@ export class Puppeteer {
       arm.musing = null;
       arm.planted = false;
       arm.plants++;
+      arm.pending = 0;
+      arm.dip = arm.wary = 0;
+      arm.hand.wagged = 0;
       arm.hand.touchWeight = 0;
       arm.hand.clearTouch();
       arm.hand.setPose(this.resting, 0.2);
@@ -1142,7 +1189,8 @@ export class Puppeteer {
     this.attentive = on;
     this.right.attentive = this.left.attentive = on;
     // The turn has come round: the hands stir, as hands do that have been waiting.
-    if (woken) this.each((arm, delay) => !arm.gesturing && !arm.busy && !arm.considering && this.gesture(arm, (ok) => this.stir(arm, ok), { delay }));
+    // (Not one that is about to do something else: the stir would take its place.)
+    if (woken) this.each((arm, delay) => !arm.gesturing && arm.pending === 0 && !arm.busy && !arm.considering && this.gesture(arm, (ok) => this.stir(arm, ok), { delay }));
   }
 
   /** The arm on the side of the board a point is on, so that arms do not cross. */
@@ -1816,7 +1864,7 @@ export class Puppeteer {
    * the case and meet fingertip to fingertip, all five, press twice, and part. `met` is told when
    * they touch, and where.
    */
-  steeple(met?: (at: Vector3) => void): void {
+  steeple(met?: (at: Vector3) => void, crack?: (at: Vector3, strength: number) => void): void {
     const arms = [this.right, this.left];
     void this.duet(async (ok) => {
       const out = (arm: Arm) => Math.sign(arm.home.x);
@@ -1875,10 +1923,28 @@ export class Puppeteer {
       this.paired = true;
       await this.tweens.run({ duration: 0.22, ease: Easing.inOutSine, update: (k) => ok() && arms.forEach((arm) => (arm.hand.touchWeight = k)) });
       if (!ok()) return;
-      met?.(v2.addVectors(fitted[0]!.spots[2]!, fitted[1]!.spots[2]!).multiplyScalar(0.5).clone());
-      if (!(await this.pause(0.45, ok))) return;
-      // Pressed together, twice: the fingers bow, since their tips have nowhere to go.
-      if (!(await this.during(1.5, ok, (k) => close(gap + STEEPLE_PRESS * Math.pow(Math.sin(Math.PI * 2 * k), 2))))) return;
+      const middle = v2.addVectors(fitted[0]!.spots[2]!, fitted[1]!.spots[2]!).multiplyScalar(0.5).clone();
+      met?.(middle);
+      if (!(await this.pause(crack ? 0.25 : 0.45, ok))) return;
+      if (crack) {
+        // Knuckles: pressed once, hard, and held there until the fingers, bent back, crack: three to five of them, and not evenly.
+        this.habit++;
+        const cracks = 3 + (this.habit % 3);
+        let made = 0;
+        let next = 0.42;
+        const pressed = await this.during(1.1, ok, (k) => {
+          close(gap + KNUCKLE_PRESS * Math.sin(Math.PI * Math.min(1, k * 1.2) * 0.5) * (k > 0.8 ? (1 - k) / 0.2 : 1));
+          if (made < cracks && k >= next) {
+            crack(middle, 1 - 0.13 * made);
+            made++;
+            next += (0.04 + 0.015 * ((made * 7 + this.habit) % 3)) / 1.1;
+          }
+        });
+        if (!pressed) return;
+      } else if (!(await this.during(1.5, ok, (k) => close(gap + STEEPLE_PRESS * Math.pow(Math.sin(Math.PI * 2 * k), 2))))) {
+        // (Pressed together, twice: the fingers bow, since their tips have nowhere to go.)
+        return;
+      }
       if (!(await this.pause(0.4, ok))) return;
       await Promise.all(arms.map((arm) => this.unplant(arm, 0.25)));
       if (!ok()) return;
@@ -1953,10 +2019,14 @@ export class Puppeteer {
   attend(): void {
     for (const arm of [this.right, this.left]) {
       if (!arm.idling || !arm.gesturing || arm.busy || arm.considering) continue;
+      const slept = this.sleeper === arm;
+      if (slept) this.sleeper = null;
       this.still(arm, 0.3);
       arm.omega = 7.5;
       arm.hand.setPose(this.resting, 0.6, 0.05, Easing.inOutCubic);
       this.rest(arm, RAIL_CLEAR);
+      // A hand that had gone to sleep starts awake: as at a check, a third as large.
+      if (slept) void this.gesture(arm, (ok) => this.recoil(arm, ok, STARTS_AWAKE));
     }
   }
 
@@ -2271,6 +2341,378 @@ export class Puppeteer {
   }
 
 
+  // -- waiting and thinking (docs/manners.md, 5.1 to 5.3) ---------------------------------------------
+
+  /**
+   * Kept waiting a long while: a hand lifts, turns its wrist over and looks at the cord there, where
+   * a watch would be; and looks back at the board.
+   */
+  lookAtCord(): void {
+    this.habit++;
+    const arm = this.habit % 2 === 0 ? this.right : this.left;
+    void this.gesture(arm, async (ok) => {
+      arm.idling = true;
+      arm.steady = true;
+      arm.omega = 5;
+      arm.hand.setPose(between(POSES.relaxed, POSES.fist, 0.4), 0.8, 0.05, Easing.inOutCubic);
+      void this.lean(arm, CORD_LOOKED_AT, 0.9);
+      if (!(await this.pause(0.9 + CORD_HOLDS, ok))) return;
+      // And back at the board: nothing has moved.
+      void this.lean(arm, { y: 0.2, z: 0.12, tip: 0.12, turn: 0, glow: 0 }, 0.5);
+      await this.pause(1, ok);
+    });
+  }
+
+  /**
+   * Kept waiting longer still: a hand comes down onto the rail, as it would to drum, and lies there,
+   * one finger tapping every two seconds (`tap` is told, where and how hard); and when `asleep` says
+   * it has been long enough the tapping stops, and the fingers only twitch now and then, as a
+   * sleeper's do. It lies there until a move is made (`attend`), and then starts awake.
+   */
+  lieOnRail(tap: ((at: Vector3, strength: number) => void) | undefined, asleep: () => boolean): void {
+    this.habit++;
+    const arm = this.habit % 2 === 0 ? this.right : this.left;
+    void this.gesture(arm, async (ok) => {
+      const hand = arm.hand;
+      arm.idling = true;
+      const down = await this.alight(arm, ok);
+      if (!down) return;
+      const { place, spots } = down;
+      // It lies down: the heel of the hand sinks toward the wood, the fingertips staying where they are.
+      arm.omega = 3;
+      arm.shift(v1.copy(place).setY(place.y - LIES_LOWER), RAIL_PITCH + LIES_FLATTER);
+      if (!(await this.pause(0.9, ok))) return;
+      const tapper = DRUMMERS.length - 1;
+      const lift = (finger: FingerName, spot: Vector3, high: number, seconds: number) => this.during(seconds, ok, (k) => (hand.touch[finger]!.y = spot.y + high * Math.sin(Math.PI * k)));
+      for (let lain = 0; lain < LIES_AT_MOST && !asleep(); lain += TAP_EVERY) {
+        if (!(await this.pause(TAP_EVERY - 0.2, ok))) return;
+        if (!(await lift(DRUMMERS[tapper]!, spots[tapper]!, RAIL_LIFT, 0.2))) return;
+        tap?.(spots[tapper]!, 0.6);
+      }
+      // Asleep. Nothing is heard; a finger stirs, not the same one each time.
+      this.sleeper = arm;
+      for (let slept = 0, n = 0; slept < LIES_AT_MOST; slept += 3.4, n++) {
+        if (!(await this.pause(3.1, ok))) return;
+        const which = (n * 2 + 1) % DRUMMERS.length;
+        if (!(await lift(DRUMMERS[which]!, spots[which]!, RAIL_LIFT * 0.35, 0.3))) return;
+      }
+    }, { own: true }).finally(() => {
+      if (this.sleeper === arm && !arm.gesturing) this.sleeper = null;
+    });
+  }
+
+  /**
+   * The other player's answer to knuckles cracked: the right hand, without leaving its corner,
+   * presses its index down with its thumb. One crack, late and small (`crack` is told, and where).
+   */
+  crackOne(crack?: (at: Vector3, strength: number) => void): void {
+    const arm = this.right;
+    void this.gesture(arm, async (ok) => {
+      const hand = arm.hand;
+      arm.steady = true;
+      const pressed = this.resting.slice() as Pose;
+      setFinger(pressed, 'index', fingerOf(POSES.fist, 'index'));
+      setFinger(pressed, 'thumb', fingerOf(POSES.fist, 'thumb'));
+      hand.setPose(pressed, 0.45, 0, Easing.inOutCubic, ['index', 'thumb']);
+      if (!(await this.pause(0.6, ok))) return;
+      crack?.(hand.padWorld('index', new Vector3()), 0.45);
+      if (!(await this.pause(0.35, ok))) return;
+      hand.setPose(this.resting, 0.5, 0.05, Easing.inOutCubic, ['index', 'thumb']);
+      await this.pause(0.5, ok);
+    });
+  }
+
+  /**
+   * Kept waiting, beside a candle: the hand that rests over `flame` lowers itself toward it, palm
+   * down and fingers spread, as hands do at a fire. It goes a little too low; snatches back
+   * (`burned` is told, and where); shakes its fingers out twice; and for the rest of the game rests
+   * a hand's breadth farther from the candle than it did.
+   */
+  warm(flame: Vector3, burned?: (at: Vector3) => void): void {
+    const arm = Math.sign(flame.x) === Math.sign(this.right.home.x) ? this.right : this.left;
+    const at = flame.clone();
+    void this.gesture(arm, async (ok) => {
+      const hand = arm.hand;
+      arm.idling = true;
+      arm.steady = true;
+      arm.omega = 4;
+      const over = new Vector3(at.x, at.y + WARMS_AT, at.z);
+      hand.setPose(WARMING, 0.9, 0.06, Easing.inOutCubic);
+      this.send(arm, over, { focus: PALM_FOCUS, pitch: 0.02, loose: 0, askew: (arm === this.right ? 1 : -1) * LIES_IN }, 1.1, Easing.inOutSine, [WARMING]);
+      void this.lean(arm, { glow: 0.35 }, 1);
+      if (!(await this.pause(1.2 + WARMS_FOR, ok))) return;
+      // Lower, slowly: and that is too low.
+      arm.omega = 1.6;
+      arm.shift(v1.copy(over).setY(at.y + BURNS_AT), 0.02);
+      if (!(await this.pause(1.5, ok))) return;
+      // Snatched back.
+      arm.wary = WARY;
+      arm.omega = 34;
+      hand.setPose(POSES.splay, 0.07, 0, Easing.outCubic);
+      arm.shift(v1.copy(over).setY(over.y + 0.75), -0.25);
+      burned?.(hand.toWorld(PALM_FOCUS, new Vector3()));
+      void this.lean(arm, { glow: 1 }, 0.08);
+      if (!(await this.pause(0.4, ok))) return;
+      // Shaken out, twice.
+      arm.omega = 12;
+      hand.setPose(between(POSES.relaxed, POSES.splay, 0.5), 0.2, 0.02, Easing.inOutCubic);
+      await this.during(0.7, ok, (k) => (arm.turn = Math.sin(k * Math.PI * 4) * 0.42 * (1 - 0.4 * k)));
+    }, { own: true });
+  }
+
+  /** A hand turning from a stone it thought about a while to another: its index wags once as it goes. */
+  wag(arm: Arm): void {
+    const hand = arm.hand;
+    const token = ++this.wags;
+    void this.tweens.run({
+      duration: WAG_SECONDS,
+      ease: (k) => k,
+      update: (k) => {
+        if (token !== this.wags) return;
+        hand.wagged = k >= 1 ? 0 : WAG * Math.sin(Math.PI * 2 * k) * Math.sin(Math.PI * k);
+      },
+    });
+  }
+  private wags = 0;
+
+  /** The arm whose side of the board a stone stands on (for whoever tells it something about that stone). */
+  armOver(puppet: Puppet): Arm {
+    return this.armFor(puppet.group.position.x);
+  }
+
+  /**
+   * J'adoube: the hand that hangs over `puppet` in thought comes down to its head, sets it straight,
+   * and rises to where it hung. `touched` is told when the fingers are on it, and where. Nothing, if
+   * no hand is thinking about that stone; and the hand goes on following its player all the while.
+   */
+  adjust(puppet: Puppet, touched: (at: Vector3) => void): void {
+    const arm = [this.right, this.left].find((a) => a.considering?.puppet === puppet && !a.busy);
+    if (!arm) return;
+    const generation = this.generation;
+    let told = false;
+    const live = () => generation === this.generation && arm.considering?.puppet === puppet && !arm.busy;
+    void this.tweens.run({
+      duration: 0.62,
+      ease: (k) => k,
+      update: (k) => {
+        if (!live()) return void (arm.dip = 0);
+        arm.dip = k >= 1 ? 0 : ADJUST_DIP * Math.pow(Math.sin(Math.PI * k), 2);
+        if (!told && k >= 0.5) {
+          told = true;
+          touched(topOf(puppet, new Vector3()));
+        }
+      },
+    });
+  }
+
+  /**
+   * The feint: a hand goes to `puppet` as if to move it, hangs there, begins to close on it, stops,
+   * opens, and leaves it. Resolves when it has; the stone is never touched.
+   */
+  async feint(puppet: Puppet): Promise<void> {
+    const generation = this.generation;
+    const arm = this.armOver(puppet);
+    const ok = () => generation === this.generation && arm.considering?.puppet === puppet && !arm.busy;
+    this.consider(puppet);
+    if (!(await this.pause(FEINT_HANGS, ok))) return;
+    const open = arm.hand.pose.slice() as Pose;
+    arm.hand.setPose(between(open, POSES.pregrip, 0.6), 0.16, 0.01, Easing.inCubic);
+    arm.dip = FEINT_DIP;
+    if (!(await this.pause(0.2, ok))) return void (arm.dip = 0);
+    // No.
+    arm.hand.setPose(open, 0.2, 0.02, Easing.outCubic);
+    arm.dip = 0;
+    await this.pause(0.22, ok);
+  }
+
+  // -- found on the board, and at a mate (5.7, 5.8) ----------------------------------------------------
+
+  /** Home again: the hand that has just let go of a stone flicks its fingers on its way home. Never mind. */
+  flick(arm: Arm): Promise<void> {
+    return this.gesture(arm, async (ok) => {
+      arm.hand.setPose(GATHERED, 0.14, 0.01, Easing.inOutCubic);
+      if (!(await this.pause(0.16, ok))) return;
+      arm.hand.setPose(POSES.splay, 0.09, 0.012, Easing.outCubic);
+      void this.lean(arm, { tip: -0.2, y: 0.12 }, 0.1, Easing.outCubic);
+      await this.pause(0.45, ok);
+    });
+  }
+
+  /** The right hand lifts, shut, with its thumb up. */
+  thumb(delay = 0): void {
+    const arm = this.right;
+    void this.gesture(
+      arm,
+      async (ok) => {
+        arm.steady = true;
+        arm.omega = 6;
+        arm.hand.setPose(THUMB_UP, 0.5, 0.03, Easing.inOutCubic);
+        void this.lean(arm, { y: 0.55, z: 0.1, turn: THUMB_TURN, glow: 0.6 }, 0.6);
+        if (!(await this.pause(0.6 + 0.9, ok))) return;
+        // Once: so.
+        if (!(await this.during(0.3, ok, (k) => (arm.swayed.y = 0.55 + 0.1 * Math.sin(Math.PI * k))))) return;
+        await this.pause(0.3, ok);
+      },
+      { delay },
+    );
+  }
+
+  /** The right hand gives a small wave from side to side, open, as one does at a mirror; `fingers`, with its fingers only. */
+  wave(delay = 0, fingers = false, arm: Arm = this.right): void {
+    void this.gesture(
+      arm,
+      async (ok) => {
+        const hand = arm.hand;
+        arm.omega = 8;
+        if (fingers) {
+          // The fingers only, one after another, twice: the hand does not leave where it rests.
+          for (let i = 0; i < 2; i++) {
+            hand.setPose(between(this.resting, POSES.fist, 0.45), 0.16, 0.035, Easing.inOutCubic, ['index', 'middle', 'ring', 'little']);
+            if (!(await this.pause(0.26, ok))) return;
+            hand.setPose(between(this.resting, POSES.open, 0.6), 0.16, 0.035, Easing.inOutCubic, ['index', 'middle', 'ring', 'little']);
+            if (!(await this.pause(0.26, ok))) return;
+          }
+          return;
+        }
+        hand.setPose(between(POSES.relaxed, POSES.open, 0.7), 0.35, 0.03, Easing.inOutCubic);
+        void this.lean(arm, { y: 0.4, tip: -0.5, glow: 0.5 }, 0.4);
+        if (!(await this.pause(0.4, ok))) return;
+        await this.during(1.1, ok, (k) => (arm.turn = Math.sin(k * Math.PI * 4) * 0.4 * Math.sin(Math.PI * k)));
+      },
+      { delay },
+    );
+  }
+
+  /** Both hands go limp for `seconds`, though nothing is over; and come back. */
+  slacken(seconds = 1): void {
+    this.each((arm, delay) =>
+      this.gesture(
+        arm,
+        async (ok) => {
+          arm.omega = 5;
+          arm.hand.setPose(LIMP, 0.35, 0.03, Easing.inCubic);
+          void this.lean(arm, { y: -0.3, tip: 0.35 }, 0.4, Easing.inCubic);
+          await this.pause(0.4 + seconds, ok);
+        },
+        { delay: 0.3 + delay },
+      ),
+    );
+  }
+
+  /** A bow: both hands turn palm up, and dip. Resolves when it is made, or will not be. */
+  bow(): Promise<void> {
+    const made: Promise<void>[] = [];
+    this.each((arm, delay) =>
+      made.push(
+        this.gesture(
+          arm,
+          async (ok) => {
+            arm.omega = 5;
+            arm.hand.setPose(OFFERED, 0.7, 0.05, Easing.inOutSine);
+            void this.lean(arm, { ...REALLY, y: 0.5 }, 0.8, Easing.inOutSine);
+            if (!(await this.pause(0.95, ok))) return;
+            void this.lean(arm, { y: 0.12, tip: 0.2 }, 0.45, Easing.inOutSine);
+            if (!(await this.pause(0.6, ok))) return;
+            void this.lean(arm, { y: 0.5, tip: -0.05 }, 0.45, Easing.inOutSine);
+            await this.pause(0.5, ok);
+          },
+          { delay },
+        ),
+      ),
+    );
+    return Promise.all(made).then(() => undefined);
+  }
+
+  /** That is that: the right hand, where it rests, brushes its thumb across its fingertips, twice. Resolves when it has. */
+  brush(): Promise<void> {
+    const arm = this.right;
+    return this.gesture(arm, async (ok) => {
+      const hand = arm.hand;
+      // Where it rests: a hand that has just set the mating stone down is let get home first.
+      for (let waited = 0; waited < 1.5 && this.far(arm, this.restingPlace(arm, v1)); waited += 0.05) if (!(await this.pause(0.05, ok))) return;
+      arm.steady = true;
+      void this.lean(arm, { y: 0.15, turn: -0.5, glow: 0.5 }, 0.3);
+      hand.setPose(GATHERED, 0.3, 0.02, Easing.inOutCubic);
+      if (!(await this.pause(0.34, ok))) return;
+      const across = (to: number, seconds: number) => {
+        const p = GATHERED.slice() as Pose;
+        const at = fingerOf(GATHERED, 'thumb');
+        setFinger(p, 'thumb', [at[0]!, at[1]!, at[2]!, at[3]! + to, at[4]! + 0.25]);
+        hand.setPose(p, seconds, 0, Easing.inOutSine, ['thumb']);
+      };
+      for (let i = 0; i < 2; i++) {
+        across(0.35, 0.16);
+        if (!(await this.pause(0.18, ok))) return;
+        across(-0.2, 0.12);
+        if (!(await this.pause(0.2, ok))) return;
+      }
+      await this.pause(0.25, ok);
+    });
+  }
+
+  /**
+   * The back rank: a hand goes out over one end of a rank, flat, and sweeps along it to the other,
+   * above the crowns of what stands there. `from` and `to` are the two ends, on the board. Resolves
+   * when it has, or will not.
+   */
+  sweep(from: Vector3, to: Vector3): Promise<void> {
+    // From its own side inward: the hand on the side the sweep begins.
+    const arm = this.armFor(from.x);
+    const a = from.clone().setY(SWEEPS_AT);
+    const b = to.clone().setY(SWEEPS_AT);
+    return this.gesture(
+      arm,
+      async (ok) => {
+        arm.steady = true;
+        arm.omega = 8;
+        arm.hand.setPose(PATTING, 0.4, 0.02, Easing.inOutCubic);
+        void this.lean(arm, { glow: 0.8 }, 0.3);
+        // Up first, where it is, and then out over the board: it does not come in low over the stones.
+        arm.shift(arm.at.get(v1).setY(SWEEPS_AT), 0.05);
+        if (!(await this.pause(0.5, ok))) return;
+        this.send(arm, a, { focus: PALM_FOCUS, pitch: 0.05, loose: 0 }, 0.8, Easing.inOutSine, [PATTING]);
+        if (!(await this.pause(0.9, ok))) return;
+        arm.omega = 5;
+        if (!(await this.during(0.9, ok, (k) => arm.shift(v1.lerpVectors(a, b, Easing.inOutSine(k)), 0.05)))) return;
+        await this.pause(0.25, ok);
+      },
+      { own: true },
+    );
+  }
+
+  // -- set off by the player (5.9) ----------------------------------------------------------------------
+
+  /** The page has been come back to: hands that were left start awake, and smooth themselves. */
+  wakes(): void {
+    this.each((arm, delay) =>
+      this.gesture(
+        arm,
+        async (ok) => {
+          await this.recoil(arm, ok, STARTS_AWAKE);
+          if (!ok()) return;
+          // Smoothed: the fingers drawn together and let out again.
+          arm.hand.setPose(GATHERED, 0.3, 0.03, Easing.inOutCubic);
+          void this.lean(arm, BEARINGS[this.mood], 0.5);
+          if (!(await this.pause(0.4, ok))) return;
+          arm.hand.setPose(this.resting, 0.5, 0.05, Easing.inOutCubic);
+          await this.pause(0.4, ok);
+        },
+        { delay },
+      ),
+    );
+  }
+
+  /** A weight on its cord has been set swinging: the hand it hangs from tips to look at it, and holds still until it is nearly so. */
+  lookAtWeight(arm: Arm): void {
+    void this.gesture(arm, async (ok) => {
+      arm.steady = true;
+      void this.lean(arm, { y: 0.18, tip: -0.2, turn: -0.9, glow: 0.3 }, 0.35);
+      if (!(await this.pause(0.5, ok))) return;
+      for (let waited = 0; waited < 4 && arm.hand.weightSpeed > 0.25; waited += 0.1) if (!(await this.pause(0.1, ok))) return;
+      await this.pause(0.3, ok);
+    });
+  }
+
   // -- endings, and scenes directed from outside (endings.ts) -----------------------------------
 
   /**
@@ -2525,8 +2967,10 @@ export class Puppeteer {
     const generation = this.generation;
     const mine = () => generation === this.generation && arm.acts === token;
     const ok = () => mine() && !arm.busy && !arm.considering;
+    arm.pending++;
     if (options.delay) await this.tweens.wait(options.delay);
     for (let waited = 0; mine() && arm.busy && waited < 6; waited += 0.05) await this.tweens.wait(0.05);
+    arm.pending--;
     if (!ok()) return;
     void this.unplant(arm);
     arm.gesturing = true;
@@ -2870,7 +3314,7 @@ export class Puppeteer {
     const t = this.time;
     const phase = arm === this.right ? 0 : 1.9;
     arm.hoverPoint(thought.puppet, thought.grip, thought.lift, v1);
-    v1.y += 0.022 * (1 + Math.sin(t * 1.25 + phase));
+    v1.y += 0.022 * (1 + Math.sin(t * 1.25 + phase)) - arm.dip;
     arm.shift(v1, thought.pitch + Math.sin(t * 0.8 + phase) * 0.018);
   }
 
@@ -2885,7 +3329,7 @@ export class Puppeteer {
     out.z += (Math.cos(t * 0.29 + phase) * 0.07 + Math.sin(t * 0.71 + phase * 0.6) * 0.025 - (this.attentive ? LEANS_IN : 0)) * this.flip;
     // Where a gesture has it, or how the game stands.
     out.x -= Math.sign(arm.home.x) * arm.swayed.x;
-    out.y += arm.swayed.y;
+    out.y += arm.swayed.y + arm.wary;
     out.z -= this.flip * arm.swayed.z;
     // Back along the way its fingers point, if it is stretching them.
     const back = arm.drawn * DRAWS_BACK;

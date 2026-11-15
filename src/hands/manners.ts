@@ -28,7 +28,7 @@ import type { DrawReason, Kind, Motif, Side, Square, Status } from '../core/game
 import type { VerdictKind } from '../engine/verdict';
 
 /** When the table is asked. */
-export type Moment = 'sit' | 'wait' | 'think' | 'set' | 'after' | 'offer' | 'end';
+export type Moment = 'sit' | 'wait' | 'think' | 'set' | 'after' | 'offer' | 'end' | 'poke';
 /** The moments that are part of a move: what is chosen at them is the same on every screen. */
 const OF_A_MOVE: ReadonlySet<Moment> = new Set<Moment>(['set', 'after']);
 
@@ -78,7 +78,37 @@ export interface Told {
   lesson: boolean;
   /** The game is played against a clock. */
   timed: boolean;
+  /** Seconds the stone that has just been turned from was held in thought. */
+  held: number;
+  /** How many times this turn the stone now in thought was turned to and let go before. */
+  again: number;
+  /** The greatest stone `side` has taken that stands in its drawer. */
+  captive: Kind | null;
+  /** A candle burns at the corner one of `side`'s hands rests over. */
+  candle: boolean;
+  /** `side`'s hands are the computer's; and it has another stone it could have moved. */
+  computer: boolean;
+  feint: boolean;
+  /** The move gave mate; the mated king has no empty square beside it; and it is mated on its own back rank by a stone that came onto that rank. */
+  mates: boolean;
+  hemmed: boolean;
+  backRank: boolean;
+  /** What the record of the game shows, that the move just made the last of (stage.ts, `found`). */
+  found: Found | null;
+  /** How many queens the side that moved has, the move's own among them. */
+  queens: number;
+  /** What the player at this screen has done to their own hands, that the hands are asked about. */
+  poked: Poked | null;
 }
+
+/**
+ * Found in the record: a king stepped up to its second rank on its side's second move, and the
+ * same by the other side straight after; Void having made, move for move, the first four moves
+ * Ivory made; a knight set down again on the square it began the game on.
+ */
+export type Found = 'bongcloud' | 'bongcloud-both' | 'copycat' | 'home-again';
+/** The pointer shaken over a resting hand; a weight on its cord pulled; the page come back to after a minute and more away. */
+export type Poked = 'wave' | 'weight' | 'back';
 
 /** A move, as anyone watching the board saw it made. */
 export interface Moved {
@@ -135,6 +165,11 @@ const moving = (f: Told) => f.move !== null && f.move.by === f.side;
 const pawnStep = (f: Told) => f.move !== null && f.move.kind === 'p' && f.move.took === null && f.move.becomes === null && f.move.from[0] === f.move.to[0] && Math.abs(Number(f.move.from[1]) - Number(f.move.to[1])) === 1;
 /** A stone carried and set down with nothing else to it: no castling, no taking in passing, no pawn made into anything, no queen taken. */
 const ordinary = (f: Told) => f.move !== null && f.move.castle === null && !f.move.passing && f.move.becomes === null && f.move.took !== 'q';
+
+/** The game has this moment been won by mate, and it is the winner's hands that are asked about. */
+const mated = (f: Told) => f.result === 'checkmate' && f.happened && f.winner === f.side;
+/** How many plies a game has had when White has made seven moves and Black six: a mate before White's eighth is an early one. */
+const EARLY = 14;
 
 /** The table. What each row looks like is in docs/manners.md, under the name in the comment. */
 export const MANNERS = [
@@ -208,6 +243,56 @@ export const MANNERS = [
   told({ name: 'check-again', at: 'after', when: [moving, (f) => f.checks === 2], rarity: 'always' }),
   told({ name: 'check-thrice', at: 'after', when: [moving, (f) => f.checks === 3], rarity: 'always' }),
   told({ name: 'check-on', at: 'after', when: [moving, (f) => f.checks >= 4], rarity: 'always' }),
+
+  // Sitting down. "Knuckles": before the first move Ivory's hands come together and press until they crack.
+  told({ name: 'knuckles', at: 'sit', when: [(f) => f.side === 'w', (f) => f.ply === 0], rarity: 'often' }),
+
+  // "The ladder of impatience", third rung: the hand kept waiting turns its wrist over and looks at the cord, where a watch would be.
+  // Not against a clock, this rung or the next: a player whose time is running is not to be needled.
+  told({ name: 'look-at-the-cord', at: 'wait', when: [waiting, (f) => f.waited >= 50, (f) => !f.timed], rarity: 'often' }),
+  // The fourth and the fifth: it lies down along the rail, one finger tapping; and in the end that stops, and it sleeps.
+  told({ name: 'lie-on-the-rail', at: 'wait', when: [waiting, (f) => f.waited >= 75, (f) => !f.timed], rarity: 'often' }),
+  // "Captives": the hand kept waiting takes up the greatest stone it has taken, looks at it, and stands it back.
+  told({ name: 'captives', at: 'wait', when: [waiting, (f) => f.captive !== null && f.captive !== 'p', (f) => f.waited >= 8], rarity: 'seldom' }),
+  // "The candle": it warms itself at its flame, goes a little too low, and snatches back.
+  told({ name: 'candle', at: 'wait', when: [waiting, (f) => f.candle, (f) => f.waited >= 12], rarity: 'seldom' }),
+
+  // Thinking. "Second thought": a stone held in thought a while and then left for another. The finger wags as the hand goes.
+  told({ name: 'second-thought', at: 'think', when: [toMove, (f) => f.held >= 1.5], rarity: 'always', rest: 6 }),
+  // "J'adoube": the same stone turned to and let go twice in one turn. The third time, the hand sets it straight.
+  told({ name: 'jadoube', at: 'think', when: [toMove, (f) => f.again >= 2], rarity: 'always' }),
+  // "The feint": the computer's hand goes first to another stone it could have moved. Never the engine's second choice: any stone.
+  told({ name: 'feint', at: 'think', when: [(f) => f.computer, (f) => f.feint, (f) => !f.lesson, (f) => !f.plain], rarity: 'sometimes' }),
+
+  // Found on the board. "The Bongcloud": the king stepped up on its side's second move is patted; and if the other side has just done the same, more is made of it.
+  told({ name: 'bongcloud', at: 'set', when: [moving, (f) => f.move!.kind === 'k', (f) => f.found === 'bongcloud', (f) => !f.lesson], rarity: 'always' }),
+  told({ name: 'bongcloud-both', at: 'set', when: [moving, (f) => f.move!.kind === 'k', (f) => f.found === 'bongcloud-both', (f) => !f.lesson], rarity: 'always' }),
+  // "Home again": a knight set down where it began. The hand lets go and flicks its fingers: never mind.
+  told({ name: 'home-again', at: 'set', when: [moving, ordinary, (f) => f.found === 'home-again'], rarity: 'sometimes' }),
+  // "The copycat": Void has made Ivory's first four moves after it. Ivory's hand waves, as at a mirror; and so does Void's.
+  told({ name: 'copycat', at: 'after', when: [(f) => f.move !== null && f.move.by !== f.side, (f) => f.found === 'copycat', (f) => !f.lesson], rarity: 'always' }),
+  // "A third queen": a side with two queens makes another. The other side's hands go limp, though nothing is over.
+  told({ name: 'third-queen', at: 'after', when: [(f) => f.move !== null && f.move.by !== f.side, (f) => f.move!.becomes === 'q', (f) => f.queens >= 3], rarity: 'always' }),
+
+  // "Mate, by what gave it". Smothered: a knight's mate on a king with no empty square beside it. The knight is patted.
+  told({ name: 'smothered', at: 'set', when: [moving, (f) => f.mates, (f) => f.move!.kind === 'n', (f) => f.hemmed], rarity: 'always' }),
+  // By a pawn: the pawn gives a small hop where it stands.
+  told({ name: 'mate-by-pawn', at: 'set', when: [moving, (f) => f.mates, (f) => f.move!.kind === 'p', (f) => f.move!.becomes === null], rarity: 'always' }),
+  // The back rank: the winner's hand sweeps flat along the rank, above the stones that shut their king in.
+  told({ name: 'back-rank', at: 'end', when: [mated, (f) => f.move !== null, (f) => f.backRank], rarity: 'always' }),
+  // By castling: both of the winner's hands turn palm up and dip. A bow.
+  told({ name: 'mate-by-castling', at: 'end', when: [mated, (f) => f.move !== null, (f) => f.move!.castle !== null], rarity: 'always' }),
+  // Early: the winner's hand brushes its thumb across its fingertips, twice. That is that.
+  told({ name: 'early-mate', at: 'end', when: [mated, (f) => f.ply <= EARLY], rarity: 'always' }),
+  // Laid down: now and then the winner's hand comes back, last of all, and lays the mated king on its side.
+  told({ name: 'laid-down', at: 'end', when: [mated], rarity: 'often' }),
+
+  // Set off by the player, at this screen only. "The wave": the pointer shaken over one's own resting hand.
+  told({ name: 'wave', at: 'poke', when: [(f) => f.poked === 'wave'], rarity: 'always' }),
+  // "The weight, pulled": a weight on its cord set swinging, and the hand looks at it.
+  told({ name: 'weight-pulled', at: 'poke', when: [(f) => f.poked === 'weight'], rarity: 'always' }),
+  // "Back": the page come back to after a minute and more. The hands start awake.
+  told({ name: 'back', at: 'poke', when: [(f) => f.poked === 'back'], rarity: 'always' }),
 ] as const;
 
 export type MannerName = (typeof MANNERS)[number]['name'];
@@ -313,7 +398,7 @@ export class Manners<N extends string = MannerName> {
     // The most specific first; between rows as specific as one another, the draw decides.
     fit.sort((a, b) => b.when.length - a.when.length || rolls.get(a.name)! - rolls.get(b.name)!);
     for (const row of fit) {
-      if (!this.may(row, facts, ofMove)) continue;
+      if (!this.may(row, facts, ofMove, at)) continue;
       const chance = CHANCE[row.rarity] * (!ofMove && row.rarity === 'seldom' && this.seen.has(row.name) ? SPENT : 1);
       if (rolls.get(row.name)! >= chance) continue;
       this.played.set(row.name, facts.ply);
@@ -333,10 +418,10 @@ export class Manners<N extends string = MannerName> {
     return null;
   }
 
-  private may(row: Manner<N>, facts: Told, ofMove: boolean): boolean {
+  private may(row: Manner<N>, facts: Told, ofMove: boolean, at: Moment): boolean {
     const before = this.played.get(row.name);
-    // Never twice in one ply; and not again until it has rested.
-    if (before !== undefined && facts.ply - before <= (row.rest ?? 0)) return false;
+    // Never twice in one ply; and not again until it has rested. (What the player sets off themself, they may set off again.)
+    if (before !== undefined && at !== 'poke' && facts.ply - before <= (row.rest ?? 0)) return false;
     if (row.rarity === 'always') return true;
     if (!ofMove && facts.quiet) return false;
     if (row.rarity === 'once' && this.seen.has(row.name)) return false;

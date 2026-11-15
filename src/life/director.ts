@@ -228,6 +228,9 @@ export class Director {
     // board); fingers snapped, which is glass on glass, short.
     else if (what === 'knock') sound?.stoneSet(at, at.z < 0, 0.35 * strength);
     else if (what === 'snap') sound?.glass(at, 7, 0.12 * strength);
+    // A knuckle cracked, and a hand come too near a flame.
+    else if (what === 'crack') sound?.stoneSet(at, at.z < 0, 0.12 * strength);
+    else if (what === 'burn') sound?.touch(at);
   }
 
   /** The player to move has turned to a piece (`chosen` when they have picked it up in thought), or away. */
