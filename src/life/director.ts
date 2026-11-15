@@ -14,7 +14,7 @@ import type { VerdictKind } from '../engine/verdict';
 import type { Told } from '../hands/manners';
 import type { Ended, Heard } from '../hands/stage';
 import type { Mood } from '../scene/chapel';
-import { DRAWER_OUT, PLINTH_TOP, SLAB_HALF, squareCenter } from '../scene/layout';
+import { DRAWER_OUT, FIELD_HALF, PLINTH_TOP, SLAB_HALF, squareCenter } from '../scene/layout';
 import type { PieceLayer } from '../scene/pieces';
 import { PIECE_HEIGHT } from '../scene/pieceShapes';
 import type { BoardFx } from './boardfx';
@@ -219,18 +219,20 @@ export class Director {
   heard(what: Heard, at: Vector3, strength: number): void {
     const sound = this.sound();
     if (what === 'tap') {
-      if (strength > 0.5) sound?.touch(at);
-    } else if (what === 'meet') sound?.glass(at, 3, 0.1 * strength);
+      // A fingertip come down: on the rail of the case, if it is out past the squares; on a stone's head, if it is over them.
+      if (strength > 0.5) sound?.manner(Math.max(Math.abs(at.x), Math.abs(at.z)) > FIELD_HALF ? 'rail' : 'pat', at, strength);
+    } else if (what === 'meet') sound?.manner('meet', at, 2 * strength);
     // Glass struck on glass, a note up or down from the last each time: a wind chime, since the hands are glass.
     else if (what === 'chime') sound?.glass(at, (this.chimes = (this.chimes + 3) % 8), 0.06 + 0.1 * strength);
     else if (what === 'pump') this.shaken();
-    // A pawn's foot rapped on the square it takes in passing on (white's are on the far half of the
-    // board); fingers snapped, which is glass on glass, short.
-    else if (what === 'knock') sound?.stoneSet(at, at.z < 0, 0.35 * strength);
-    else if (what === 'snap') sound?.glass(at, 7, 0.12 * strength);
+    // A pawn's foot rapped on the square it takes in passing on, or a stone hopped or laid gently
+    // over; fingers snapped, which is glass on glass, short; a pawn pushed along the board.
+    else if (what === 'knock') sound?.manner('rap', at, 1.6 * strength);
+    else if (what === 'snap') sound?.manner('snap', at, strength);
+    else if (what === 'drag') sound?.manner('drag', at, strength);
     // A knuckle cracked, and a hand come too near a flame.
-    else if (what === 'crack') sound?.stoneSet(at, at.z < 0, 0.12 * strength);
-    else if (what === 'burn') sound?.touch(at);
+    else if (what === 'crack') sound?.manner('knuckle', at, strength);
+    else if (what === 'burn') sound?.manner('burn', at, strength);
   }
 
   /** The player to move has turned to a piece (`chosen` when they have picked it up in thought), or away. */

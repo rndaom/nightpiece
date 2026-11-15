@@ -422,6 +422,10 @@ Not built, or built smaller than written above:
 - **The exchange quickens.** The fingers close on a stone as fast as they ever do, so the fourth capture is done in about seven tenths of its time and not two thirds. Not filmed: whether an exchange feels as it should needs the running game.
 - **No choice.** Not built.
 
+**Built, 15 November: sounds of their own.** `make_manners` in `assets/src/sound/build.py` makes eight, from recordings the game already used (CREDITS.md says which): a fingertip on the rail of the case (`hand.rail`) and on a stone's head (`hand.pat`), a knuckle cracked (`hand.knuckle`), fingers snapped (`hand.snap`), two hands met (`hand.meet`), a stone's foot rapped on the board (`hand.rap`), a pawn pushed (`hand.drag`) and a hand come too near a flame (`hand.burn`). The hands are glass, so what they do to themselves is glass, small and dry; what they do to wood and stone is skin on it. `Sound.manner` plays them, and the director chooses by what the hands raise (`Director.heard`): a tap is the rail's if it is out past the squares and a stone's if it is over them. So the drumming, the hand lying on the rail, the pats, the steeple, the knuckles, the snap, the rap on the empty square, the pawn's hop, the king laid down, the push and the candle are no longer heard with borrowed sounds. Still glass from the bank, on purpose: the swats of the scuffle, which are a wind chime, and the kings rung on the handshake. Tests: `tests/manner-sounds.test.ts`.
+
+Not heard by anyone yet: each was measured (its length, its loudness, where its weight lies) and played through the game's own engine without speakers (`tools/dev/hear.mjs`), which shows that it sounds and how loud, not whether it is right. How loud each is against the stones, and whether a knuckle sounds like one, needs an ear.
+
 ## 9. How it is judged
 
 - **By the table's tests:** the most specific row wins; nothing repeats; the budget holds; 300 random plain games never consult a `Judged` row; the same room and ply give the same manner on two clients.

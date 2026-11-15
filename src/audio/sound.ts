@@ -42,6 +42,10 @@ interface Playing {
   stray?: number;
 }
 
+/** How loud each of the hands' own sounds is played when done firmly, and how far into the room's echo it reaches. */
+const MANNER_GAIN = { rail: 0.3, pat: 0.26, knuckle: 0.34, snap: 0.36, meet: 0.26, rap: 0.4, drag: 0.3, burn: 0.3 };
+const MANNER_REACH = { rail: 0.25, pat: 0.2, knuckle: 0.3, snap: 0.45, meet: 0.25, rap: 0.4, drag: 0.3, burn: 0.3 };
+
 /** How many of the glass tones there are, low to high: a pentatonic set, so that any run of them is consonant. */
 const GLASS_STEPS = 8;
 
@@ -199,6 +203,17 @@ export class Sound {
   /** Fingers close on a stone: skin on stone, barely there. */
   touch(at: At): void {
     this.play('touch', this.place(at, 0.2), { gain: 0.17, stray: 0.06 });
+  }
+
+  /**
+   * What the hands do that is not chess (hands/manners.ts): a fingertip on the rail of the case,
+   * or on a stone's head; a knuckle cracked; fingers snapped; two hands met; a stone's foot rapped
+   * on the board; a pawn pushed along it; a hand come too near a flame. `strength` is 1 for one
+   * done as firmly as it ever is.
+   */
+  manner(what: 'rail' | 'pat' | 'knuckle' | 'snap' | 'meet' | 'rap' | 'drag' | 'burn', at: At, strength = 1): void {
+    const firm = Math.min(1.2, Math.max(0.25, strength));
+    this.play(`hand.${what}`, this.place(at, MANNER_REACH[what]), { gain: MANNER_GAIN[what] * firm, stray: 0.05 });
   }
 
   /** A piece is taken: a crack, then pieces of it settling. */

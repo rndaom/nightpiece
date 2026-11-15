@@ -91,9 +91,10 @@ const SETTLES: [number, number, number][] = [[0.02, 0.14, 0.15]];
 /**
  * What the hands do that can be heard, apart from the stones: a fingertip on the case or on a stone,
  * a stone going over or rapped on the board, two hands meeting, glass struck on glass (the scuffle),
- * the pump of a handshake, fingers snapped, a knuckle cracked, and a hand come too near a flame.
+ * the pump of a handshake, fingers snapped, a knuckle cracked, a hand come too near a flame, and a
+ * pawn pushed along the board.
  */
-export type Heard = 'tap' | 'knock' | 'meet' | 'chime' | 'pump' | 'snap' | 'crack' | 'burn';
+export type Heard = 'tap' | 'knock' | 'meet' | 'chime' | 'pump' | 'snap' | 'crack' | 'burn' | 'drag';
 
 /** The hands have been in the room this long when they are asked what they make of sitting down. */
 const SITS_AFTER = 1.6;
@@ -734,6 +735,8 @@ export class Stage {
       // The square is the piece's from the moment it touches down, so that what follows can find it there.
       if (b === 'set' && generation === this.generation) lay();
       if (b === 'release') letGo = true;
+      // A pawn pushed is heard dragged, from where it stood.
+      if (b === 'lift' && manner === 'push' && generation === this.generation) this.heard?.('drag', mover.group.position, 1);
       onBeat?.('mover', b);
     };
     const carried =

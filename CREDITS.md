@@ -72,7 +72,7 @@ All of the recordings are dedicated to the public domain under **CC0 1.0**, whic
 | Plates Set Down.wav | davjanus | CC0 1.0 | [Freesound](https://freesound.org/people/davjanus/sounds/420440/) | The board's plates going over at mate |
 | ANI - Champagne flute - Hard 1a | ani_music | CC0 1.0 | [Freesound](https://freesound.org/people/ani_music/sounds/198388/) | The glass tones |
 | Wine glass clink deeper.wav | lmr9 | CC0 1.0 | [Freesound](https://freesound.org/people/lmr9/sounds/178178/) | The glass tones |
-| clink of glasses | SirMediabert | CC0 1.0 | [Freesound](https://freesound.org/people/SirMediabert/sounds/269395/) | A pin closing |
+| clink of glasses | SirMediabert | CC0 1.0 | [Freesound](https://freesound.org/people/SirMediabert/sounds/269395/) | A pin closing, a knuckle cracked, fingers snapped |
 | ANI - Wine Glass - Hard | ani_music | CC0 1.0 | [Freesound](https://freesound.org/people/ani_music/sounds/198401/) | The glass tones |
 | Door Smash 1 | qubodup | CC0 1.0 | [Freesound](https://freesound.org/people/qubodup/sounds/218890/) | The blow at mate |
 | Kirkstall Rock Crumble .wav | rokenjocu | CC0 1.0 | [Freesound](https://freesound.org/people/rokenjocu/sounds/262118/) | The crack running through the board |
@@ -80,25 +80,25 @@ All of the recordings are dedicated to the public domain under **CC0 1.0**, whic
 | Rock Smash | NeoSpica | CC0 1.0 | [Freesound](https://freesound.org/people/NeoSpica/sounds/512243/) | A stone taken |
 | stone falls and breaks low pitch.aiff | SoundCollectah | CC0 1.0 | [Freesound](https://freesound.org/people/SoundCollectah/sounds/109360/) | A stone taken |
 | Foley_Stones_Falls_Debris_Stereo_DR05.wav | Nox_Sound | CC0 1.0 | [Freesound](https://freesound.org/people/Nox_Sound/sounds/550342/) | A stone taken |
-| Tumbling Rocks | Fission9 | CC0 1.0 | [Freesound](https://freesound.org/people/Fission9/sounds/488660/) | A stone set down, a stone taken, the crack |
+| Tumbling Rocks | Fission9 | CC0 1.0 | [Freesound](https://freesound.org/people/Fission9/sounds/488660/) | A stone set down, a stone taken, the crack, a stone patted, a knuckle cracked |
 | 75 CC0 breaking/falling/hit - rock_breaking_02 | rubberduck | CC0 1.0 | [OpenGameArt](https://opengameart.org/content/75-cc0-breaking-falling-hit-sfx) | The crack running through the board |
 | two large cobblestone blocks | jobel0092 | CC0 1.0 | [Freesound](https://freesound.org/people/jobel0092/sounds/268055/) | A stone set down |
 | Small Rock and Stone Hits.wav | lolamadeus | CC0 1.0 | [Freesound](https://freesound.org/people/lolamadeus/sounds/179365/) | The crack running through the board |
-| Small Rock and Stone Hits 2.wav | lolamadeus | CC0 1.0 | [Freesound](https://freesound.org/people/lolamadeus/sounds/179360/) | A stone set down |
+| Small Rock and Stone Hits 2.wav | lolamadeus | CC0 1.0 | [Freesound](https://freesound.org/people/lolamadeus/sounds/179360/) | A stone set down, a stone's foot rapped on the board |
 | Stone dropping to ground_northern87 | northern87 | CC0 1.0 | [Freesound](https://freesound.org/people/northern87/sounds/369981/) | A stone set down |
-| Stone.wav | danielpodlovics | CC0 1.0 | [Freesound](https://freesound.org/people/danielpodlovics/sounds/530354/) | A stone set down |
+| Stone.wav | danielpodlovics | CC0 1.0 | [Freesound](https://freesound.org/people/danielpodlovics/sounds/530354/) | A stone set down, a stone's foot rapped on the board |
 | Stone dropping | alegemaate | CC0 1.0 | [Freesound](https://freesound.org/people/alegemaate/sounds/364711/) | A stone set down |
-| Moving Granite block.wav | 200221-WeanBekker | CC0 1.0 | [Freesound](https://freesound.org/people/200221-WeanBekker/sounds/543703/) | A stone lifted |
+| Moving Granite block.wav | 200221-WeanBekker | CC0 1.0 | [Freesound](https://freesound.org/people/200221-WeanBekker/sounds/543703/) | A stone lifted, a pawn pushed |
 | Stone Slab Door Grinding - Heavy Rock Scrape (Mono) | NahuelMartinez | CC0 1.0 | [Freesound](https://freesound.org/people/NahuelMartinez/sounds/844329/) | The slab giving way |
 | Scrapes - scrape-3 | AntumDeluge | CC0 1.0 | [OpenGameArt](https://opengameart.org/content/scrapes) | A stone lifted |
 | CRWDSing_U Ooh Vowel Sung Near F 02_ShaneVincent_GSC24_XY-AKG214-96k.wav | ShangusBurger | CC0 1.0 | [Freesound](https://freesound.org/people/ShangusBurger/sounds/763894/) | Voices at mate |
 | Low_D_Arh.wav | annannienann | CC0 1.0 | [Freesound](https://freesound.org/people/annannienann/sounds/8067/) | Voices at mate |
 | Old clock tick-tock | Duasun | CC0 1.0 | [Freesound](https://freesound.org/people/Duasun/sounds/323626/) | The clock |
-| hands rubbing together | humga | CC0 1.0 | [Freesound](https://freesound.org/people/humga/sounds/315750/) | A hand on a stone |
+| hands rubbing together | humga | CC0 1.0 | [Freesound](https://freesound.org/people/humga/sounds/315750/) | A hand on a stone, two hands met, fingers snapped |
 | HandsOnConcreteWithDirt.wav | prozaciswack | CC0 1.0 | [Freesound](https://freesound.org/people/prozaciswack/sounds/82723/) | A hand on a stone |
-| cloth1 | Kenney | CC0 1.0 | [OpenGameArt](https://opengameart.org/content/50-rpg-sound-effects) | A hand on a stone, a piece chosen |
+| cloth1 | Kenney | CC0 1.0 | [OpenGameArt](https://opengameart.org/content/50-rpg-sound-effects) | A hand on a stone, a piece chosen, a fingertip on the rail of the case and on a stone |
 | Cloth_01 | OwlishMedia | CC0 1.0 | [OpenGameArt](https://opengameart.org/content/202-more-sound-effects) | A hand moving through the air |
-| Candle wood wick flame mono 01.wav | roisin.gleeson | CC0 1.0 | [Freesound](https://freesound.org/people/roisin.gleeson/sounds/680476/) | The candles |
+| Candle wood wick flame mono 01.wav | roisin.gleeson | CC0 1.0 | [Freesound](https://freesound.org/people/roisin.gleeson/sounds/680476/) | The candles, a hand come too near one |
 | Real Heartbeat (DIY Stethoscope recording) | modusmogulus | CC0 1.0 | [Freesound](https://freesound.org/people/modusmogulus/sounds/831630/) | The heartbeat in check |
 | Playing card contact 1 | BMacZero | CC0 1.0 | [OpenGameArt](https://opengameart.org/content/playing-card-sounds) | The interface: a press |
 | PaperSlide.wav | eyesonlegs | CC0 1.0 | [Freesound](https://freesound.org/people/eyesonlegs/sounds/464302/) | The interface: a card coming up |
@@ -107,7 +107,7 @@ All of the recordings are dedicated to the public domain under **CC0 1.0**, whic
 | book_flip.3 | StarNinjas | CC0 1.0 | [OpenGameArt](https://opengameart.org/content/10-book-page-flips) | The interface: a card coming up |
 | pencil_write | AntumDeluge (from the Freesound recording `pencil_write` by NachtmahrTV) | CC0 1.0 | [OpenGameArt](https://opengameart.org/content/pencil-sounds) | The interface: the pointer over a button |
 | St Mullion Church Door Internal Shut_sel.wav | gropkcor | CC0 1.0 | [Freesound](https://freesound.org/people/gropkcor/sounds/392240/) | The case's lid coming down on the altar |
-| bookClose | Kenney | CC0 1.0 | [OpenGameArt](https://opengameart.org/content/50-rpg-sound-effects) | The case's lid coming down on the altar |
+| bookClose | Kenney | CC0 1.0 | [OpenGameArt](https://opengameart.org/content/50-rpg-sound-effects) | The case's lid coming down on the altar, a fingertip on the rail of the case |
 | front tick.wav | Alexsani | CC0 1.0 | [Freesound](https://freesound.org/people/Alexsani/sounds/117280/) | The case's brass catch letting go |
 | stone_rock_or_wood_moved_no_tick | omegagreg (original pauliuw) | CC0 1.0 | [OpenGameArt](https://opengameart.org/content/stonerockorwoodmovednotick) | A drawer of the case run out |
 | creak1 | Kenney | CC0 1.0 | [OpenGameArt](https://opengameart.org/content/50-rpg-sound-effects) | A drawer of the case run out |

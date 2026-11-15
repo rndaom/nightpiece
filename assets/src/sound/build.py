@@ -610,6 +610,109 @@ def make_case() -> None:
     FOLEY['case.drawer'] = takes
 
 
+# -- the hands' manners ------------------------------------------------------------
+
+def make_manners() -> None:
+    """What the hands do that is not chess, and is heard: a fingertip on the rail of the case and
+    on a stone's head, a knuckle cracked, fingers snapped, two hands met, a pawn's foot rapped on
+    its square, a pawn pushed, and a hand come too near a candle. The hands are glass, so what
+    they do to themselves is glass, small and dry; what they do to wood and stone is skin on it."""
+    cloth = f'{B}/cloth_skin/kenney-cloth-1.ogg'
+    palms = dsp.load(find(f'{B}/cloth_skin/fs-315750.mp3'))
+    book = f'{B}/paper_card/kenney-book-close.ogg'
+    clink = f'{A}/glass/fs-glasses-clink-96k-269395.ogg'
+
+    def pad_of(shift: float, length: float) -> np.ndarray:
+        """The pad of a finger come down on something: a sleeve's soft pat, cut to its start."""
+        x = pitch(window(cloth, 0.07, 0.3), shift)
+        x = x[max(0, int(np.argmax(dsp.envelope(x, 0.004))) - n(0.02)):]
+        return lp(decay(fade(x, 0.008, 0.02), length, 0.02)[:n(length)], 2800, 2)
+
+    # The rail: a fingertip on walnut. The pad of the finger, and under it the wood answering, which
+    # is a hard book cover shut, with its slap taken off and only the knock of the board kept.
+    takes = []
+    for shift, wood in ((0, -2), (2, -4), (-1, -3), (3, -5)):
+        board = lp(hp(pitch(clip(book, 0.06, 0.12), wood), 180, 2), 1500, 2)
+        x = mix([(norm(pad_of(shift, 0.12), -3), 0, -5), (norm(decay(board, 0.14, 0.01)[:n(0.14)], -3), 0.003, -2)])
+        takes.append(finish(x, -5, 0.03))
+    FOLEY['hand.rail'] = takes
+
+    # A stone patted on its head: the pad of the finger again, and the stone under it, which is a
+    # pebble's tick, dulled.
+    takes = []
+    for i, shift in enumerate((1, 3, 0)):
+        tick = lp(pitch(clip(*PEBBLES[(i * 2 + 1) % len(PEBBLES)]), -5), 3200, 2)
+        x = mix([(norm(pad_of(shift, 0.14), -3), 0, -3), (norm(tick, -3), 0.004, -9)])
+        takes.append(finish(x, -5, 0.04))
+    FOLEY['hand.pat'] = takes
+
+    # A knuckle cracked: glass giving a very little. Two glasses touched, the first instant of it
+    # only, with a pebble's tick under it for the dry part. No ring is left on it.
+    takes = []
+    for i, (start, shift) in enumerate(((0.15, 5), (2.2, 3), (0.15, 8), (2.2, 6))):
+        try:
+            touch = clip(clink, start, 0.2)
+        except Exception:
+            touch = clip(clink, 0.15, 0.2)
+        glass = hp(decay(pitch(touch, shift), 0.045, 0.002)[:n(0.05)], 1800, 2)
+        tick = hp(pitch(clip(*PEBBLES[i % len(PEBBLES)]), 4), 900, 2)
+        x = mix([(norm(glass, -3), 0, -4), (norm(decay(tick, 0.04)[:n(0.045)], -3), 0.001, -3)])
+        takes.append(finish(x, -4, 0.012))
+    FOLEY['hand.knuckle'] = takes
+
+    # Fingers snapped: the same two glasses, let ring a moment longer, and a breath of palm on palm
+    # ahead of it for the fingers sliding off each other.
+    takes = []
+    for start, shift, note in ((0.15, 2, 'G#6'), (2.2, 0, 'A#6')):
+        try:
+            touch = clip(clink, start, 0.3)
+        except Exception:
+            touch = clip(clink, 0.15, 0.3)
+        slide = lp(hp(shape(palms[n(5.39):n(5.39 + 0.05)], swell(0.05, 0.03, 0.0, None, 1.6)), 600, 2), 5000, 2)
+        x = mix([(norm(slide, -3), 0, -12), (norm(decay(pitch(touch, shift), 0.16, 0.004)[:n(0.18)], -3), 0.045, 0), (glass_note(note, 0, 0.35), 0.05, -16)])
+        takes.append(finish(x, -3, 0.05))
+    FOLEY['hand.snap'] = takes
+
+    # Two hands met, fingertip to fingertip or palm to palm: one palm come down on the other, and
+    # the glass of them barely sounding, low.
+    takes = []
+    for start, note in ((6.0, 'D#5'), (5.39, 'F#5')):
+        palm = lp(hp(shape(palms[n(start):n(start + 0.12)], swell(0.12, 0.012, 0.02, None, 1.8)), 250, 2), 2600, 2)
+        x = mix([(norm(palm, -3), 0, -2), (norm(pad_of(-2, 0.16), -3), 0.004, -6), (glass_note(note, 1, 0.5), 0.01, -20)])
+        takes.append(finish(x, -5, 0.08))
+    FOLEY['hand.meet'] = takes
+
+    # A pawn's foot rapped on its square, and a stone hopped or laid over: stone on stone with no
+    # weight behind it. The knock alone, a little higher, with none of the slab under it.
+    takes = []
+    for i, shift in enumerate((3, 5, 2, 4)):
+        k = pitch(clip(*KNOCKS[(i * 2 + 1) % len(KNOCKS)]), shift)
+        x = hp(decay(k, 0.16, 0.01)[:n(0.18)], 260, 2)
+        takes.append(finish(norm(x, -3), -3, 0.03))
+    FOLEY['hand.rap'] = takes
+
+    # A pawn pushed a square with one finger: granite drawn over a cement floor, for as long as the
+    # push lasts, rising and falling away, its grit kept and its rumble taken off.
+    granite = dsp.load(find(f'{A}/stone_scrape/fs-granite-block-move-543703.ogg'))
+    takes = []
+    for start, shift in ((1.96, 2), (4.23, 3), (0.41, 1)):
+        length = 0.5
+        x = pitch(granite[n(start):n(start + length * 2 ** (shift / 12))], shift)
+        x = lp(hp(shape(x, swell(secs(x), 0.1, 0.12, None, 1.8)), 320, 2), 5200, 2)
+        takes.append(finish(norm(x, -3), -4, 0.06))
+    FOLEY['hand.drag'] = takes
+
+    # A hand come too near a flame: the spit of a candle's wick, the loudest there are in the
+    # recording, played higher and with only their top kept.
+    flame = dsp.load(find(f'{B}/fire/fs-680476.mp3'))
+    takes = []
+    for i, at in enumerate(loudest(flame, 0.12, 3)):
+        spit = hp(pitch(flame[max(0, at - n(0.01)):at + n(0.16)], 5 + 2 * i), 1400, 2)
+        x = shape(spit, swell(secs(spit), 0.006, 0.02, None, 1.6))
+        takes.append(finish(norm(x, -3), -4, 0.03))
+    FOLEY['hand.burn'] = takes
+
+
 # -- the room's own sound ----------------------------------------------------------
 
 def make_beds() -> None:
@@ -714,6 +817,7 @@ LOUDNESS = {
     'ui.hover': -32, 'ui.press': -26, 'ui.open': -24, 'ui.close': -24,
     'bell': -12, 'check': -13, 'fork': -16, 'reveal': -16, 'rise': -15, 'fall': -15, 'mate': -11, 'heart': -24,
     'case.latch': -26, 'case.lid': -16, 'case.drawer': -25,
+    'hand.rail': -27, 'hand.pat': -27, 'hand.knuckle': -25, 'hand.snap': -23, 'hand.meet': -27, 'hand.rap': -23, 'hand.drag': -25, 'hand.burn': -26,
 }
 
 
@@ -780,7 +884,7 @@ def write(only: set[str] | None, wav: str | None) -> None:
 
 MAKERS = {
     'stone': make_stone, 'breaks': make_breaks, 'glass': make_glass,
-    'bell': make_bell, 'check': make_check, 'fork': make_fork, 'reveal': make_reveal, 'fall': make_fall, 'rise': make_rise, 'mate': make_mate, 'air': make_air, 'hands': make_hands, 'paper': make_paper, 'case': make_case, 'beds': make_beds,
+    'bell': make_bell, 'check': make_check, 'fork': make_fork, 'reveal': make_reveal, 'fall': make_fall, 'rise': make_rise, 'mate': make_mate, 'air': make_air, 'hands': make_hands, 'paper': make_paper, 'case': make_case, 'manners': make_manners, 'beds': make_beds,
 }
 
 
