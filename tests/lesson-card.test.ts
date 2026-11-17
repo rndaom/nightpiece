@@ -1,7 +1,7 @@
 /**
  * The lesson card on a narrow screen: docked at the foot, folded to the step's instruction, and
  * the board framed in the picture above it, so that no square a lesson needs lies under the card.
- * The frames themselves are taken by hand (tools/dev/look.mjs, see docs/progress.md).
+ * The frames themselves are taken by hand (tools/dev/look.mjs).
  */
 import { readFileSync } from 'node:fs';
 import { PerspectiveCamera, Vector3 } from 'three';

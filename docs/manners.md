@@ -22,7 +22,7 @@ What is missing is what this document adds: props (the hands touch nothing but p
 
 ## 2. What is taken from Valve, and from where
 
-Only what a source states is listed. Where the lesson is my reading of it, it says so.
+Only what a source states is listed. Where the lesson is a reading of it, it says so.
 
 | Their practice | Source | What it becomes here |
 |---|---|---|
@@ -33,7 +33,7 @@ Only what a source states is listed. Where the lesson is my reading of it, it sa
 | Personality readable from the silhouette alone | TF2 (Mitchell, SIGGRAPH 2007) | Every manner must read as an outline from the far camera. Anything that needs finger detail to be understood is cut |
 | Playtest the jokes; testers seldom laugh aloud | Wolpaw on Portal 2 | Section 9: judged from frames first, then by the author, then by someone who has not seen it |
 
-Not found, so not relied on: any stated Valve rule on how rare a rare line should be. The rarities below are mine.
+Not found, so not relied on: any stated Valve rule on how rare a rare line should be. The rarities below are this game's own.
 
 ## 3. Rules every manner keeps
 
@@ -364,7 +364,7 @@ Not built, or built smaller than written above:
 - **Too little left.** No mote falls, and the kings do not look at each other.
 - **Handshake.** "Left hanging" is not built. A click before the hands meet sends both home.
 - **Sounds.** These still borrow glass from the bank.
-- **Frames.** Every ending has been filmed headless, from the Shoulder and Eyes cameras and from above (`tmp/hands/endings-frames.mjs`). That is how their placing was settled. Hands meeting over the middle hang lower than first written, so they are in the picture from behind either player: 2.95 for flat hands, 3.45 for hands held on edge, kept above the crowns. The wave and the empty purse are done with the left hand, since the Shoulder camera hangs over the player's right. How the motion reads, and whether it is funny, has not been judged: that needs the running game.
+- **Frames.** Every ending has been filmed headless, from the Shoulder and Eyes cameras and from above. That is how their placing was settled. Hands meeting over the middle hang lower than first written, so they are in the picture from behind either player: 2.95 for flat hands, 3.45 for hands held on edge, kept above the crowns. The wave and the empty purse are done with the left hand, since the Shoulder camera hangs over the player's right. How the motion reads, and whether it is funny, has not been judged: that needs the running game.
 - **First touch.** A page's first click or key no longer stands the game again if it is over (`App.wakeSound`), so it does not cut short the ending being played.
 
 **Built, 15 November: step 4, setting down.** Eleven new rows of the table: `empty-square`, `snap`, `trophy`, `pat`, `push` and `squaring-up` are chosen at the set, `really` and the three steps of `check-again`, `check-thrice` and `check-on` after it. The table is now told the move itself, the stone taken the move before, how many checks in a row the side has given, and whether the game is a lesson; a take-back lets a ritual be played again at the ply it was taken back to. What happens inside the move (`Stage.playMove`, `Puppeteer.carry` with its new `rap`, `show`, `pat` and `askew`, and `push`, `squareUp`, `snap`) is played with it; really? and the checks are gestures after it, and a click sends them home. Squaring up leaves the stone exactly where it should be on any interruption. Tests: `tests/setting-down.test.ts` plays each one on the real hand and stones, and checks the order of the empty square (the tap, then the set, then the pawn taken away), that the pawn changes on the snap and not before, that really? turns both hands for a bishop and keeps above the crowns, that the trophy is held still and lit and the second queen is not, the taps of the pat, that a pushed pawn's foot never leaves the board and the finger is behind it, that a stone squared up is off by a twelfth and turned, then exact, and never in a lesson, and the check ladder from the pointing to the drumming, set back by a quiet move or a take-back.
@@ -377,7 +377,7 @@ Not built, or built smaller than written above:
 - **Really?** On the player's own turn the turned hands may come over the far corner, above the crowns.
 - **The trophy.** The held queen is lit by the hand, not by her own glow. The brisk second queen is the plain carry, not a quicker one.
 - **It wears off.** The second check's point comes from nearer home but is the same point, once. The drumming is the drumming of step 2.
-- **Frames.** Each was filmed headless from the Shoulder and Eyes cameras and from above (`tmp/hands3/setdown.mjs`). From the far cameras the snap, the pat, the trophy and squaring up read as outlines; the push and the twitch of one finger are small and read only from the Shoulder. Whether the timing is funny has not been judged: that needs the running game.
+- **Frames.** Each was filmed headless from the Shoulder and Eyes cameras and from above. From the far cameras the snap, the pat, the trophy and squaring up read as outlines; the push and the twitch of one finger are small and read only from the Shoulder. Whether the timing is funny has not been judged: that needs the running game.
 
 **Changed, 15 November: the next player is never kept waiting.** A move is done with, and the next may be played, once its stones are on their squares and what it took is off the board, as for a move set down plainly. A manner never makes the other player wait on it, and on their screen their clock may be running. So each manner is one of three kinds:
 - **After the stone is down, it goes on as the game does.** Squaring up, the pat and the snap are played after the move is done with, and so is the taken stone's way to the drawer, with the trophy held up on the way. The next player's turning to a stone, their move, or a take-back cuts them short at once: the stone squared up stands exactly on its square, the king is patted no more, the pawn changes at once and nothing is heard, and the hand goes home (`Stage.tails`, `Puppeteer.letBe`). Against the computer, which has no clock to save, the computer lets them finish before it reaches for its stone. They cost the next player nothing: squaring up costs the twelfth of a second it takes to set a stone down a little off, the others nothing at all.
@@ -413,7 +413,7 @@ Not built, or built smaller than written above:
 - **Laid down.** About one plain mate in five, by the seed. The king is laid over gently by the winner's hand and does not rock.
 - **The wave.** Fingers only, and not again for twenty seconds. A touch screen has no pointer to shake.
 - **The weight, pulled.** The hand looks at its weight; it does not wait for it or stop it.
-- **Frames.** Each was filmed headless from the Shoulder camera, and the candle, the captive, the sweep and the king laid down from the side as well (`tmp/backlog/manners56.mjs`). The candle and the drawer are at the edge of the Shoulder's picture. How any of it reads in motion, and whether it is funny, has not been judged: that needs the running game.
+- **Frames.** Each was filmed headless from the Shoulder camera, and the candle, the captive, the sweep and the king laid down from the side as well. The candle and the drawer are at the edge of the Shoulder's picture. How any of it reads in motion, and whether it is funny, has not been judged: that needs the running game.
 
 **Built, 15 November: two more ways a capture is staged.** *Small takes great* is a row at the set (`small-takes-great`, Always): a pawn that takes a rook or a queen, and is not made into anything as it does. It is part of the move and not a gesture after it, so that every screen plays it alike: the hand that set the pawn down taps it once on the head as the game goes on, the pawn's eye goes wide (`PieceLayer.widen`), and the next player's turning to a stone, their move, or a take-back cuts it short, as the king's pat is. A queen taken so is held up on her way to the drawer as well. *The exchange quickens* is not a row and spends nothing: `Stage.exchange` counts from the game's own moves how many captures running were made on the square now taken on, and the whole of this one (both hands' reach, the lift, the way across and the set: `CarryOptions.pace`) is made 15 per cent quicker for each, to three. A move made elsewhere between sets it back, a take-back takes it back a step, and a screen come late counts the same. Tests: `tests/capture-stagings.test.ts`.
 
@@ -436,7 +436,7 @@ Not heard by anyone yet: each was measured (its length, its loudness, where its 
 
 ## 10. Decided, 14 November
 
-1. **The winner's hands** may gloat a little, at my judgement: rule 7.
+1. **The winner's hands** may gloat a little: rule 7.
 2. **The ladder of impatience in ranked** stops at drumming on the rail, as written.
 3. **No switch.** The manners are simply part of the game.
 4. **Nothing spammy.** These are things met now and then, not every game: the rarities and the budget in section 3 were tightened for it, and tightened again when the first three were built (two in a game at most; the steeple and the drumming on the rail are Seldom, not Often: a game with three or four long thinks has one of them about one time in seven, a slow game with ten about two in five, and a player who has seen one is unlikely to see it again that sitting).

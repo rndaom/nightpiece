@@ -36,7 +36,7 @@ export interface PieceMeta {
   head?: number;
   /** Where the piece looks from. */
   eye: [number, number, number];
-  /** How a hand takes hold of it (used from milestone 4). */
+  /** How a hand takes hold of it. */
   grip: { type: 'pinch' | 'wrap' | 'hook' | 'tripod'; y: number; half: number; z?: number };
 }
 

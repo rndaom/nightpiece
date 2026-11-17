@@ -10,7 +10,7 @@ You will get an answer as soon as the author can give one. Please give a reasona
 
 - The game's server in `server/`: its WebSocket protocol, the rooms, seats and clocks, ratings, rate and connection limits, and the headers it sends.
 - The game in the browser (`src/`), including anything that lets one player affect another's browser.
-- The live game at <https://nightpiece-production.up.railway.app>, so far as it runs this code. Please do not run load tests, or anything that disturbs other players, against it.
+- The live game at <https://playnightpiece.com>, so far as it runs this code. Please do not run load tests, or anything that disturbs other players, against it.
 
 Out of scope: weaknesses in third-party libraries (report those to their authors, though a way they can be used against this game is in scope), and the Stockfish engine itself.
 

@@ -1,7 +1,7 @@
 /**
  * Materials for the Blender-built assets. The six finishes come from the
  * style bible, section 4: board-formed concrete, bush-hammered limestone,
- * honed basalt, dull brass, flat light and (from milestone 4) void glass.
+ * honed basalt, dull brass, flat light and void glass.
  */
 import { Color, MeshStandardMaterial, ShaderChunk, type Texture, Vector2, Vector3, Vector4 } from 'three';
 import type { Side } from '../core/game';

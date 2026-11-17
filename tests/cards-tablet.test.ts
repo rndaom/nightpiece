@@ -4,7 +4,7 @@
  * the picture above them, so that no square lies under them. On a short phone the card is set
  * closer, and in an online game the room's card gives way to it, so that neither the board nor
  * the card's own key ends up under the match bar or the bar of keys. The frames themselves are taken by
- * hand (tools/dev/look.mjs, see docs/progress.md).
+ * hand (tools/dev/look.mjs).
  */
 import { readFileSync } from 'node:fs';
 import { PerspectiveCamera, Vector3 } from 'three';
