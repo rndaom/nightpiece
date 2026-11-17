@@ -11,7 +11,7 @@
  */
 import { createHash } from 'node:crypto';
 import { createReadStream, readFileSync, realpathSync, type Stats, statSync } from 'node:fs';
-import { createServer, type IncomingMessage, type Server } from 'node:http';
+import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import { isIPv6 } from 'node:net';
 import path from 'node:path';
 import { pipeline } from 'node:stream';
@@ -23,6 +23,7 @@ import { parseClientMessage, type ServerMessage } from '../src/net/protocol.ts';
 import { type Connection, Lobby } from './rooms.ts';
 import { Scores } from './scores.ts';
 import { RoomStore } from './store.ts';
+import { Tally } from './tally.ts';
 
 const TYPES: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -179,6 +180,9 @@ const MAX_CONNECTIONS = 4000;
 const MOST_UNSENT = 256 * 1024;
 /** How often a connection's `sync` is answered, at most, in milliseconds. More are not answered. */
 const SYNC_EVERY = 1000;
+/** The longest a step's name may be (see src/net/visits.ts). */
+const STEP_MOST = 64;
+const HOUR = 60 * 60 * 1000;
 /**
  * Rooms written down by the server that ran before are taken up again only if it stopped this
  * recently. A new version is put up in seconds; a server down for longer than this has lost its
@@ -285,11 +289,14 @@ export interface ServerOptions {
   blockedNamesFile?: string;
   /** How many rooms there may be at once. */
   maxRooms?: number;
+  /** The file the day's counts of visits and games are kept in (see server/tally.ts). Left out, they last as long as the server does. */
+  statsFile?: string;
 }
 
 export interface Running {
   server: Server;
   lobby: Lobby;
+  tally: Tally;
   port: number;
   close(): Promise<void>;
 }
@@ -309,7 +316,8 @@ export function startServer(options: ServerOptions = {}): Promise<Running> {
       // No list: no words beyond the few the game reserves.
     }
   }
-  const lobby = new Lobby(Date.now, scores, { ...(options.maxRooms ? { maxRooms: options.maxRooms } : {}), blockedNames });
+  const tally = new Tally(options.statsFile ?? null);
+  const lobby = new Lobby(Date.now, scores, { ...(options.maxRooms ? { maxRooms: options.maxRooms } : {}), blockedNames, count: (step) => tally.count(step) });
   // The games that were being played when the server last stopped, if it stopped lately; and from
   // now on, every change to them written down as it happens.
   const store = options.roomsFile ? new RoomStore(options.roomsFile) : null;
@@ -387,9 +395,52 @@ export function startServer(options: ServerOptions = {}): Promise<Running> {
       ? { ...headers, 'strict-transport-security': 'max-age=31536000' }
       : headers;
 
+  /** Whether a page from this origin may talk to the server: its own pages, and those of the sites named. Programs that are not browsers name none, and are let through. */
+  const fromAllowed = (origin: string | undefined, host: string | undefined): boolean => {
+    if (!origin || options.allowOrigins?.includes(origin)) return true;
+    try {
+      return new URL(origin).host === host;
+    } catch {
+      return false;
+    }
+  };
+
+  /** A page says it has reached a step (see src/net/visits.ts): the step's name, and nothing else. */
+  const countStep = (request: IncomingMessage, response: ServerResponse, safe: Record<string, string>) => {
+    const answer = (status: number, more: Record<string, string> = {}) => response.writeHead(status, { ...safe, 'cache-control': 'no-store', ...more }).end();
+    if (request.method !== 'POST') return answer(405, { allow: 'POST' });
+    if (!fromAllowed(header(request, 'origin'), request.headers.host)) return answer(403);
+    let body = '';
+    request.setEncoding('utf8');
+    request.on('data', (chunk: string) => {
+      body += chunk;
+      if (body.length <= STEP_MOST) return;
+      // No step's name is anywhere near so long: what is still coming is not read.
+      request.removeAllListeners('data');
+      request.pause();
+      body = '';
+      answer(413, { connection: 'close' });
+    });
+    request.on('end', () => {
+      if (response.headersSent) return;
+      tally.count(body.trim(), addressOf(request));
+      answer(204);
+    });
+    request.on('error', () => {});
+  };
+
   const squeezer = new Squeezer();
   const server = createServer((request, response) => {
     const safe = secured(request);
+    const asked = (request.url ?? '/').split('?')[0];
+    if (asked === '/api/event') return countStep(request, response, safe);
+    if (asked === '/api/lobby') {
+      // How many are looking for a match, and how many are at a board, this moment: never kept by anything on the way.
+      if (request.method !== 'GET' && request.method !== 'HEAD') return void response.writeHead(405, { ...safe, allow: 'GET, HEAD' }).end();
+      const body = JSON.stringify({ waiting: lobby.waiting, playing: lobby.playing });
+      response.writeHead(200, { ...safe, 'content-type': 'application/json', 'cache-control': 'no-store', 'content-length': Buffer.byteLength(body) });
+      return void response.end(request.method === 'HEAD' ? undefined : body);
+    }
     if (request.method !== 'GET' && request.method !== 'HEAD') {
       response.writeHead(405, safe).end();
       return;
@@ -467,15 +518,7 @@ export function startServer(options: ServerOptions = {}): Promise<Running> {
     // A page on some other site must not be able to open a connection from a visitor's browser.
     // Programs that are not browsers send no origin and are let through.
     verifyClient: ({ origin, req }, answer) => {
-      let allowed = !origin || options.allowOrigins?.includes(origin) === true;
-      if (!allowed) {
-        try {
-          allowed = new URL(origin).host === req.headers.host;
-        } catch {
-          allowed = false;
-        }
-      }
-      if (!allowed) return answer(false, 403, 'Forbidden');
+      if (!fromAllowed(origin, req.headers.host)) return answer(false, 403, 'Forbidden');
       if ((held.get(addressOf(req)) ?? 0) >= perAddress) return answer(false, 429, 'Too many connections');
       // And there is an end to how many the server holds in all, however many addresses they come from.
       if (sockets.clients.size >= (options.maxConnections ?? MAX_CONNECTIONS)) return answer(false, 503, 'The server is full');
@@ -587,9 +630,25 @@ export function startServer(options: ServerOptions = {}): Promise<Running> {
     }
   }, CHECKPOINT_EVERY);
 
-  /** The last word before the server stops: the ratings, and every room as it stands this moment. Nothing is written after it. */
+  // Once an hour, just after it turns, what was counted in it is said in the log.
+  let hourly: ReturnType<typeof setTimeout> | null = null;
+  const sayHour = () => {
+    hourly = setTimeout(
+      () => {
+        const line = tally.closeHour();
+        if (line) console.log(line);
+        sayHour();
+      },
+      HOUR - (Date.now() % HOUR) + 1000,
+    );
+    hourly.unref?.();
+  };
+  sayHour();
+
+  /** The last word before the server stops: the ratings, the counts, and every room as it stands this moment. Nothing is written after it. */
   const stopWriting = () => {
     scores.flush();
+    tally.flush();
     if (!store) return;
     try {
       const saved = lobby.save();
@@ -604,6 +663,7 @@ export function startServer(options: ServerOptions = {}): Promise<Running> {
   return new Promise((resolve, reject) => {
     const stopTimers = () => {
       for (const timer of [sweeping, timing, living, checkpointing]) clearInterval(timer);
+      if (hourly !== null) clearTimeout(hourly);
     };
     const failed = (error: Error) => {
       stopTimers();
@@ -620,6 +680,7 @@ export function startServer(options: ServerOptions = {}): Promise<Running> {
       resolve({
         server,
         lobby,
+        tally,
         port,
         close: () =>
           new Promise<void>((done) => {
@@ -662,6 +723,7 @@ if (isEntryPoint()) {
     port,
     scoresFile: path.join(dataDir, 'scores.json'),
     roomsFile: path.join(dataDir, 'rooms.json'),
+    statsFile: path.join(dataDir, 'stats.json'),
     // Words the operator will not have in a name: one to a line, in small letters, in a file beside the scores.
     blockedNamesFile: path.join(dataDir, 'blocked-names.txt'),
     behindProxy,

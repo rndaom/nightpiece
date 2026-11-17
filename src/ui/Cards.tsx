@@ -453,6 +453,21 @@ function ClockPick({ app }: { app: App }) {
   );
 }
 
+/** How many others are waiting for a match, as the player who is waiting is told. */
+export function othersWaiting(q: { waiting: number }): number {
+  return Math.max(0, (ui.lobby.value?.waiting ?? q.waiting) - 1);
+}
+
+/** What the way to a match says about who is there: anyone waiting to be matched this moment, or else anyone playing. */
+export function lobbyWords(): string {
+  const lobby = ui.lobby.value;
+  const ranked = 'Ranked · 10 minutes each';
+  if (!lobby) return ranked;
+  if (lobby.waiting > 0) return `${ranked} · ${lobby.waiting === 1 ? 'one player' : `${lobby.waiting} players`} waiting now`;
+  if (lobby.playing > 0) return `${ranked} · ${lobby.playing} playing now`;
+  return ranked;
+}
+
 /** Waiting for a ranked match, said beside the board while something else is played. */
 export function Queue({ app }: { app: App }) {
   const q = ui.queue.value;
@@ -478,13 +493,35 @@ export function Queue({ app }: { app: App }) {
   }
   if (!q) return null;
   const stuck = !q.up && ui.unreachable.value;
+  const others = othersWaiting(q);
+  // Alone in the line, and nothing in particular on the board: the computer passes the time, and the match comes to them when it is found.
+  const idle = q.up && others === 0 && ui.mode.value.kind === 'table';
+  const { level, side } = ui.computer.value;
   return (
     <section class="card queue" aria-label="Looking for a match">
-      <p aria-live="polite">{q.up ? `Looking for an opponent. ${q.waiting} waiting.` : stuck ? UNREACHABLE : 'Reaching the server…'}</p>
+      <p aria-live="polite">
+        {q.up
+          ? others > 0
+            ? `Looking for an opponent. ${others === 1 ? 'One other is' : `${others} others are`} waiting.`
+            : "Looking for an opponent. Nobody else is waiting yet; you'll be taken to the game when someone joins."
+          : stuck
+            ? UNREACHABLE
+            : 'Reaching the server…'}
+      </p>
       <div class="choices">
         {stuck ? (
           <button type="button" class="btn" onClick={() => app.retryServer()}>
             Try again
+          </button>
+        ) : null}
+        {idle ? (
+          <button type="button" class="btn" onClick={() => app.startComputer(level, side)}>
+            Play the computer meanwhile
+          </button>
+        ) : null}
+        {q.up && others === 0 ? (
+          <button type="button" class="pill" onClick={() => app.startOnline()}>
+            Invite a friend instead
           </button>
         ) : null}
         <button type="button" class="pill" onClick={() => app.cancelMatch()}>

@@ -26,6 +26,7 @@ import {
   type TimeControl,
 } from '../src/net/protocol.ts';
 import { readAs } from '../src/net/lookalikes.ts';
+import type { ServerStep } from '../src/net/visits.ts';
 import { playerKey, Scores, START_RATING } from './scores.ts';
 
 export interface Connection {
@@ -411,6 +412,8 @@ export interface LobbyOptions {
   maxRooms?: number;
   /** Words no name may contain, in small letters (the operator's own list, read from a file). */
   blockedNames?: string[];
+  /** Told of each step a game takes that is worth counting (see server/tally.ts). */
+  count?: (step: ServerStep) => void;
 }
 
 export class Lobby {
@@ -446,6 +449,7 @@ export class Lobby {
   /** Pairs ('pair:') and players ('key:') whose limits have changed since they were last asked for. */
   private limits = new Set<string>();
   readonly scores: Scores;
+  private count: (step: ServerStep) => void;
 
   constructor(
     private now: () => number = Date.now,
@@ -456,6 +460,7 @@ export class Lobby {
     this.maxRooms = options.maxRooms ?? MAX_ROOMS;
     this.blockedNames = (options.blockedNames ?? []).map((w) => w.trim().toLowerCase()).filter((w) => w.length > 0);
     this.blockedAsRead = this.blockedNames.map((w) => readAs(w)).filter((w) => w.length > 0);
+    this.count = options.count ?? (() => {});
   }
 
   get roomCount(): number {
@@ -464,6 +469,13 @@ export class Lobby {
 
   get waiting(): number {
     return this.queue.length;
+  }
+
+  /** How many players are at a board just now, here and in a game not yet over. */
+  get playing(): number {
+    let n = 0;
+    for (const room of this.rooms.values()) if (!room.over) for (const side of SIDES) if (room.players[side]?.connection) n++;
+    return n;
   }
 
   /** How many games are being watched by the clock: ranked games still being played, and timed friendly games under way. */
@@ -649,6 +661,7 @@ export class Lobby {
       if (this.queue.length >= MAX_QUEUE) return turn('Too many are waiting for a game just now. Try again in a little while.');
       this.queue.push(connection);
       connection.send({ t: 'queued', waiting: this.queue.length });
+      this.count('queued');
       return;
     }
     if (!this.roomForOneMore()) return turn('The server has no room for another game just now.');
@@ -678,6 +691,7 @@ export class Lobby {
     this.watched.add(room);
     this.touch(room);
     for (const c of [other, connection]) c.send({ t: 'matched', room: name });
+    this.count('matched');
   }
 
   /** Whether the newcomer may be matched with one who is waiting: not themself, not from the same address, and not a pair (of players, or of addresses) that has played enough today. */
@@ -761,6 +775,7 @@ export class Lobby {
     if (room.over) return;
     room.stopClock();
     room.ended = 'noshow';
+    this.count('calledoff');
     room.offer = null;
     this.watched.delete(room);
     for (const side of blamed) {
@@ -794,6 +809,7 @@ export class Lobby {
     const b = room.players.b?.key;
     if (!w || !b || !this.rated(room)) return;
     room.change = this.scores.record(w, b, room.game.status().winner, room.id || undefined);
+    this.count('rated');
     const now = this.now();
     const pair = this.pairName(w, b);
     this.pairs.set(pair, [...(this.pairs.get(pair) ?? []).filter((t) => now - t < PAIR_WINDOW), now]);
@@ -1067,6 +1083,8 @@ export class Lobby {
       throw error;
     }
     room.moved[seat] = true;
+    // The first move ever played in a room among friends: two of them are playing.
+    if (!room.ranked && !room.held) this.count('friendgame');
     room.held = true;
     const over = room.game.status().over;
     if (before && room.timed) {

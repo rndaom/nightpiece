@@ -9,7 +9,8 @@ import { creditsPlugin } from './tools/dev/credits.ts';
  * A second pair can be run beside the usual one: DEV_PORT for this server, GAME_PORT for the game's
  * (which `npm run server` reads as PORT).
  */
-const proxy = { '/ws': { target: `ws://127.0.0.1:${Number(process.env.GAME_PORT) || 8787}`, ws: true } };
+const gameServer = `127.0.0.1:${Number(process.env.GAME_PORT) || 8787}`;
+const proxy = { '/ws': { target: `ws://${gameServer}`, ws: true }, '/api': { target: `http://${gameServer}` } };
 
 export default defineConfig({
   plugins: [preact(), capturePlugin(), creditsPlugin(BRAND.name)],

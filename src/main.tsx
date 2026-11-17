@@ -12,6 +12,7 @@ import { App } from './app/app';
 import { BRAND } from './app/brand';
 import { ui } from './app/store';
 import { Hud } from './ui/Hud';
+import { arrived, reached } from './net/visits';
 import { showUnavailable } from './ui/Unavailable';
 import frauncesFile from '@fontsource-variable/fraunces/files/fraunces-latin-full-normal.woff2?url';
 
@@ -48,7 +49,9 @@ function start(): App | null {
   }
 }
 
+arrived();
 const app = start();
+reached(app ? 'drawn' : 'undrawable');
 
 // A handle for development and automated checks. Not part of the game's interface, and not in the build.
 if (import.meta.env.DEV && app !== null) {

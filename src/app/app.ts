@@ -8,7 +8,7 @@
  * other player on another machine and this screen showing what the server
  * says happened.
  */
-import { effect } from '@preact/signals';
+import { computed, effect } from '@preact/signals';
 import { Plane, Raycaster, Vector2, Vector3 } from 'three';
 import { decodeBank, fetchBank, type RawBank } from '../audio/bank';
 import { Sound, type UiSound, type Volumes } from '../audio/sound';
@@ -25,6 +25,8 @@ import { answer, LESSONS, solve, stepNumber, type Step } from '../learn/lessons'
 import { prepareOpenings } from '../learn/openings';
 import { browserKeys, Net } from '../net/client';
 import { Hall } from '../net/hall';
+import { reached } from '../net/visits';
+import { apiUrl, serverUrl } from '../net/where';
 import { identity, setName } from '../net/identity';
 import { type Clock, cleanName, GONE, type MoveData, newRoomName, type PlayerCard, ROOM_NAME, type RoomState, sameControl, type Seat, type TimeControl } from '../net/protocol';
 import { loadAssets } from '../scene/assets';
@@ -80,6 +82,8 @@ const DWELL = 0.6;
 const QUICKEST_REPLY = 1.2;
 /** The page has been away a long while when it was hidden this many milliseconds: the hands show it when it is come back to. */
 const AWAY_LONG = 60_000;
+/** How often the server is asked how many are looking for a match, while it matters. */
+const LOBBY_EVERY = 15_000;
 /** A screen this many moves behind the server (a watcher's tab left in the background, say) jumps to the present. */
 const TOO_FAR_BEHIND = 3;
 
@@ -165,13 +169,6 @@ function stillness(): boolean {
   return typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
-/** Where the game's server is: the address the page came from, unless the build names another. */
-function serverUrl(): string {
-  const named = import.meta.env.VITE_GAME_SERVER as string | undefined;
-  if (named) return named;
-  return `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`;
-}
-
 export class App {
   readonly game = new Game();
   readonly world: World;
@@ -250,6 +247,10 @@ export class App {
   private reviewed = -1;
   /** When the first move of the game on the board was made (performance.now), if this screen saw it made. */
   private began: number | null = null;
+  /** How many moves the player here has made since the page was opened, in any games. */
+  private movesMade = 0;
+  /** Whether the server has been asked how many are looking and playing, and not yet answered. */
+  private askingLobby = false;
   /** Whether the players have been shown coming to the board for the online game on it, which is done once a game. */
   private introduced = false;
   private introCount = 0;
@@ -318,6 +319,24 @@ export class App {
     // Put away to look at the board alone, the interface comes back by itself for anything that wants reading or answering.
     effect(() => {
       if (this.wantsReading()) ui.bare.value = false;
+    });
+
+    // While the choice of game is open, or a match is awaited, the server is asked every little
+    // while how many are looking for one: a player can see whether anyone is there to be matched with.
+    const lobbyWanted = computed(() => ui.menuOpen.value || ui.queue.value !== null);
+    effect(() => {
+      if (!lobbyWanted.value) return;
+      this.askLobby();
+      const timer = setInterval(() => this.askLobby(), LOBBY_EVERY);
+      return () => clearInterval(timer);
+    });
+
+    // A game that comes to its end, however it ends, while the player is at it (see src/net/visits.ts).
+    let wasOver = true;
+    effect(() => {
+      const over = ui.status.value.over;
+      if (over && !wasOver && ui.mode.value.kind !== 'lessons') reached('finished');
+      wasOver = over;
     });
 
     // The board's coordinates are painted with a webfont; repaint once it has loaded.
@@ -527,6 +546,7 @@ export class App {
 
   /** The lessons, from the first step or from a given one. */
   startLessons(lesson = 0, step = 0): void {
+    reached('lesson');
     this.leaveMode();
     ui.mode.value = { kind: 'lessons' };
     ui.you.value = 'w';
@@ -650,6 +670,7 @@ export class App {
 
   /** One player here against the engine. With 'either', the side is drawn by lot. */
   startComputer(level: string, side: Side | 'either', fen?: string): void {
+    reached('computer');
     this.leaveMode();
     ui.computer.value = { level, side };
     saveSettings();
@@ -671,6 +692,7 @@ export class App {
    * queue made.
    */
   startOnline(room?: string, watch = false, how: 'link' | 'match' = 'link'): void {
+    if (how === 'link' && !watch) reached('friend');
     this.leaveMode();
     const name = room ?? newRoomName();
     const keys = browserKeys();
@@ -774,10 +796,13 @@ export class App {
       welcome: (card) => this.welcomed(card),
       queued: (waiting) => {
         if (ui.queue.value) ui.queue.value = { waiting, up: true };
+        ui.lobby.value = { playing: ui.lobby.value?.playing ?? 0, waiting };
       },
       turned: (reason, until) => this.turnedAway(reason, until),
       matched: (room) => {
         ui.queue.value = null;
+        // Waited for in another tab: the tab's own name says the game has been found, until it is looked at.
+        if (document.hidden) document.title = `Your match is ready · ${BRAND.name}`;
         this.world.sound?.glass(null, 3);
         this.world.sound?.glass(null, 5, 0.16);
         this.startOnline(room, false, 'match');
@@ -785,6 +810,26 @@ export class App {
       board: (top, you) => (ui.ranks.value = { top, you }),
     });
     return this.hall;
+  }
+
+  /** Ask the server how many are looking for a match and how many are playing (see `ui.lobby`). Not while the page is out of sight. */
+  private askLobby(): void {
+    if (this.askingLobby || document.hidden) return;
+    let url: string;
+    try {
+      url = apiUrl('/api/lobby');
+    } catch {
+      return;
+    }
+    this.askingLobby = true;
+    fetch(url, { cache: 'no-store' })
+      .then((answer) => (answer.ok ? (answer.json() as Promise<unknown>) : null))
+      .then((data) => {
+        const said = data as { waiting?: unknown; playing?: unknown } | null;
+        if (typeof said?.waiting === 'number' && typeof said.playing === 'number') ui.lobby.value = { waiting: said.waiting, playing: said.playing };
+      })
+      .catch(() => {})
+      .finally(() => (this.askingLobby = false));
   }
 
   /** The hall is being tried: if it is still not reached in a while, the player is told so. */
@@ -872,6 +917,7 @@ export class App {
     ui.turned.value = null;
     ui.queue.value = { waiting: 1, up: this.hall?.up ?? false };
     this.theHall().queue();
+    reached('match');
   }
 
   cancelMatch(): void {
@@ -1477,6 +1523,10 @@ export class App {
     const lineBefore = this.game.engineLine();
     const prior = this.game.lastMove();
     const e = this.game.move(from, to, promotion);
+    if (origin === 'local') {
+      reached('moved');
+      if (++this.movesMade >= 10) reached('moves10');
+    }
     const epoch = this.epoch;
     const lessons = ui.mode.value.kind === 'lessons';
     this.busy = true;
@@ -2774,6 +2824,7 @@ export class App {
         return;
       }
       this.wake();
+      document.title = BRAND.name;
       // Left for a minute and more with a game on: the player's own hands start awake.
       const away = hiddenAt === null ? 0 : performance.now() - hiddenAt;
       hiddenAt = null;

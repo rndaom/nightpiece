@@ -211,6 +211,8 @@ export const ui = {
   player: signal<{ name: string; card: PlayerCard | null }>({ name: '', card: null }),
   /** Waiting for a ranked match: how many are waiting, this player included, and whether the server can be heard. Null when not waiting. */
   queue: signal<{ waiting: number; up: boolean } | null>(null),
+  /** How many are looking for a match (this player too, if they are) and how many are at a board online, as the server last said. Asked while the choice of game is open or a match is awaited; null until it has said. */
+  lobby: signal<{ waiting: number; playing: number } | null>(null),
   /**
    * The server would not put this player in the queue, and why, in its words. `until` is when
    * (by Date.now) they may look again, if they must wait; the turn is forgotten by itself then.

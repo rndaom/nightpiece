@@ -12,7 +12,8 @@ import { ui } from '../app/store';
 import type { Side } from '../core/game';
 import { LEVELS } from '../engine/uci';
 import { NAME_LENGTH } from '../net/protocol';
-import { turnedWords, UNREACHABLE } from './Cards';
+import { reached } from '../net/visits';
+import { lobbyWords, othersWaiting, turnedWords, UNREACHABLE } from './Cards';
 import { Emblem, Icon, type IconName, Stone } from './glyphs';
 import { arrows, stop } from './roving';
 
@@ -233,18 +234,33 @@ function Playbill({ app }: { app: App }) {
               <Way
                 icon="close"
                 name="Stop looking"
-                line={queue.up ? `Looking for an opponent · ${queue.waiting} waiting` : ui.unreachable.value ? `${UNREACHABLE} Still trying.` : 'Reaching the server…'}
+                line={
+                  queue.up
+                    ? othersWaiting(queue) > 0
+                      ? `Looking for an opponent · ${othersWaiting(queue)} more waiting`
+                      : "Nobody else yet · you'll be taken to the game when someone joins"
+                    : ui.unreachable.value
+                      ? `${UNREACHABLE} Still trying.`
+                      : 'Reaching the server…'
+                }
                 onUse={() => app.cancelMatch()}
               />
             ) : turned ? (
               // Turned away by the server: why, and if there is a wait, when it is over. The way opens again by itself then.
               <Way icon="match" name="Find a match" line={turnedWords(turned)} disabled={turned.until !== null} onUse={() => app.findMatch()} />
             ) : (
-              <Way icon="match" name="Find a match" line="Ranked · 10 minutes each" onUse={() => app.findMatch()} />
+              <Way icon="match" name="Find a match" line={lobbyWords()} onUse={() => app.findMatch()} />
             )}
             {queue && !queue.up && ui.unreachable.value ? <Way icon="match" name="Try again" line="Try the game server again now" onUse={() => app.retryServer()} /> : null}
             <Way icon="link" name="Play a friend, online" onUse={() => app.startOnline()} />
-            <Way icon="two" name="Two at this screen" onUse={() => app.startTable()} />
+            <Way
+              icon="two"
+              name="Two at this screen"
+              onUse={() => {
+                reached('table');
+                app.startTable();
+              }}
+            />
           </ul>
           <Who app={app} />
           <footer class="bill-foot">
