@@ -60,7 +60,7 @@ The server holds each online game and checks every move. By default it answers o
 | `PER_ADDRESS` | 60 | The most connections one address may hold. An IPv6 visitor is counted by their /64 block |
 | `MAX_ROOMS` (`--max-rooms`) | 1000 | The most rooms, ranked and friendly together |
 
-Games in progress are written to `rooms.json` and a journal in the data folder as they change, so a game survives a restart or a crash; the clocks stand still while the server is down, and each player has the usual minute to come back. Seat secrets are stored only as hashes. A file `blocked-names.txt` in the data folder, one word to a line, rules out player names beyond the built-in checks.
+Games in progress are written to `rooms.json` and a journal in the data folder as they change, so a game survives a restart or a crash; the clocks stand still while the server is down, and each player has the usual minute to come back. Seat secrets are stored only as hashes. A file `blocked-names.txt` in the data folder, one word to a line, rules out player names beyond the built-in checks. Those words, and the few names reserved for the game itself, are refused however they are written: with another alphabet's letters, or with digits for letters.
 
 The server sends a strict Content-Security-Policy (everything from the server itself, WebAssembly allowed for the engine, the one inline style allowed by its hash), refuses to be framed, sends no referrer, turns off the camera, microphone and similar features, and asks for HTTPS when a proxy says the visitor came over HTTPS. It compresses what it sends, drops a connection that stops reading, and rate-limits whole-room requests.
 
@@ -70,9 +70,9 @@ The server sends a strict Content-Security-Policy (everything from the server it
 
 - Ten minutes a side and five seconds back a move, kept by the server. Ivory's clock starts four seconds after both players are at the board, or at Ivory's first move if that is sooner.
 - Running out of time, or leaving for more than a minute, loses, unless the other side could never mate with what it has left, when the game is drawn (FIDE 6.9).
-- Until both players have made a move nothing is at stake: a game abandoned before then is called off and no rating moves. A player or address that causes two called-off games within ten minutes waits ten minutes before looking for another.
+- Until both players have made a move nothing is at stake: a game abandoned before then is called off and no rating moves. Each player has forty-five seconds at the board to make a first move, counted down on screen; one who makes none has the game called off. A player or address that causes two called-off games within ten minutes waits ten minutes before looking for another.
 - Repetition and fifty-move draws may be claimed by the player to move; the server checks the claim. A fifth repetition or seventy-five moves ends the game by itself.
-- No one is paired with themselves, with someone at the same address, or with someone they have already played three rated games with in the last day.
+- No one is paired with themselves, with someone at the same address, or with someone they have already played three rated games with in the last day. Two addresses that have finished six rated games between them in a day are not paired again that day, whoever is playing.
 - Ratings start at 1200, and the rankings list players with at least three games. A game through a link is friendly: no rating, a rematch with colours swapped, and a clock only if the players choose one (3+2, 5+3, 10+5, 15+10 or 30+0). A ranked game has no rematch; the next one comes from the queue.
 - The scores are one file, `scores.json`, in the data folder.
 

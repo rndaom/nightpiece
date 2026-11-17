@@ -52,6 +52,10 @@ All original. Every model, the hand and its skeleton included, is built by the s
 
 The board's engraved coordinates are cut from DM Mono Medium (SIL Open Font License 1.1). The font file and its licence are in `assets/src/fonts/`; only the resulting geometry ships.
 
+### Lookalike letters
+
+A name is checked against the few names nobody may take by what it looks like, whatever alphabet it is written in. The table of letters that are drawn like Latin ones (`src/net/lookalikes.ts`) is taken from the Unicode Consortium's list of confusable characters (`confusables.txt`, Unicode Technical Standard #39), © Unicode, Inc., used under the Unicode License v3: <https://www.unicode.org/license.txt>.
+
 ### Audio
 
 Every sound in the game is made from recordings: stone is recordings of stone, the glass tones are struck glasses, the bell is a tubular bell, the room's drone is a bowed double bass, wine glasses and a bowed vibraphone. Nothing is an oscillator. `assets/src/sound/build.py` cuts, tunes, layers and levels the recordings into the files in `public/assets/sound/`; the game (`src/audio/sound.ts`) places them in the room and adds the chapel's echo, which is itself built by `assets/src/sound/hall.py` and not recorded.

@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import type { App } from '../app/app';
 import { assisted, outcome, ui } from '../app/store';
 import { opposite, type PromotionKind, type Side } from '../core/game';
-import { type Clock, FRIENDLY_CONTROLS, sameControl, type TimeControl } from '../net/protocol';
+import { type Clock, FRIENDLY_CONTROLS, type Seat, sameControl, type TimeControl } from '../net/protocol';
 import { describeClaim, describeStatus, EXPLAIN } from '../learn/explain';
 import { costliest } from '../learn/story';
 import { copyText } from './clipboard';
@@ -596,6 +596,19 @@ function Waiting({ who, left, at }: { who: string; left: number; at: number }) {
   );
 }
 
+/** A ranked game's first move, which is not waited for long: who is to make it, counted down. */
+function FirstMove({ you, side, left, at }: { you: Seat; side: Side; left: number; at: number }) {
+  const [, tick] = useState(0);
+  useEffect(() => {
+    const timer = setInterval(() => tick((n) => n + 1), 250);
+    return () => clearInterval(timer);
+  }, []);
+  const time = <time>{clockText(left - (performance.now() - at))}</time>;
+  if (you === side) return <>You are {SIDE[side]}. Make your first move within {time}, or the game is called off.</>;
+  if (you === 'spectator') return <>{SIDE[side]} has {time} to make a first move, or the game is called off.</>;
+  return <>You are {SIDE[opposite(side)]}. Your opponent has {time} to make a first move, or the game is called off.</>;
+}
+
 /** Who is in the online room, and what the player should do about it. */
 export function Room({ app }: { app: App }) {
   const o = ui.online.value;
@@ -613,6 +626,8 @@ export function Room({ app }: { app: App }) {
   const turn = ui.status.value.turn;
   const awayToMove = !o.ranked && o.clock !== null && !over && played > 0 && !o.present[turn] && o.taken[turn] && you !== turn;
   const held = awayToMove ? (o.clock?.held ?? null) : null;
+  // A ranked game whose side to move has yet to make its first move: it is counted down to.
+  const first = o.ranked && o.clock && !over && o.ended === null && you !== null ? (o.clock.first ?? null) : null;
   let line: string | VNode;
   let share = false;
   let stuck = false;
@@ -656,6 +671,8 @@ export function Room({ app }: { app: App }) {
     line = played >= 2 ? 'Opponent disconnected. If they are not back within a minute, the game is yours.' : 'Opponent disconnected. If they are not back within a minute, the game is called off.';
   } else if (still && both) {
     line = you === 'spectator' ? 'The clocks start in a moment.' : `You are ${SIDE[you]}. The clocks start in a moment.`;
+  } else if (first && o.clock) {
+    line = <FirstMove you={you} side={first.side} left={first.left} at={o.clock.at} />;
   } else if (you === 'spectator') {
     line = 'Watching.';
     share = !both;
@@ -683,7 +700,7 @@ export function Room({ app }: { app: App }) {
         <h2 class="plate plate-small">{o.ranked ? 'Ranked game' : `Room ${o.room}`}</h2>
         {o.watching > 0 ? <span class="card-aside">{o.watching} watching</span> : null}
       </header>
-      <p aria-live={held ? 'off' : 'polite'}>{line}</p>
+      <p aria-live={held || first ? 'off' : 'polite'}>{line}</p>
       {stuck ? (
         <div class="choices">
           <button type="button" class="btn" onClick={() => app.retryServer()}>

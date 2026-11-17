@@ -25,6 +25,7 @@ import {
   type ServerMessage,
   type TimeControl,
 } from '../src/net/protocol.ts';
+import { readAs } from '../src/net/lookalikes.ts';
 import { playerKey, Scores, START_RATING } from './scores.ts';
 
 export interface Connection {
@@ -75,6 +76,12 @@ export const PAUSE_ALLOWANCE = 2 * 60 * 1000;
 export const CLOCK_DELAY = 4 * 1000;
 /** A player of a ranked game who is gone this long has left it: they forfeit, or, before both players have moved, the game is called off. */
 export const ABANDON_AFTER = 60 * 1000;
+/**
+ * How long each player of a ranked game has, from the moment their clock first runs, to make their
+ * first move. One who sits at the board and never moves has the game called off, and is to blame
+ * for it: the other player is not kept waiting for the whole of a clock to run down.
+ */
+export const FIRST_MOVE_WITHIN = 45 * 1000;
 /** How many players the leaderboard shows. */
 const BOARD_SIZE = 20;
 /** How many may wait for a match at once. */
@@ -82,6 +89,13 @@ const MAX_QUEUE = 200;
 /** Two players are not matched again once they have played this many rated games against each other in `PAIR_WINDOW`. */
 export const PAIR_LIMIT = 3;
 const PAIR_WINDOW = 24 * 60 * 60 * 1000;
+/**
+ * Nor are players from two addresses matched again once this many rated games have been finished
+ * between those addresses in `PAIR_WINDOW`: a new player made for every game is no way round
+ * `PAIR_LIMIT`. Several households behind one address each (a campus, a telephone company) are
+ * left room to meet.
+ */
+export const ADDRESS_PAIR_LIMIT = 6;
 /** A player or address that has had this many ranked games called off in `STRIKE_WINDOW` may not look for another for `STRIKE_BAN`. */
 export const STRIKE_LIMIT = 2;
 const STRIKE_WINDOW = 10 * 60 * 1000;
@@ -200,7 +214,9 @@ class Room {
     // A friendly clock waiting for its player, who is away: whose, and for how much longer at most.
     const turn = this.game.turn();
     const waiting = this.pausedAt !== null && this.since !== null && now < this.since && !this.over;
-    return { left, running, ...(waiting ? { held: { side: turn, left: this.since! - now } } : {}) };
+    // A ranked game's first move, on either side, is not waited for long. (A player who is away is waited for as any other is: `ABANDON_AFTER`.)
+    const first = this.ranked && running && this.since !== null && !this.moved[running] && this.players[running]?.connection ? Math.max(0, FIRST_MOVE_WITHIN - (now - this.since)) : null;
+    return { left, running, ...(waiting ? { held: { side: turn, left: this.since! - now } } : {}), ...(first !== null && running ? { first: { side: running, left: first } } : {}) };
   }
 
   /** Begin a game with this clock (or none): both sides' whole time, and neither running. */
@@ -410,6 +426,8 @@ export class Lobby {
   private gone = new Map<string, { at: number; state: RoomState }>();
   /** When each pair of players (their keys, in order) finished rated games against each other. */
   private pairs = new Map<string, number[]>();
+  /** The same between pairs of addresses. Kept in memory only: an address is never written down. */
+  private addressPairs = new Map<string, number[]>();
   /** When each player ('key:') or address ('from:') was last to blame for a ranked game called off, and until when they may not look for another. */
   private strikes = new Map<string, number[]>();
   private banned = new Map<string, number>();
@@ -419,6 +437,8 @@ export class Lobby {
   /** When the rooms were last looked over because the server was full. */
   private sweptAt = Number.NEGATIVE_INFINITY;
   private blockedNames: string[];
+  /** The same words as they read (see `readAs`), to be looked for in a name as it reads. */
+  private blockedAsRead: string[];
   /** Whether the rooms are being written down as they change (see `track`), and what has changed since they were last asked for. */
   private tracking = false;
   private touched = new Set<Room>();
@@ -435,6 +455,7 @@ export class Lobby {
     this.scores = scores ?? new Scores(null, now);
     this.maxRooms = options.maxRooms ?? MAX_ROOMS;
     this.blockedNames = (options.blockedNames ?? []).map((w) => w.trim().toLowerCase()).filter((w) => w.length > 0);
+    this.blockedAsRead = this.blockedNames.map((w) => readAs(w)).filter((w) => w.length > 0);
   }
 
   get roomCount(): number {
@@ -547,6 +568,11 @@ export class Lobby {
       }
       // Among friends nobody loses for staying away: only the clock is watched.
       if (!room.ranked) continue;
+      // At the board, and the first move not made in its time: the game is called off, and the one who sat on it is to blame.
+      if (clock?.first && clock.first.left <= 0) {
+        this.callOff(room, [clock.first.side]);
+        continue;
+      }
       // Those who have been gone too long. A player who never arrived has been gone since the room was made.
       const gone = SIDES.map((side) => {
         const p = room.players[side];
@@ -596,7 +622,9 @@ export class Lobby {
     if (this.blockedNames.length === 0) return false;
     const plain = name.toLowerCase();
     const letters = lettersOf(name);
-    return this.blockedNames.some((word) => plain.includes(word) || letters.includes(word));
+    // And as the name reads: with another alphabet's letters, or digits, standing for the word's own.
+    const read = readAs(name);
+    return this.blockedNames.some((word) => plain.includes(word) || letters.includes(word)) || this.blockedAsRead.some((word) => read.includes(word));
   }
 
   /** Put a player in the queue, or pair them with the one who has waited longest of those they may play. */
@@ -652,12 +680,21 @@ export class Lobby {
     for (const c of [other, connection]) c.send({ t: 'matched', room: name });
   }
 
-  /** Whether the newcomer may be matched with one who is waiting: not themself, not from the same address, and not a pair that has played enough today. */
+  /** Whether the newcomer may be matched with one who is waiting: not themself, not from the same address, and not a pair (of players, or of addresses) that has played enough today. */
   private compatible(connection: Connection, key: string, waiting: Connection, now: number): boolean {
     const otherKey = this.known.get(waiting);
     if (!otherKey || otherKey === key) return false;
-    if (connection.address && waiting.address && connection.address === waiting.address) return false;
+    if (connection.address && waiting.address) {
+      if (connection.address === waiting.address) return false;
+      const between = this.addressPairs.get(this.addressPairName(connection.address, waiting.address));
+      if (between && between.filter((t) => now - t < PAIR_WINDOW).length >= ADDRESS_PAIR_LIMIT) return false;
+    }
     return this.pairCount(key, otherKey, now) < PAIR_LIMIT;
+  }
+
+  /** (An address may hold colons: a space sets the two apart.) */
+  private addressPairName(a: string, b: string): string {
+    return a < b ? `${a} ${b}` : `${b} ${a}`;
   }
 
   private pairName(a: string, b: string): string {
@@ -761,6 +798,11 @@ export class Lobby {
     const pair = this.pairName(w, b);
     this.pairs.set(pair, [...(this.pairs.get(pair) ?? []).filter((t) => now - t < PAIR_WINDOW), now]);
     if (this.tracking) this.limits.add(`pair:${pair}`);
+    const [from, against] = SIDES.map((side) => room.players[side]?.connection?.address ?? room.from[side]);
+    if (from && against && from !== against) {
+      const between = this.addressPairName(from, against);
+      this.addressPairs.set(between, [...(this.addressPairs.get(between) ?? []).filter((t) => now - t < PAIR_WINDOW), now]);
+    }
   }
 
   // -- internals --------------------------------------------------------------
@@ -874,6 +916,11 @@ export class Lobby {
       const recent = times.filter((t) => now - t < PAIR_WINDOW);
       if (recent.length === 0) this.pairs.delete(pair);
       else this.pairs.set(pair, recent);
+    }
+    for (const [pair, times] of this.addressPairs) {
+      const recent = times.filter((t) => now - t < PAIR_WINDOW);
+      if (recent.length === 0) this.addressPairs.delete(pair);
+      else this.addressPairs.set(pair, recent);
     }
     for (const [id, times] of this.strikes) if (times.every((t) => now - t >= STRIKE_WINDOW)) this.strikes.delete(id);
     for (const [id, until] of this.banned) if (until <= now) this.banned.delete(id);

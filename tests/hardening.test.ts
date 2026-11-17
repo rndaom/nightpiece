@@ -10,7 +10,7 @@ import path from 'node:path';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import WebSocket from 'ws';
 import { addressKey, contentSecurityPolicy, inlineStyleHashes, type Running, startServer } from '../server/main.ts';
-import { ABANDON_AFTER, CLOCK_DELAY, CLOCK_START, type Connection, Lobby, OPENED_PER_ADDRESS, PAIR_LIMIT, STRIKE_BAN, UNJOINED_PER_ADDRESS } from '../server/rooms.ts';
+import { ABANDON_AFTER, ADDRESS_PAIR_LIMIT, CLOCK_DELAY, CLOCK_START, type Connection, FIRST_MOVE_WITHIN, Lobby, OPENED_PER_ADDRESS, PAIR_LIMIT, STRIKE_BAN, UNJOINED_PER_ADDRESS } from '../server/rooms.ts';
 import { nameFor, playerKey, Scores } from '../server/scores.ts';
 import { Hall } from '../src/net/hall.ts';
 import { Game, type PromotionKind, type Side, type Square } from '../src/core/game.ts';
@@ -105,6 +105,37 @@ describe('the queue', () => {
     expect(again.last('matched')).toBeDefined();
   });
 
+  it('does not match two addresses that have finished six rated games between them today, whoever is playing; tomorrow it does', () => {
+    const t = lobbyWithClock();
+    // One player at one address, and a new player for every game at another.
+    for (let game = 0; game < ADDRESS_PAIR_LIMIT; game++) {
+      const a = t.queue(1, '198.51.100.1');
+      t.queue(100 + game, '198.51.100.2');
+      const room = a.last('matched')!.room;
+      const pa = t.sit(1, room, '198.51.100.1');
+      const pb = t.sit(100 + game, room, '198.51.100.2');
+      const [w, b] = pa.last('joined')!.you === 'w' ? [pa, pb] : [pb, pa];
+      t.lobby.handle(w, { t: 'move', ply: 0, move: mv('e2e4') });
+      t.lobby.handle(b, { t: 'move', ply: 1, move: mv('e7e5') });
+      t.lobby.handle(pb, { t: 'resign' });
+      expect(pa.last('state')!.state.change).not.toBeNull();
+    }
+    const a = t.queue(1, '198.51.100.1');
+    const next = t.queue(200, '198.51.100.2');
+    expect(next.last('matched')).toBeUndefined();
+    expect(t.lobby.waiting).toBe(2);
+    // Someone from elsewhere is matched with the one who has waited longest, at once.
+    const c = t.queue(3, '198.51.100.3');
+    expect(c.last('matched')!.room).toBe(a.last('matched')!.room);
+    // The addresses are kept in memory only: nothing of them is written down.
+    expect(JSON.stringify(t.lobby.save())).not.toContain('198.51.100');
+    t.lobby.handle(next, { t: 'unqueue' });
+    t.clock.pass(24 * 60 * 60 * 1000 + 1);
+    t.lobby.sweep();
+    t.queue(1, '198.51.100.1');
+    expect(t.queue(201, '198.51.100.2').last('matched')).toBeDefined();
+  });
+
   it('says so when it cannot take a player: no name given, or the queue full', () => {
     const t = lobbyWithClock();
     const stranger = new Fake('198.51.100.1');
@@ -141,6 +172,27 @@ describe('games called off', () => {
     expect(t.queue(10, '198.51.100.2').last('queued')).toBeDefined();
     t.clock.pass(STRIKE_BAN + 1);
     expect(t.queue(1, '203.0.113.1').last('matched')).toBeDefined();
+  });
+
+  it('a player who sits at the board and makes no first move is the one to blame, not the one kept waiting', () => {
+    const t = lobbyWithClock();
+    for (let round = 0; round < 2; round++) {
+      const hall = t.queue(1, '203.0.113.1');
+      t.queue(10 + round, '198.51.100.2');
+      const room = hall.last('matched')!.room;
+      const staller = t.sit(1, room, '203.0.113.1');
+      const there = t.sit(10 + round, room, '198.51.100.2');
+      t.clock.pass(CLOCK_DELAY);
+      t.lobby.tick();
+      // If the one who came is White they move, and the other sits on the answer.
+      if (there.last('joined')!.you === 'w') t.lobby.handle(there, { t: 'move', ply: 0, move: mv('e2e4') });
+      t.clock.pass(FIRST_MOVE_WITHIN);
+      t.lobby.tick();
+      expect(there.last('state')!.state.ended).toBe('noshow');
+      expect(staller.last('state')!.state.ended).toBe('noshow');
+    }
+    expect(t.queue(1, '203.0.113.1').last('turned')).toMatchObject({ reason: expect.stringMatching(/called off lately/) });
+    expect(t.queue(10, '198.51.100.2').last('queued')).toBeDefined();
   });
 
   it('one connection that never sits down cannot be matched with everyone who arrives', () => {
@@ -246,6 +298,39 @@ describe('names', () => {
     expect(cleanName('Adminah')).toBe('Adminah');
   });
 
+  it('refuses a reserved name written to look like one: another alphabet\'s letters, digits for letters, a word among others', () => {
+    const lookalikes = [
+      'ѕуѕтем', // Cyrillic throughout
+      'аԁміп',
+      'моԁ',
+      'ᴀᴅᴍɪɴ', // small capitals
+      'ꓮꓓꓟꓲꓠ', // Lisu
+      'ᎪᎠᎷᎥΝ', // Cherokee, and a Greek N
+      'admın', // a dotless i
+      'ádmin',
+      'adm1n',
+      '4DM1N',
+      'm0d',
+      '5taff',
+      '0ff1c1al',
+      'officiaI', // a capital i for the L
+      'adrnin', // r and n for the m
+      'n1ghtp1ece',
+      'Admin Bob',
+      'The Moderator',
+      'Nightpiece Dev',
+      'xNightpiecex',
+      'Support',
+      'Mod-7',
+    ];
+    for (const name of lookalikes) expect(cleanName(name), name).toBe('');
+    // Names that only hold a reserved word's letters, and names in their own alphabet, are still welcome.
+    for (const name of ['Modesto', 'Staffan', 'Systema', 'Observer', 'Arnold', 'Player1', 'Kasparov64', 'Максим', 'Сергей', 'Νίκος', 'Արամ', 'Ken健']) expect(cleanName(name), name).toBe(name);
+    // Latin letters with another script's lookalike among them are no name.
+    expect(cleanName('Magnuꓢ')).toBe('');
+    expect(cleanName('Hikarս')).toBe('');
+  });
+
   it('refuses a name with a word on the operator\'s list; such a player keeps the name the server gave them', () => {
     const lobby = new Lobby(Date.now, undefined, { blockedNames: ['rude'] });
     const c = new Fake();
@@ -255,6 +340,11 @@ describe('names', () => {
     expect(c.last('welcome')!.you.name).toBe('Polite');
     lobby.handle(c, { t: 'hello', id: id(1), name: 'R.u.d.e' });
     expect(c.last('welcome')!.you.name).toBe('Polite');
+    // Nor written to look like it: digits for letters, or another alphabet's.
+    for (const name of ['Rud3 0ne', 'ʀᴜᴅᴇ', 'гuԁе']) {
+      lobby.handle(c, { t: 'hello', id: id(1), name: cleanName(name) || name });
+      expect(c.last('welcome')!.you.name, name).toBe('Polite');
+    }
   });
 });
 
@@ -796,7 +886,7 @@ describe('a restart', () => {
     expect(two.last('joined')!.you).toBe('b');
     next.clock.pass(1000);
     next.lobby.handle(two, { t: 'sync' });
-    expect(two.last('state')!.state.clock).toEqual({ left: { w: ranked.left.w, b: CLOCK_START - 11_000 }, running: 'b' });
+    expect(two.last('state')!.state.clock).toEqual({ left: { w: ranked.left.w, b: CLOCK_START - 11_000 }, running: 'b', first: { side: 'b', left: FIRST_MOVE_WITHIN - 1000 } });
   });
 
   it('gives each player the usual time to come back before a ranked game counts against them', () => {

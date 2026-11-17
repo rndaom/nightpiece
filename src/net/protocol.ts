@@ -7,6 +7,7 @@
  * it and sends back the true position.
  */
 import type { DrawClaim, PromotionKind, Side, Square } from '../core/game';
+import { passesForLatin, readAs } from './lookalikes';
 
 /** Where someone sits: at the board as Ivory or Void, or watching. */
 export type Seat = Side | 'spectator';
@@ -35,6 +36,11 @@ export interface Clock {
    * runs after `left` more milliseconds if they are not back. Left out when no clock is waiting.
    */
   held?: { side: Side; left: number };
+  /**
+   * In a ranked game: the side to move has not made its first move yet, and has `left` more
+   * milliseconds to make it before the game is called off. Left out once that side has moved.
+   */
+  first?: { side: Side; left: number };
 }
 
 /**
@@ -210,8 +216,14 @@ export const CLOSE_TWO_PLAYERS = 4002;
 /** The longest name a player may go by, in characters (not the halves of characters JavaScript counts in). */
 export const NAME_LENGTH = 16;
 
-/** Names nobody may take, whatever their case or spacing: they would pass for the game's own voice. */
-const RESERVED = new Set(['admin', 'administrator', 'moderator', 'mod', 'server', 'system', 'nightpiece', 'staff', 'official']);
+/**
+ * Names nobody may take: they would pass for the game's own voice. A name is one of them if it
+ * reads as one (see `readAs`), whatever its case, spacing, alphabet or digits, or if one of its
+ * words does: Admin, ADM1N, a.d.m.i.n, Admin Two.
+ */
+const RESERVED = new Set(['admin', 'administrator', 'moderator', 'mod', 'server', 'system', 'nightpiece', 'staff', 'official', 'support', 'developer'].map((word) => readAs(word)));
+/** The game's own name is not to be had inside a longer one either. */
+const OWN_NAME = readAs('nightpiece');
 /** Letters that show as nothing at all: the Hangul fillers and their kin. (Signs that are not letters, the invisible ones among them, are simply left out.) */
 const BLANK = /[\u115F\u1160\u3164\uFFA0\u17B4\u17B5\u{1D159}]/u;
 /** Single characters drawn as long as a sentence: the Arabic ligatures of whole phrases, cuneiform and its kind. */
@@ -221,8 +233,8 @@ const WIDE = /[\uFDFA\uFDFB\uFDFD\u{12000}-\u{1254F}\u{13000}-\u{1345F}\u{A9C1}\
  * A name as it will be shown: letters (with their accents), digits, spaces and a few marks,
  * trimmed and of a sensible length. Empty if nothing is left, or if the name is refused: one
  * with letters that show as nothing or as a whole line, one that mixes Latin letters with
- * Cyrillic or Greek ones that look like them (a name in any one script is welcome), and the
- * few names reserved for the game itself.
+ * another script's that look like them (a name in any one script is welcome), and the few
+ * names reserved for the game itself, in whatever letters they are written.
  */
 export function cleanName(name: unknown): string {
   if (typeof name !== 'string') return '';
@@ -242,8 +254,24 @@ export function cleanName(name: unknown): string {
   const cyrillic = /\p{Script=Cyrillic}/u.test(cut);
   const greek = /\p{Script=Greek}/u.test(cut);
   if ((latin && (cyrillic || greek)) || (cyrillic && greek)) return '';
-  if (RESERVED.has(lettersOf(cut))) return '';
+  // Nor Latin letters with any other script's letter that is drawn like one.
+  if (latin && [...cut].some((letter) => !/\p{Script=Latin}/u.test(letter) && passesForLatin(letter))) return '';
+  if (reserved(cut)) return '';
   return cut;
+}
+
+/** Whether a name, or a word of it, reads as one of the reserved names. */
+function reserved(name: string): boolean {
+  const words = name.split(/[^\p{L}\p{M}\p{N}]+/u).filter((word) => word !== '');
+  for (const text of [name, ...words]) {
+    // With its digits read as letters (ADM1N), and with them left out (Admin 2).
+    for (const digits of [true, false]) {
+      // Two letters that close up into one: rn for m, vv for w.
+      const read = readAs(text, digits).replace(/rn/g, 'm').replace(/vv/g, 'w');
+      if (RESERVED.has(read) || read.includes(OWN_NAME)) return true;
+    }
+  }
+  return false;
 }
 
 /** A name's letters alone, in small letters: what a name is compared by when it is checked against a list. */

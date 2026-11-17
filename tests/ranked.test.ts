@@ -8,7 +8,7 @@ import path from 'node:path';
 import { afterAll, describe, expect, it, vi } from 'vitest';
 import WebSocket from 'ws';
 import { type Running, startServer } from '../server/main.ts';
-import { ABANDON_AFTER, CLOCK_DELAY, CLOCK_INCREMENT, CLOCK_START, type Connection, Lobby } from '../server/rooms.ts';
+import { ABANDON_AFTER, CLOCK_DELAY, CLOCK_INCREMENT, CLOCK_START, type Connection, FIRST_MOVE_WITHIN, Lobby } from '../server/rooms.ts';
 import { nameFor, playerKey, Scores, START_RATING } from '../server/scores.ts';
 import { cleanName, type MoveData, parseClientMessage, type ServerMessage } from '../src/net/protocol.ts';
 
@@ -139,7 +139,7 @@ describe('a ranked room', () => {
     // Then White's starts, and both are told.
     t.clock.pass(1);
     t.lobby.tick();
-    for (const who of [t.a, t.b]) expect(who.last('state')!.state.clock).toEqual({ left: { w: CLOCK_START, b: CLOCK_START }, running: 'w' });
+    for (const who of [t.a, t.b]) expect(who.last('state')!.state.clock).toEqual({ left: { w: CLOCK_START, b: CLOCK_START }, running: 'w', first: { side: 'w', left: FIRST_MOVE_WITHIN } });
     t.clock.pass(2000);
     t.a.inbox.length = 0;
     t.lobby.handle(t.a, { t: 'sync' });
@@ -151,7 +151,7 @@ describe('a ranked room', () => {
     t.clock.pass(1000);
     t.play(t.ivory, 'e2e4', 0);
     // Nothing is charged for a move made before the clock ran; Black's clock runs from now.
-    expect(t.void.last('moved')!.clock).toEqual({ left: { w: CLOCK_START + CLOCK_INCREMENT, b: CLOCK_START }, running: 'b' });
+    expect(t.void.last('moved')!.clock).toEqual({ left: { w: CLOCK_START + CLOCK_INCREMENT, b: CLOCK_START }, running: 'b', first: { side: 'b', left: FIRST_MOVE_WITHIN } });
     t.clock.pass(CLOCK_DELAY);
     t.lobby.tick();
     expect(t.ivory.last('state')?.state.clock?.running ?? 'b').toBe('b');
@@ -174,7 +174,7 @@ describe('a ranked room', () => {
     t.lobby.tick();
     t.clock.pass(7000);
     t.play(t.ivory, 'e2e4', 0);
-    expect(t.void.last('moved')!.clock).toEqual({ left: { w: CLOCK_START - 7000 + CLOCK_INCREMENT, b: CLOCK_START }, running: 'b' });
+    expect(t.void.last('moved')!.clock).toEqual({ left: { w: CLOCK_START - 7000 + CLOCK_INCREMENT, b: CLOCK_START }, running: 'b', first: { side: 'b', left: FIRST_MOVE_WITHIN } });
     t.clock.pass(3000);
     t.play(t.void, 'e7e5', 1);
     expect(t.ivory.last('moved')!.clock!.left.b).toBe(CLOCK_START - 3000 + CLOCK_INCREMENT);
@@ -227,10 +227,76 @@ describe('a ranked room', () => {
     t.lobby.handle(back, { t: 'hello', id: t.void === t.a ? ID_A : ID_B });
     t.lobby.handle(back, { t: 'join', room: t.room });
     expect(back.last('joined')!.you).toBe('b');
+    expect(back.last('joined')!.state.moves).toHaveLength(1);
+    t.play(back, 'e7e5', 1);
     t.clock.pass(ABANDON_AFTER);
     t.lobby.tick();
-    expect(back.last('joined')!.state.moves).toHaveLength(1);
-    expect(t.ivory.last('state')!.state.ended).toBeNull();
+    expect(t.ivory.last('state')?.state.ended ?? null).toBeNull();
+    expect(t.ivory.last('moved')!.ply).toBe(1);
+  });
+
+  it('gives each player forty-five seconds at the board to make a first move, and says how long is left', () => {
+    const t = matched();
+    t.clock.pass(CLOCK_DELAY);
+    t.lobby.tick();
+    // Ivory's first move: counted from the moment the clock starts, and told with the clock.
+    t.clock.pass(30_000);
+    t.lobby.handle(t.ivory, { t: 'sync' });
+    expect(t.ivory.last('state')!.state.clock!.first).toEqual({ side: 'w', left: FIRST_MOVE_WITHIN - 30_000 });
+    t.clock.pass(10_000);
+    t.lobby.tick();
+    t.play(t.ivory, 'e2e4', 0);
+    // Then Void's, counted from Ivory's move.
+    expect(t.void.last('moved')!.clock!.first).toEqual({ side: 'b', left: FIRST_MOVE_WITHIN });
+    t.clock.pass(FIRST_MOVE_WITHIN - 1);
+    t.lobby.tick();
+    t.play(t.void, 'e7e5', 1);
+    // Both have moved: nothing more is said of it, and a long think is a player's own business.
+    expect(t.ivory.last('moved')!.clock!.first).toBeUndefined();
+    t.clock.pass(5 * 60 * 1000);
+    t.lobby.tick();
+    t.lobby.handle(t.ivory, { t: 'sync' });
+    const state = t.ivory.last('state')!.state;
+    expect(state.ended).toBeNull();
+    expect(state.clock!.first).toBeUndefined();
+  });
+
+  it('calls the game off against a player who sits at the board and makes no first move', () => {
+    for (const staller of ['w', 'b'] as const) {
+      const t = matched();
+      t.clock.pass(CLOCK_DELAY);
+      t.lobby.tick();
+      if (staller === 'b') t.play(t.ivory, 'e2e4', 0);
+      t.clock.pass(FIRST_MOVE_WITHIN - 1);
+      t.lobby.tick();
+      expect(t.ivory.last('state')?.state.ended ?? null).toBeNull();
+      t.clock.pass(1);
+      t.lobby.tick();
+      const state = t.ivory.last('state')!.state;
+      expect(state.ended).toBe('noshow');
+      expect(state.change).toBeNull();
+      expect(state.clock!.first).toBeUndefined();
+      // Nobody's rating moves, and no game is counted.
+      for (const key of [t.ivoryKey, t.voidKey]) expect(t.lobby.scores.get(key)).toMatchObject({ rating: START_RATING, wins: 0, losses: 0, draws: 0 });
+      // A move that arrives after it is refused.
+      const late = staller === 'w' ? t.ivory : t.void;
+      late.inbox.length = 0;
+      t.play(late, staller === 'w' ? 'e2e4' : 'e7e5', staller === 'w' ? 0 : 1);
+      expect(late.last('moved')).toBeUndefined();
+    }
+  });
+
+  it('waits the usual minute, not forty-five seconds, for a player who is away before their first move', () => {
+    const t = matched();
+    t.play(t.ivory, 'e2e4', 0);
+    t.clock.pass(5000);
+    t.lobby.leave(t.void);
+    t.clock.pass(FIRST_MOVE_WITHIN);
+    t.lobby.tick();
+    expect(t.ivory.last('state')?.state.ended ?? null).toBeNull();
+    t.clock.pass(ABANDON_AFTER - FIRST_MOVE_WITHIN + 1);
+    t.lobby.tick();
+    expect(t.ivory.last('state')!.state.ended).toBe('noshow');
   });
 
   it('calls the game off, and moves no rating, when a player never arrives', () => {
