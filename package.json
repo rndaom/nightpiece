@@ -8,11 +8,12 @@
     "type": "git",
     "url": "git+https://github.com/rndaom/nightpiece.git"
   },
-  "homepage": "https://nightpiece-production.up.railway.app",
+  "homepage": "https://playnightpiece.com",
   "bugs": {
     "url": "https://github.com/rndaom/nightpiece/issues"
   },
   "description": "Nightpiece: a living, puppeteered 3D chess game for the browser.",
+  "keywords": ["chess", "3d", "browser-game", "threejs", "webgl", "multiplayer", "typescript"],
   "type": "module",
   "engines": {
     "node": ">=22.12"

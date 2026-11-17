@@ -2,7 +2,9 @@
 
 Nightpiece is a 3D chess game that runs in the browser. Each player is a pair of spectral hands that reaches into a candlelit chapel and moves living stone pieces by hand, on a board that unfolds from a brass-bound case when the game begins. The pieces and the room react to the game: a threatened piece flinches, check makes the king afraid, and mate gets a set piece of its own.
 
-**Play it:** <https://nightpiece-production.up.railway.app>
+**Play it:** <https://playnightpiece.com>
+
+[![CI](https://github.com/rndaom/nightpiece/actions/workflows/ci.yml/badge.svg)](https://github.com/rndaom/nightpiece/actions/workflows/ci.yml)
 
 ![A game of Nightpiece: a hand carries a taken rook off the board](docs/screenshots/nightpiece.jpg)
 
@@ -125,7 +127,7 @@ A whole game can be played from the keyboard. On a touch screen a tap picks the 
 | `tests/` | Tests, including tests that read the built assets (a few more sit beside the code they test, as `*.test.ts`) |
 | `docs/` | The design documents: the style bible, the hands' manners, and the one-page visual direction |
 | `tools/dev/` | Headless capture of frames and sound from the running game, and the script that copies the engine into `public/engine/` |
-| `tools/promo/` | The scripts that film the promotional video from the game itself |
+| `tools/promo/` | The scripts that film the promotional videos from the game itself, and the edit that cuts them to music and draws their titles (`tools/promo/film/`, with its own packages) |
 
 ## Rebuilding the assets
 
