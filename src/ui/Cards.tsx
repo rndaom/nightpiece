@@ -332,14 +332,12 @@ function ShareLink() {
   const [copied, setCopied] = useState(false);
   const link = location.href;
   const copy = async () => {
-    field.current?.select();
-    try {
-      await navigator.clipboard.writeText(link);
+    if (await copyText(link)) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
-    } catch {
-      // No clipboard (an insecure page, or permission refused): the link is selected, ready to copy by hand.
     }
+    // Copied or not, the link is left selected: where there is no clipboard at all, it is ready to copy by hand.
+    field.current?.select();
   };
   return (
     <div class="share">

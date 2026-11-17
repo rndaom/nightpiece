@@ -14,6 +14,7 @@ import {
   type Clock,
   type Ended,
   friendlyControl,
+  GONE,
   lettersOf,
   type MoveData,
   newRoomName,
@@ -87,6 +88,8 @@ const STRIKE_WINDOW = 10 * 60 * 1000;
 export const STRIKE_BAN = 10 * 60 * 1000;
 /** How many ranked games matched to one address may be waiting for it to sit down at once. */
 export const UNJOINED_PER_ADDRESS = 2;
+/** How many rooms opened from one address there may be at once: a household or a classroom, not someone filling the server. */
+export const OPENED_PER_ADDRESS = 20;
 
 /** The messages that can change what is written down of a room. A hand hovering, or a room asked for, changes nothing. */
 const CHANGING = new Set<ClientMessage['t']>(['hello', 'join', 'move', 'resign', 'draw', 'agree', 'nodraw', 'claim', 'again', 'control']);
@@ -134,6 +137,8 @@ class Room {
   held = false;
   /** When the last person left, or null while anyone is here. */
   emptySince: number | null = null;
+  /** The address the room was opened from, for counting how many rooms one address has open. Not written down. */
+  openedFrom: string | null = null;
 
   /** Made by the queue: timed, and counted towards the players' ratings. Only the two who were matched may sit. */
   ranked = false;
@@ -812,9 +817,13 @@ export class Lobby {
 
   /**
    * Whether another room may be opened. A full server first forgets what it may (looking over
-   * all its rooms at most once a second, however many ask), and then, if it is still full, the
-   * finished room that has stood empty longest: a game being played comes before one that is over
-   * and that nobody is looking at.
+   * all its rooms at most once a second, however many ask), and then, if it is still full, makes
+   * way: a game somebody is at comes before one nobody is at. Of the empty rooms, the finished
+   * one that has stood empty longest goes first. If none is finished, a game among friends that
+   * both have walked away from goes: the one with the fewest moves played, and of those the one
+   * empty longest, so that rooms opened only to fill the server go before a real game whose
+   * players have dropped. A ranked game still to be decided is never forgotten here: its players'
+   * absence ends it in a minute by itself.
    */
   private roomForOneMore(): boolean {
     if (this.rooms.size < this.maxRooms) return true;
@@ -824,13 +833,32 @@ export class Lobby {
       this.sweep();
       if (this.rooms.size < this.maxRooms) return true;
     }
-    let oldest: Room | null = null;
+    let finished: Room | null = null;
+    let left: Room | null = null;
+    let leftMoves = 0;
     for (const room of this.rooms.values()) {
-      if (room.emptySince !== null && room.over && (!oldest || room.emptySince < oldest.emptySince!)) oldest = room;
+      if (room.emptySince === null) continue;
+      if (room.over) {
+        if (!finished || room.emptySince < finished.emptySince!) finished = room;
+      } else if (!room.ranked && !finished) {
+        const moves = room.game.history().length;
+        if (!left || moves < leftMoves || (moves === leftMoves && room.emptySince < left.emptySince!)) {
+          left = room;
+          leftMoves = moves;
+        }
+      }
     }
-    if (!oldest) return false;
-    this.retire(oldest);
+    const going = finished ?? left;
+    if (!going) return false;
+    this.retire(going);
     return true;
+  }
+
+  /** How many rooms opened from this address there still are. */
+  private openedFrom(address: string): number {
+    let n = 0;
+    for (const room of this.rooms.values()) if (room.openedFrom === address) n++;
+    return n;
   }
 
   /** Forget rooms that have stood empty too long (not long, once their game is over), and other things whose time is up. */
@@ -858,8 +886,13 @@ export class Lobby {
     if (!room) {
       const gone = this.gone.get(message.room);
       if (gone) {
-        const why = gone.state.ended === 'noshow' ? 'This game was called off.' : 'This game is over.';
+        const why = gone.state.ended === 'noshow' ? GONE.calledOff : GONE.over;
         connection.send({ t: 'refused', reason: why, state: gone.state });
+        return;
+      }
+      // One address may not open rooms without end: left full of games nobody means to finish, they would keep everyone else out.
+      if (connection.address && this.openedFrom(connection.address) >= OPENED_PER_ADDRESS) {
+        connection.send({ t: 'refused', reason: 'Too many games are open from your network just now. Finish one, or try again in a while.', state: new Room(message.room).state() });
         return;
       }
       if (!this.roomForOneMore()) {
@@ -867,6 +900,7 @@ export class Lobby {
         return;
       }
       room = new Room(message.room, this.now, this.scores);
+      room.openedFrom = connection.address ?? null;
       this.rooms.set(message.room, room);
     }
     const here = room;
@@ -974,7 +1008,7 @@ export class Lobby {
     if (!room.players.w || !room.players.b) return refuse('Wait for the other player to arrive.');
     if (ply !== room.game.history().length) return refuse('That move was for an earlier position.');
     if (room.game.turn() !== seat) return refuse('It is not your turn.');
-    if (room.ended === 'noshow') return refuse('This game was called off.');
+    if (room.ended === 'noshow') return refuse(GONE.calledOff);
     // A move that arrives after the mover's time has gone is too late.
     const before = room.clock();
     if (before && before.left[seat] <= 0) return this.flagFell(room, seat);

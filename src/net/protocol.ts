@@ -198,6 +198,9 @@ export type ServerMessage =
   /** Nothing to say: sent now and then so that a page can tell its connection is still alive. */
   | { t: 'tick' };
 
+/** What someone is told at the door of a room whose game is gone. The server says it, and the game knows it again, word for word. */
+export const GONE = { calledOff: 'This game was called off.', over: 'This game is over.' } as const;
+
 /** The connection was closed because the same seat was opened in another window. Do not reconnect. */
 export const CLOSE_DISPLACED = 4001;
 

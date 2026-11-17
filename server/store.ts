@@ -299,7 +299,7 @@ export class RoomStore {
 }
 
 /** Write a file and have it on the disk before going on. */
-function writeWhole(file: string, text: string): void {
+export function writeWhole(file: string, text: string): void {
   const fd = openSync(file, 'w');
   try {
     const bytes = Buffer.from(text);

@@ -173,6 +173,8 @@ const TICK_EVERY = 15000;
  * Room for a household or an office behind one address, and for a room full of watchers; not for a flood.
  */
 const PER_ADDRESS = 60;
+/** How many connections the server holds at once in all: every room full of players, and as many again watching. */
+const MAX_CONNECTIONS = 4000;
 /** A connection that has this much waiting to be sent to it is not reading what it is sent: it is dropped. */
 const MOST_UNSENT = 256 * 1024;
 /** How often a connection's `sync` is answered, at most, in milliseconds. More are not answered. */
@@ -269,6 +271,8 @@ export interface ServerOptions {
   behindProxy?: boolean;
   /** How many connections one address may hold at once. Left out, there is no limit. */
   perAddress?: number;
+  /** How many connections there may be at once in all. Left out, `MAX_CONNECTIONS`. */
+  maxConnections?: number;
   /**
    * The file the rooms are kept in, with a journal of their changes beside it (see server/store.ts):
    * every change is written down before anyone is told of it, and the rooms are taken up again when
@@ -473,6 +477,8 @@ export function startServer(options: ServerOptions = {}): Promise<Running> {
       }
       if (!allowed) return answer(false, 403, 'Forbidden');
       if ((held.get(addressOf(req)) ?? 0) >= perAddress) return answer(false, 429, 'Too many connections');
+      // And there is an end to how many the server holds in all, however many addresses they come from.
+      if (sockets.clients.size >= (options.maxConnections ?? MAX_CONNECTIONS)) return answer(false, 503, 'The server is full');
       answer(true);
     },
   });

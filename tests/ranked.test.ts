@@ -2,10 +2,10 @@
  * Ranked play: who a browser is without an account, the queue, the clock,
  * games the server ends itself, and the scores that are kept.
  */
-import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { afterAll, describe, expect, it } from 'vitest';
+import { afterAll, describe, expect, it, vi } from 'vitest';
 import WebSocket from 'ws';
 import { type Running, startServer } from '../server/main.ts';
 import { ABANDON_AFTER, CLOCK_DELAY, CLOCK_INCREMENT, CLOCK_START, type Connection, Lobby } from '../server/rooms.ts';
@@ -364,6 +364,35 @@ describe('the scores', () => {
     expect(expected.w).toBeGreaterThan(0);
     expect(expected.w).toBeLessThan(16);
     expect(upset.b).toBeGreaterThan(16);
+  });
+
+  it('puts a scores file it cannot read aside, and does not write an empty table over it', () => {
+    const dir = mkdtempSync(path.join(tmpdir(), 'nightpiece-scores-'));
+    const said = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const file = path.join(dir, 'scores.json');
+      const damaged = '{"' + playerKey(ID_A) + '":{"name":"Ada","rating":1300,"wins":3';
+      writeFileSync(file, damaged);
+      const scores = new Scores(file, () => 1234);
+      expect(said).toHaveBeenCalledTimes(1);
+      expect(scores.get(playerKey(ID_A))).toBeNull();
+      // What was in the file is still on the disk, under another name.
+      expect(existsSync(file)).toBe(false);
+      expect(readFileSync(`${file}.damaged-1234`, 'utf8')).toBe(damaged);
+      // The next game counted is written to a new file; the one put aside is left alone.
+      scores.greet(playerKey(ID_A), 'Ada');
+      scores.greet(playerKey(ID_B));
+      scores.record(playerKey(ID_A), playerKey(ID_B), 'w');
+      scores.flush();
+      expect(new Scores(file).get(playerKey(ID_A))!.wins).toBe(1);
+      expect(readFileSync(`${file}.damaged-1234`, 'utf8')).toBe(damaged);
+      // No file at all is nothing to speak of.
+      new Scores(path.join(dir, 'none.json'));
+      expect(said).toHaveBeenCalledTimes(1);
+    } finally {
+      said.mockRestore();
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   it('are written to a file and read back, with nothing in it but hashes', () => {

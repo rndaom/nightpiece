@@ -10,8 +10,9 @@ import path from 'node:path';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import WebSocket from 'ws';
 import { addressKey, contentSecurityPolicy, inlineStyleHashes, type Running, startServer } from '../server/main.ts';
-import { ABANDON_AFTER, CLOCK_DELAY, CLOCK_START, type Connection, Lobby, PAIR_LIMIT, STRIKE_BAN, UNJOINED_PER_ADDRESS } from '../server/rooms.ts';
+import { ABANDON_AFTER, CLOCK_DELAY, CLOCK_START, type Connection, Lobby, OPENED_PER_ADDRESS, PAIR_LIMIT, STRIKE_BAN, UNJOINED_PER_ADDRESS } from '../server/rooms.ts';
 import { nameFor, playerKey, Scores } from '../server/scores.ts';
+import { Hall } from '../src/net/hall.ts';
 import { Game, type PromotionKind, type Side, type Square } from '../src/core/game.ts';
 import { CLOSE_TWO_PLAYERS, type ClientMessage, cleanName, type MoveData, newRoomName, type ServerMessage } from '../src/net/protocol.ts';
 
@@ -304,6 +305,81 @@ describe('rooms', () => {
     expect(t.lobby.roomCount).toBe(3);
   });
 
+  it('when full of games begun and walked away from, makes way for a new one: the game with the fewest moves goes first, and one somebody is at never', () => {
+    const t = lobbyWithClock({ maxRooms: 3 });
+    // A game of some moves, both players gone, and after it two rooms opened, moved in once and left.
+    const left = (room: string, moves: string[]) => {
+      const w = new Fake();
+      const b = new Fake();
+      t.lobby.handle(w, { t: 'join', room });
+      t.lobby.handle(b, { t: 'join', room });
+      for (const [i, m] of moves.entries()) t.lobby.handle(i % 2 === 0 ? w : b, { t: 'move', ply: i, move: mv(m) });
+      t.lobby.leave(w);
+      t.lobby.leave(b);
+      t.clock.pass(1000);
+    };
+    left('AAAAAA', ['e2e4', 'e7e5', 'g1f3', 'b8c6']);
+    left('BBBBBB', ['e2e4']);
+    left('CCCCCC', ['d2d4']);
+    expect(t.lobby.roomCount).toBe(3);
+    // Each newcomer takes the place of the emptied room with the fewest moves, the one empty longest first.
+    const first = new Fake();
+    t.lobby.handle(first, { t: 'join', room: 'DDDDDD' });
+    expect(first.last('joined')!.you).toBe('w');
+    const second = new Fake();
+    t.lobby.handle(second, { t: 'join', room: 'EEEEEE' });
+    expect(second.last('joined')!.you).toBe('w');
+    expect(t.lobby.roomCount).toBe(3);
+    // The real game is still there for its players, and the two opened to fill the server are not.
+    const back = new Fake();
+    t.lobby.handle(back, { t: 'join', room: 'AAAAAA', watch: true });
+    expect(back.last('joined')!.state.moves).toHaveLength(4);
+    t.lobby.leave(back);
+    const gone = new Fake();
+    t.lobby.handle(gone, { t: 'join', room: 'BBBBBB', watch: true });
+    expect(gone.last('joined')!.state.moves).toEqual([]);
+    // That last look opened BBBBBB afresh in the place of the real game, the only room nobody was at.
+    expect(t.lobby.roomCount).toBe(3);
+    // Now somebody is at every room: the next is turned away.
+    const none = new Fake();
+    t.lobby.handle(none, { t: 'join', room: 'FFFFFF' });
+    expect(none.last('refused')!.reason).toMatch(/no room for another game/);
+  });
+
+  it('lets one address open only so many rooms at once, and another address as many again', () => {
+    const t = lobbyWithClock();
+    const names = Array.from({ length: OPENED_PER_ADDRESS + 1 }, (_, i) => `AAAA${'ABCDEFGHJKLMNPQRSTUVWXYZ'[Math.floor(i / 24)]}${'ABCDEFGHJKLMNPQRSTUVWXYZ'[i % 24]}`);
+    // Each room is opened by two at one address, moved in once so that it is kept, and left.
+    const open = (room: string, address: string) => {
+      const w = new Fake(address);
+      const b = new Fake(address);
+      t.lobby.handle(w, { t: 'join', room });
+      if (w.last('refused')) return w;
+      t.lobby.handle(b, { t: 'join', room });
+      t.lobby.handle(w, { t: 'move', ply: 0, move: mv('e2e4') });
+      t.lobby.leave(w);
+      t.lobby.leave(b);
+      return w;
+    };
+    for (const room of names.slice(0, OPENED_PER_ADDRESS)) expect(open(room, '198.51.100.7').last('joined'), room).toBeDefined();
+    expect(t.lobby.roomCount).toBe(OPENED_PER_ADDRESS);
+    const over = open(names[OPENED_PER_ADDRESS]!, '198.51.100.7');
+    expect(over.last('refused')!.reason).toMatch(/Too many games are open from your network/);
+    expect(t.lobby.roomCount).toBe(OPENED_PER_ADDRESS);
+    // A room that is already there can still be come back to from that address.
+    const back = new Fake('198.51.100.7');
+    t.lobby.handle(back, { t: 'join', room: names[0]! });
+    expect(back.last('joined')).toBeDefined();
+    // Somebody else is not kept out by it.
+    expect(open('BBBBBB', '198.51.100.8').last('joined')).toBeDefined();
+    // Once the rooms have stood empty their time and are forgotten, the address may open rooms again.
+    t.lobby.leave(back);
+    t.clock.pass(21 * 60_000);
+    t.lobby.sweep();
+    expect(t.lobby.roomCount).toBe(0);
+    expect(open('CCCCCC', '198.51.100.7').last('joined')).toBeDefined();
+  });
+
   it('forgets a room whose game is over two minutes after both players have left it (not twenty)', () => {
     const t = lobbyWithClock();
     const w = new Fake();
@@ -534,6 +610,44 @@ describe('the server, over real sockets', () => {
     running.server.emit('error', new Error('a problem after the start'));
     expect(said).toHaveBeenCalledTimes(1);
     said.mockRestore();
+  });
+
+  it('holds only so many connections in all, whatever addresses they come from', async () => {
+    const small = await startServer({ port: 0, root, behindProxy: true, maxConnections: 2 });
+    try {
+      const one = await connect(small.port, '198.51.100.1');
+      const two = await connect(small.port, '198.51.100.2');
+      await expect(connect(small.port, '198.51.100.3')).rejects.toThrow(/503/);
+      one.socket.close();
+      await one.closed;
+      const three = await connect(small.port, '198.51.100.3');
+      two.socket.close();
+      three.socket.close();
+      await Promise.all([two.closed, three.closed]);
+    } finally {
+      await small.close();
+    }
+  });
+
+  it('a matchmaking line the server has gone quiet on is taken for dead and made again', async () => {
+    // A server that says its word only once a minute, and a player who will wait a third of a second for it.
+    const silent = await startServer({ port: 0, root, tick: 60_000 });
+    const told: string[] = [];
+    const hall = new Hall(
+      `ws://127.0.0.1:${silent.port}/ws`,
+      () => ({ id: id(77), name: 'Waiting' }),
+      { link: (up) => void told.push(up ? 'up' : 'down'), welcome: () => {}, queued: () => void told.push('queued'), turned: () => {}, matched: () => {}, board: () => {} },
+      300,
+    );
+    try {
+      hall.queue();
+      await vi.waitFor(() => expect(told.slice(0, 4)).toEqual(['up', 'queued', 'down', 'up']), { timeout: 5000 });
+      // And it is waiting for a match again on the new line, without being asked.
+      await vi.waitFor(() => expect(told.filter((x) => x === 'queued').length).toBeGreaterThanOrEqual(2), { timeout: 5000 });
+    } finally {
+      hall.close();
+      await silent.close();
+    }
   });
 
   it('counts an IPv6 visitor\'s whole block as one address', async () => {

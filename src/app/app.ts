@@ -26,7 +26,7 @@ import { prepareOpenings } from '../learn/openings';
 import { browserKeys, Net } from '../net/client';
 import { Hall } from '../net/hall';
 import { identity, setName } from '../net/identity';
-import { type Clock, cleanName, type MoveData, newRoomName, type PlayerCard, ROOM_NAME, type RoomState, sameControl, type Seat, type TimeControl } from '../net/protocol';
+import { type Clock, cleanName, GONE, type MoveData, newRoomName, type PlayerCard, ROOM_NAME, type RoomState, sameControl, type Seat, type TimeControl } from '../net/protocol';
 import { loadAssets } from '../scene/assets';
 import { squareCenter } from '../scene/layout';
 import type { Mark } from '../scene/markers';
@@ -707,7 +707,6 @@ export class App {
     };
     setAddress(name, watch);
     this.setUp();
-    this.awaitRoom();
     this.net = new Net({
       url: serverUrl(),
       room: name,
@@ -736,8 +735,8 @@ export class App {
         refused: (reason, state) => {
           // At the door of a room whose game is gone (called off, or over and put away): there is
           // nothing to sit down to, and the player is told so plainly and shown the way back.
-          if (ui.online.value?.seat === null && (reason === 'This game was called off.' || reason === 'This game is over.')) {
-            this.closeRoom(reason === 'This game was called off.' ? 'This game was called off. It was not rated.' : 'This game is over.');
+          if (ui.online.value?.seat === null && (reason === GONE.calledOff || reason === GONE.over)) {
+            this.closeRoom(reason === GONE.calledOff ? 'This game was called off. It was not rated.' : 'This game is over.');
             return;
           }
           this.noteRoom(state);
@@ -757,6 +756,8 @@ export class App {
         },
       },
     });
+    // Begun once the connection is this room's own: the wait checks that it still is when its time is up.
+    this.awaitRoom();
   }
 
   // -- ranked play: the queue, the name, the rankings ------------------------------
@@ -2791,6 +2792,7 @@ export class App {
       const mode = CAMERA_MODES.find((m) => m.key === ev.key);
       if (ev.key === 'Escape') {
         if (ui.bare.value) ui.bare.value = false;
+        else if (ui.ranksOpen.value) this.showRanks(false);
         else if (ui.asking.value) this.answerAsk(false);
         else if (ui.warning.value) this.answerWarning(false);
         else if (ui.promotion.value) this.choosePromotion(null);

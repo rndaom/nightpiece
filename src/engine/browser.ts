@@ -36,5 +36,8 @@ export async function startEngine(base = import.meta.env.BASE_URL): Promise<Engi
     engine.close();
     throw error;
   }
+  // A worker that dies later (out of memory, say) says so only here. The engine is closed, so that a
+  // search under way fails and is reported, and is not waited on for ever.
+  worker.addEventListener('error', () => engine.close());
   return engine;
 }

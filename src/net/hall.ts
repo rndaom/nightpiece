@@ -20,6 +20,8 @@ export interface HallHandlers {
 }
 
 const RETRY = 2000;
+/** The server says a word every fifteen seconds. A line that has said nothing for this long is dead, whatever the browser thinks. */
+const QUIET = 40000;
 /** A connection woken from a page that was in the background, and asked who it is, has this long to answer before it is taken for dead. */
 const ANSWER = 6000;
 
@@ -31,11 +33,16 @@ export class Hall {
   private wantsBoard = false;
   /** Set while a word has been asked of the server to show the line is alive (see `wake`). */
   private owed: ReturnType<typeof setTimeout> | null = null;
+  /** When the server was last heard from, and the timer that watches for its silence. */
+  private heard = 0;
+  private watch: ReturnType<typeof setInterval> | null = null;
 
   constructor(
     private url: string,
     private who: () => Identity,
     private h: HallHandlers,
+    /** How long the line may be silent before it is taken for dead, in milliseconds. */
+    private quiet = QUIET,
   ) {
     this.connect();
   }
@@ -82,6 +89,7 @@ export class Hall {
     }
     if (this.retry !== null) clearTimeout(this.retry);
     this.retry = null;
+    this.stopWatching();
     this.connect();
   }
 
@@ -96,25 +104,14 @@ export class Hall {
     if (!socket || socket.readyState !== 1) return this.reconnect();
     if (this.owed !== null) return;
     this.hello();
-    this.owed = setTimeout(() => {
-      this.owed = null;
-      if (this.socket !== socket) return;
-      this.socket = null;
-      try {
-        socket.close();
-      } catch {
-        // It was past closing.
-      }
-      this.h.link(false);
-      this.connect();
-    }, ANSWER);
+    this.owed = setTimeout(() => this.giveUp(socket), ANSWER);
   }
 
   close(): void {
     this.finished = true;
     if (this.retry !== null) clearTimeout(this.retry);
-    if (this.owed !== null) clearTimeout(this.owed);
-    this.retry = this.owed = null;
+    this.retry = null;
+    this.stopWatching();
     const socket = this.socket;
     this.socket = null;
     socket?.close(1000);
@@ -124,6 +121,26 @@ export class Hall {
     if (this.socket?.readyState !== 1) return false;
     this.socket.send(JSON.stringify(message));
     return true;
+  }
+
+  /** The line has gone dead without saying so: let it go and make another. */
+  private giveUp(socket: WebSocket): void {
+    if (this.socket !== socket) return;
+    this.stopWatching();
+    this.socket = null;
+    try {
+      socket.close();
+    } catch {
+      // It was past closing.
+    }
+    this.h.link(false);
+    this.connect();
+  }
+
+  private stopWatching(): void {
+    if (this.watch !== null) clearInterval(this.watch);
+    if (this.owed !== null) clearTimeout(this.owed);
+    this.watch = this.owed = null;
   }
 
   private connect(): void {
@@ -138,6 +155,10 @@ export class Hall {
     this.socket = socket;
     socket.addEventListener('open', () => {
       if (this.socket !== socket) return;
+      // From here on, a line that says nothing for too long is taken for dead: a player waiting for a
+      // match on one would wait for ever, the server having long since dropped them from the queue.
+      this.heard = Date.now();
+      this.watch = setInterval(() => Date.now() - this.heard > this.quiet && this.giveUp(socket), Math.min(5000, this.quiet / 4));
       this.h.link(true);
       this.hello();
       if (this.queueing) this.send({ t: 'queue' });
@@ -145,6 +166,7 @@ export class Hall {
     });
     socket.addEventListener('message', (event) => {
       if (this.socket !== socket || typeof event.data !== 'string') return;
+      this.heard = Date.now();
       if (this.owed !== null) clearTimeout(this.owed);
       this.owed = null;
       let message: ServerMessage;
@@ -171,6 +193,7 @@ export class Hall {
     });
     socket.addEventListener('close', () => {
       if (this.socket !== socket) return;
+      this.stopWatching();
       this.socket = null;
       if (this.finished) return;
       this.h.link(false);

@@ -9,9 +9,10 @@
  * Without a file to write to, it lasts as long as the server does.
  */
 import { createHash } from 'node:crypto';
-import { mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, renameSync } from 'node:fs';
 import path from 'node:path';
 import type { PlayerCard } from '../src/net/protocol.ts';
+import { writeWhole } from './store.ts';
 
 /** Where everyone starts. */
 export const START_RATING = 1200;
@@ -77,9 +78,16 @@ export class Scores {
     private now: () => number = Date.now,
   ) {
     if (!file) return;
+    let text: string;
     try {
-      const data: unknown = JSON.parse(readFileSync(file, 'utf8'));
-      if (typeof data !== 'object' || data === null) return;
+      text = readFileSync(file, 'utf8');
+    } catch {
+      // No file yet: the table starts empty.
+      return;
+    }
+    try {
+      const data: unknown = JSON.parse(text);
+      if (typeof data !== 'object' || data === null || Array.isArray(data)) throw new Error('not a table of players');
       const counted = (data as Record<string, unknown>)[COUNTED];
       if (typeof counted === 'object' && counted !== null) {
         for (const [game, at] of Object.entries(counted)) if (typeof at === 'number') this.counted.set(game, at);
@@ -98,8 +106,18 @@ export class Scores {
           seen: n(value.seen, 0),
         });
       }
-    } catch {
-      // No file yet, or one that cannot be read: the table starts empty.
+    } catch (error) {
+      // A file that is there and cannot be understood is put aside, not written over: the table
+      // starts empty, and what was in the file can still be looked at and mended by hand.
+      this.players.clear();
+      this.counted.clear();
+      const aside = `${file}.damaged-${this.now()}`;
+      try {
+        renameSync(file, aside);
+        console.error(`The scores in ${file} could not be read, and have been put aside as ${aside}:`, error);
+      } catch (moving) {
+        console.error(`The scores in ${file} could not be read, nor put aside; they will be written over:`, error, moving);
+      }
     }
   }
 
@@ -190,7 +208,7 @@ export class Scores {
     }
     w.seen = b.seen = this.now();
     this.bestStale = true;
-    this.forgetSome();
+    this.forgetSome(w, b);
     this.saveSoon();
   }
 
@@ -246,7 +264,7 @@ export class Scores {
       const kept = [...this.players].filter(([, p]) => p.wins + p.losses + p.draws > 0);
       // Written beside the file and then moved over it, so that a stop part of the way through leaves the old one whole.
       const beside = `${this.file}.tmp`;
-      writeFileSync(beside, JSON.stringify({ ...Object.fromEntries(kept), [COUNTED]: Object.fromEntries(this.counted) }));
+      writeWhole(beside, JSON.stringify({ ...Object.fromEntries(kept), [COUNTED]: Object.fromEntries(this.counted) }));
       renameSync(beside, this.file);
     } catch (error) {
       console.error('The scores could not be written; they will be tried again:', error);
@@ -261,10 +279,14 @@ export class Scores {
     }
   }
 
-  /** Past the most that are kept, forget those who have played least, and longest ago. Only players are here: a visitor never pushes out someone who has played. */
-  private forgetSome(): void {
+  /**
+   * Past the most that are kept, forget those who have played least, and longest ago. Only players
+   * are here: a visitor never pushes out someone who has played. The two whose game has just been
+   * counted stay, however few games they have.
+   */
+  private forgetSome(...staying: Entry[]): void {
     if (this.players.size <= MAX_PLAYERS) return;
-    const idle = [...this.players].sort(([, a], [, b]) => a.wins + a.losses + a.draws - (b.wins + b.losses + b.draws) || a.seen - b.seen);
+    const idle = [...this.players].filter(([, p]) => !staying.includes(p)).sort(([, a], [, b]) => a.wins + a.losses + a.draws - (b.wins + b.losses + b.draws) || a.seen - b.seen);
     for (const [key] of idle.slice(0, MAX_PLAYERS / 10)) this.players.delete(key);
     this.bestStale = true;
   }
