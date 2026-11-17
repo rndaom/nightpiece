@@ -758,7 +758,7 @@ export async function open(o, { hud = false, css = '', layout = LAYOUT } = {}) {
   // module, and the same one the game has.
   const lift = async () => {
     if (size.scale <= 2) return;
-    await g.ev(`const { QUALITY } = await import('/src/scene/post.ts'); QUALITY.high.pixelRatio = args[0]; app.world.resize(true);`, size.scale);
+    await g.ev(`const { QUALITY } = await import('/src/scene/post.ts'); QUALITY.high.pixelRatio = args[0]; QUALITY.high.finest = args[0]; app.world.resize(true);`, size.scale);
   };
   await lift();
   // Before the game is held it has gone by the browser's own frames for as long as the page took to load, which is
@@ -927,13 +927,16 @@ const round = (v) => (typeof v === 'number' ? Math.round(v * 10000) / 10000 : v)
  *   layout    [width, height]: the page's size in its own pixels, where it is not the usual one (`open`)
  *   act       async (g, t, frame) => {}: done from outside the page before each frame is drawn (and once before the lead, with
  *             frame -1), `t` being the scene's second: where the pointer is (`g.pointer`), a button pressed, a key typed
+ *   speed     how many seconds of the scene go by in a second of the film (1 unless said): the frames are taken that much further apart
  *   fine      [[from, to, pictures], ...]: stretches of the scene, in its seconds, where at least so many pictures are averaged
  *             for each frame, whatever is measured (see --most)
  */
 export async function film(g, shot) {
   const o = g.o;
   const [from, to] = o.window ?? [shot.from, shot.to];
-  const fps = o.fps;
+  // A shot may be filmed fast: so many seconds of the scene to each second of film, the shutter open as long in proportion.
+  const speed = shot.speed ?? 1;
+  const fps = o.fps / speed;
   const frames = Math.round((to - from) * fps);
   const open = o.shutter / 360 / fps;
   const shut = 1 / fps - open;
@@ -1035,7 +1038,8 @@ export async function film(g, shot) {
   const record = {
     shot: shot.name,
     about: shot.about ?? '',
-    fps,
+    fps: o.fps,
+    speed,
     frames,
     size: g.final,
     scene: { from, to },

@@ -36,8 +36,10 @@ Thumbs.db
 # Source recordings for the sound library, fetched by assets/src/sound/fetch.py (see CREDITS.md)
 /assets/src/sound/cache/
 
-# The promotional film as encoded (made by tools/promo/, from frames under tmp/promo/)
+# The promotional film as encoded (made by tools/promo/, from frames under tmp/promo/), and what its titles
+# are drawn with: the game's typefaces and the paper's grain, put there by tools/promo/film/render.mjs
 /promo/
+/tools/promo/film/public/
 
 # Local tool settings and editor folders
 .claude/

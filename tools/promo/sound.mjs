@@ -1,77 +1,72 @@
 /**
- * Development only. The film's own sound, as the game makes it: every call the game's sound
- * engine was given while a shot was filmed (the shot's events.json) is put where the cut puts
- * that frame, and the whole is played through the engine with nobody listening (tools/dev/hear.mjs).
+ * Development only. One of the films' own sound, as the game makes it: every call the game's
+ * sound engine was given while a shot was filmed (the shot's events.json) is put where the cut
+ * puts that frame, and the whole is played through the engine with nobody listening
+ * (tools/dev/hear.mjs). The paper titles are given the game's sounds too: a card laid down for
+ * each, and a stone set down for the large ones and the seal.
  *
- *   node tools/promo/sound.mjs --shots tmp/promo/shots [--out tmp/promo/sound]
+ *   node tools/promo/sound.mjs --cut game --shots tmp/promo/shots [--out tmp/promo/sound/game]
  *
- * Writes game.wav, and cues.json: when each shot begins, when the check, the capture, the mate, the
- * card and its seal fall, when each line and each piece's name comes up and each letter of the
- * name is typed, for score.py.
+ * Writes game.wav, and events.json (what was played, and when). mix.mjs lays the music beside it.
  * Needs the dev server (npm run dev).
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { render } from '../dev/hear.mjs';
-import { CAPTIONS, CARD, FPS, LABELS, LENGTH, TITLE, timeline } from './edit.mjs';
-import { MENU } from './shots.mjs';
+import { END_STEPS, FPS, REELS } from './film/src/timeline.ts';
 
 const arg = (name, fallback) => (process.argv.includes(`--${name}`) ? process.argv[process.argv.indexOf(`--${name}`) + 1] : fallback);
+const reel = REELS[arg('cut', 'game')];
+if (!reel) throw new Error(`No such film. There are: ${Object.keys(REELS).join(', ')}`);
 const shots = arg('shots', 'tmp/promo/shots').split(',');
-const out = arg('out', 'tmp/promo/sound');
+const out = arg('out', `tmp/promo/sound/${reel.id}`);
 
 /** The one place the film is heard from: over the near edge of the board, looking down at its middle. */
 const SEAT = { position: [0, 5.2, 6.8], forward: [0, -0.6, -0.8], up: [0, 1, 0] };
 /** Calls the engine makes of itself as time passes (`play` is every sound it starts, the heart's among them); it will make them again here. */
 const OWN = new Set(['heartbeat', 'update', 'listen', 'startRoom', 'setVolumes', 'use', 'play']);
+/** What the room is left in from one moment to the next: each shot begins as its own scene had it, not as the shot before left it. */
+const STATE = { setHeartbeat: [false], setTension: [0] };
+/** Each shot is filmed with this many frames before its cut begins (shots.mjs, `span` and `take`). */
+const HANDLE = 12;
 
 const events = [{ t: 0.02, room: true }];
-const cues = {
-  length: LENGTH / FPS,
-  title: TITLE.at / FPS,
-  seal: TITLE.at / FPS + CARD.seal,
-  cuts: [],
-  shots: {},
-  sets: [],
-  lines: CAPTIONS.map((c) => c.at),
-  names: LABELS.names.map((m) => m.at),
-  keys: [],
-};
-/** The pencil's stroke as the pointer comes onto something: where the pointer crosses several things at a run, they are one stroke. */
-let stroke = -1;
-for (const c of timeline()) {
+for (const c of reel.cuts) {
   const dir = shots.map((d) => path.join(d, c.shot)).find((d) => existsSync(path.join(d, 'events.json')));
   if (!dir) throw new Error(`No events for the shot ${c.shot}.`);
   const shot = JSON.parse(readFileSync(path.join(dir, 'events.json'), 'utf8'));
-  cues.cuts.push(c.at / FPS);
-  cues.shots[c.shot] = c.at / FPS;
-  // The name is typed in the shot of the opening screen, whose scene begins as the cut to it is made.
-  if (c.shot === 'menu') cues.keys = MENU.typing.map((t) => c.at / FPS + t);
+  const first = HANDLE + (c.skip ?? 0);
+  const state = structuredClone(STATE);
+  for (const e of shot.events) if (e.frame < first && e.method in state) state[e.method] = e.args;
+  for (const [call, args] of Object.entries(state)) events.push({ t: c.from / FPS, call, args });
   for (const e of shot.events) {
-    if (e.frame < c.from || e.frame >= c.from + c.frames) continue;
+    if (e.frame < first || e.frame >= first + (c.to - c.from)) continue;
     if (OWN.has(e.method) || c.without?.includes(e.method)) continue;
-    const t = (c.at + e.frame - c.from) / FPS;
-    if (e.method === 'ui' && e.args[0] === 'hover') {
-      if (t - stroke < 0.125) continue;
-      stroke = t;
-    }
-    if (e.method === 'glass') cues.match ??= t;
-    events.push({ t, call: e.method, args: e.args });
-    if (e.method === 'stinger') cues.check = t;
-    // The rook that takes the queen: the one strong move between the check and the mate.
-    if (e.method === 'lift') cues.capture = t;
-    if (e.method === 'choir') cues.mate = t;
-    if (e.method === 'stoneSet') cues.sets.push(t);
+    events.push({ t: (c.from + e.frame - first) / FPS, call: e.method, args: e.args });
   }
 }
-// The seal is struck onto the card: a stone set down, as near as the film can put it.
-events.push({ t: cues.seal, call: 'stoneSet', args: [[0, 0, 3.5], true, 1.3] });
+// The titles. A sheet lands two frames after it is first seen.
+const land = (frame) => (frame + 2) / FPS;
+const laid = (frame) => events.push({ t: land(frame), call: 'ui', args: ['close'] });
+const struck = (frame, heavy = true) => events.push({ t: land(frame), call: 'stoneSet', args: heavy ? [[0, 0, 3.5], true, 1.5] : [[2, 0, 3.5], false, 1.1] });
+for (const c of reel.captions) laid(c.from);
+for (const c of [...reel.cards, ...reel.slams]) {
+  struck(c.from);
+  laid(c.from);
+}
+for (const at of [reel.title.from, reel.end.from]) {
+  struck(at);
+  laid(at);
+}
+struck(reel.title.from + 9, false);
+struck(reel.end.from + END_STEPS.seal, false);
+laid(reel.end.from + END_STEPS.line);
+for (let i = 0; i < 3; i++) laid(reel.end.from + END_STEPS.chips + i * 8);
+events.push({ t: land(reel.end.from + END_STEPS.address), call: 'ui', args: ['press'] });
 events.sort((a, b) => a.t - b.t);
 
 mkdirSync(out, { recursive: true });
-for (const key of ['check', 'capture', 'mate']) if (!(cues[key] > 0)) throw new Error(`The film has no ${key}: the shots are not the ones edit.mjs cuts.`);
-writeFileSync(path.join(out, 'cues.json'), JSON.stringify(cues, null, 1));
 writeFileSync(path.join(out, 'events.json'), JSON.stringify(events, null, 1));
-// A little longer than the film, so that nothing is cut off before score.py has faded it.
-console.log(await render({ events, seconds: LENGTH / FPS + 1, out: path.join(out, 'game.wav'), listener: SEAT }));
-for (const e of events) if (e.call) console.log(e.t.toFixed(3).padStart(7), e.call);
+// A little longer than the film, so that nothing is cut off before it has died away.
+console.log(await render({ events, seconds: reel.length / FPS + 1, out: path.join(out, 'game.wav'), listener: SEAT }));
+for (const e of events) if (e.call && !(e.call in STATE)) console.log(e.t.toFixed(3).padStart(7), e.call, e.call === 'manner' ? e.args[0] : '');

@@ -1,16 +1,21 @@
 /**
- * Development only. The game the film is cut from, and the scenes in it.
+ * Development only. The scenes the promotional films are cut from: each is a position, reached
+ * unseen, and things that then happen at seconds counted from nought. A shot (shots.mjs) films
+ * a scene from a camera of its own; two shots of one scene are the same moments from two
+ * cameras, to the frame.
  *
- * The game is Teed against Delmar, New York 1896, eight moves: Ivory gives up the queen with
- * check, Void's rook has to take her, and a bishop mates.
- *
- *   1. d4 f5  2. Bg5 h6  3. Bh4 g5  4. Bg3 f4  5. e3 h5  6. Bd3 Rh6  7. Qxh5+ Rxh5  8. Bg6#
- *
- * A scene is a position reached by playing the game's moves with the hands, left to settle,
- * and then things that happen at seconds counted from nought. Every shot of the film films the
- * same scene: each plays it again from the start, so they are the same moments from different
- * cameras, to the frame, and the film's time runs on across every cut.
+ * A scene has:
+ *   shut      true to leave the case shut on the altar, as the game is first opened; its cues start the game
+ *   begin     a snippet that begins the game some other way than at a table for two (a lesson, say)
+ *   fen       the position the game is begun from (the usual one if none)
+ *   moves     [[from, to], ...] played with the hands before the scene, unseen
+ *   unpack    seconds given to the case opening and the hands coming in (ten unless said)
+ *   prep      a snippet run in the page once the position stands, before the room settles
+ *   settle    seconds the room is left to come to rest (three unless said)
+ *   cues      [{ t, name, js }]: what is done, and at which second of the scene
  */
+
+/** Teed against Delmar, New York 1896: Ivory gives up the queen with check, Void's rook has to take her, and a bishop mates. */
 export const MOVES = [
   ['d2', 'd4'],
   ['f7', 'f5'],
@@ -30,69 +35,49 @@ export const MOVES = [
 ];
 
 /**
- * Bring the game to where a scene begins, unseen, and let the room settle.
- *
- * A scene with `plies` starts a game at one screen and plays that many half-moves of the game with the hands.
- * A scene that is `opening` is the game as it is first opened, the choice of what to play on screen: nothing is started.
- *
- * `hudRate` is for a shot that shows the interface: how fast the interface's own clock runs against the game's
- * while the moves are played and the room settles (lib.mjs, `P.ownTime`). The lines that say the last moves stay up
- * for nine seconds of that clock, so run slowly it has them still up when the scene begins.
+ * Morphy against the Duke of Brunswick and Count Isouard, Paris 1858: seventeen moves, with captures
+ * answered by captures, a knight given up, a check, castling on the queen's side, the queen given up
+ * and a rook's mate. Each move, and the second of the scene it is begun at; a move takes two to
+ * three seconds, and the rest is left between them.
  */
-export async function reach(g, scene, settle = 6, hudRate = null) {
-  if (scene.opening) {
-    await g.step(settle ?? 6, { blind: true });
+export const OPERA = [
+  ['e2', 'e4', 0.0], ['e7', 'e5', 2.3], ['g1', 'f3', 4.6], ['d7', 'd6', 7.15], ['d2', 'd4', 9.35], ['c8', 'g4', 11.65],
+  ['d4', 'e5', 14.2], ['g4', 'f3', 17.35], ['d1', 'f3', 20.55], ['d6', 'e5', 22.95], ['f1', 'c4', 26.15], ['g8', 'f6', 28.6],
+  ['f3', 'b3', 31.15], ['d8', 'e7', 33.55], ['b1', 'c3', 35.8], ['c7', 'c6', 38.35], ['c1', 'g5', 40.55], ['b7', 'b5', 43.1],
+  ['c3', 'b5', 45.4], ['c6', 'b5', 48.85], ['c4', 'b5', 51.7], ['b8', 'd7', 56.3], ['e1', 'c1', 58.85], ['a8', 'd8', 61.3],
+  ['d1', 'd7', 63.7], ['d8', 'd7', 66.65], ['h1', 'd1', 69.4], ['e7', 'e6', 71.8], ['b5', 'd7', 74.0], ['f6', 'd7', 76.7],
+  ['b3', 'b8', 79.8], ['d7', 'b8', 82.3], ['d1', 'd8', 85.8],
+];
+
+/**
+ * Bring the game to where a scene begins, unseen, and let the room settle.
+ * `hudRate` is for a shot that shows the interface: how fast the interface's own clock runs
+ * against the game's while the scene is reached (lib.mjs, `P.ownTime`).
+ */
+export async function reach(g, scene, settle = null, hudRate = null) {
+  if (scene.shut) {
+    if (scene.prep) await g.run(scene.prep);
+    await g.step(settle ?? scene.settle ?? 3, { blind: true });
     return;
   }
-  await g.run(`app.startTable();`);
-  // The camera's swing from the opening screen, the hands coming in.
-  await g.step(4, { blind: true });
+  if (scene.begin) await g.run(scene.begin);
+  else await g.run(`app.setFollowTurn?.(false); app.startTable(args[0] ?? undefined);`, scene.fen ?? null);
+  // The case opening, the stones set out, the hands coming in.
+  await g.step(scene.unpack ?? 10, { blind: true });
   if (hudRate !== null) await g.run(`P.clockRate = args[0];`, hudRate);
-  for (const [from, to] of MOVES.slice(0, scene.plies)) await g.play(from, to);
-  await g.step(settle ?? 6, { blind: true });
+  for (const [from, to, seconds] of scene.moves ?? []) await g.play(from, to, seconds ?? 3.6);
+  if (scene.prep) await g.run(scene.prep);
+  await g.step(settle ?? scene.settle ?? 3, { blind: true });
 }
 
 /**
- * When each thing is done, in seconds of the scene. The game's own beats follow from these (a hand is over a
- * chosen stone three tenths of a second after it is chosen; a stone sent across the board is set down two
- * seconds and a little after it is sent), and edit.mjs is cut to them.
- */
-export const AT = {
-  /** Ivory's hand goes to the queen and hangs over her. */
-  chooseQueen: 0,
-  /** 7. Qxh5+: she is sent. Lifted at 2.05, set down at 3.4: check. */
-  sendQueen: 1.0,
-  /** Void's hand goes to the rook. */
-  chooseRook: 4.9,
-  /** 7... Rxh5: the queen is lifted away at 6.03 and the rook set down where she stood at 7.4. */
-  sendRook: 5.317,
-  /** Ivory's hand goes to the bishop. */
-  chooseBishop: 9.15,
-  /** 8. Bg6#: lifted at 10.15, set down at 11.4: mate. */
-  sendBishop: 9.65,
-};
-
-/**
  * The ranked game the film shows is not played through the server: a server keeps its clocks by the real
- * clock, and a second of this film takes a minute to draw. It is the game's own interface, given what the
- * server would have sent it: two players' names and ratings, clocks of ten minutes with five seconds back
- * a move, and, when the game is won, what the win did to the winner's rating (the server's own sum:
- * 32 x (1 - 1 / (1 + 10^((1207 - 1200) / 400))) = 16). The names are made up.
+ * clock, and a second of this film takes far longer than that to draw. It is the game's own interface,
+ * given what the server would have sent it: two players' names and ratings, and clocks of ten minutes
+ * with five seconds back a move. The names are made up.
  */
-export const YOU = { name: 'Vesper', rating: 1200, wins: 0, losses: 0, draws: 0 };
+export const YOU = { name: 'Vesper', rating: 1216, wins: 4, losses: 2, draws: 1 };
 export const THEM = { name: 'Marrow', rating: 1207, wins: 5, losses: 4, draws: 2 };
-export const GAIN = 16;
-/** The rankings as they stand after it. */
-export const TABLE = [
-  { name: 'Ashlar', rating: 1388, wins: 21, losses: 6, draws: 3 },
-  { name: 'Quillon', rating: 1342, wins: 17, losses: 7, draws: 2 },
-  { name: 'Tamsin', rating: 1305, wins: 12, losses: 5, draws: 4 },
-  { name: 'Corvid', rating: 1271, wins: 9, losses: 5, draws: 1 },
-  { name: 'Oriel', rating: 1239, wins: 6, losses: 3, draws: 2 },
-  { name: YOU.name, rating: YOU.rating + GAIN, wins: 1, losses: 0, draws: 0 },
-  { name: 'Hollis', rating: 1204, wins: 4, losses: 4, draws: 1 },
-  { name: THEM.name, rating: THEM.rating - GAIN, wins: THEM.wins, losses: THEM.losses + 1, draws: THEM.draws },
-];
 
 /** The server stood in for: asked for a match, the rankings or a name, it does nothing, and the scene says what came back. */
 const NO_SERVER = `app.hall = { queue() {}, unqueue() {}, board() {}, hello() {}, close() {} };`;
@@ -101,37 +86,32 @@ const NO_SERVER = `app.hall = { queue() {}, unqueue() {}, board() {}, hello() {}
 const clock = (w, b, running) =>
   `ui.online.value = { ...ui.online.value, clock: { left: { w: ${Math.round(w * 1000)}, b: ${Math.round(b * 1000)} }, running: ${running ? `'${running}'` : 'null'}, at: performance.now() } };`;
 
-/** Ivory has 9:14.6 and Void 8:51.0 as the scene begins; each move gives its player five seconds back. */
-const LEFT = { w: 554.6, b: 531.0 };
-const afterQueen = { w: LEFT.w - AT.sendQueen + 5, b: LEFT.b };
-const afterRook = { w: afterQueen.w, b: afterQueen.b - (AT.sendRook - AT.sendQueen) + 5 };
-const afterBishop = { w: afterRook.w - (AT.sendBishop - AT.sendRook) + 5, b: afterRook.b };
-
-const ENDING = [
-  // The interface's clock, where a shot has slowed it to keep the last moves' lines up, runs true from before anything happens.
-  { t: -1, name: 'clock', js: `P.clockRate = 1;` },
-  { t: AT.chooseQueen, name: 'choose d1', js: `app.click('d1');` },
-  { t: AT.sendQueen, name: 'Qxh5+', js: `app.click('h5');` },
-  { t: AT.chooseRook, name: 'choose h6', js: `app.click('h6');` },
-  { t: AT.sendRook, name: 'Rxh5', js: `app.click('h5');` },
-  { t: AT.chooseBishop, name: 'choose d3', js: `app.click('d3');` },
-  { t: AT.sendBishop, name: 'Bg6#', js: `app.click('g6');` },
-];
+const click = (t, square) => ({ t, name: `click ${square}`, js: `app.click('${square}');` });
+const play = (t, from, to, promotion) => ({ t, name: `${from}${to}`, js: `void app.play('${from}', '${to}'${promotion ? `, '${promotion}'` : ''});` });
 
 export const SCENES = {
-  /** The end of the game, whole: from the position after 6... Rh6, the queen given up with check, taken, and the bishop's mate. */
-  ending: { plies: 12, cues: ENDING },
+  /** The middle of a quiet game, seen through the game's own cameras one after another while a king is castled. */
+  views: {
+    fen: 'r2qk2r/ppp2ppp/2npbn2/2b1p1B1/2B1P3/2NP1N2/PPP2PPP/R2QK2R w KQkq - 4 7',
+    prep: `app.setCamera('shoulder');`,
+    cues: [
+      { t: 1.85, name: 'the side', js: `app.setCamera('side');` },
+      play(2.0, 'e1', 'g1'),
+      { t: 3.6, name: 'the plan', js: `app.setCamera('top');` },
+      play(4.8, 'h7', 'h6'),
+      { t: 5.35, name: 'the eyes', js: `app.setCamera('eyes');` },
+    ],
+  },
+
+  /** A whole game, played through at the pace the hands make it. */
+  opera: { cues: OPERA.map(([from, to, t]) => play(t, from, to)) },
 
   /**
-   * The same, as a ranked game sees it: the interface is told it is one, a moment before anything happens, and
-   * the page's clock is made the scene's, since a ranked game's clocks are read against it. Void's move comes
-   * as the other player's does online: the hand is seen to go to the rook, and then the move arrives.
-   * After the mate the rating moves, and the rankings are opened.
+   * A ranked game, as the interface shows one: the two players come to the board, the clocks start,
+   * and a move is made on each side. Void's comes as the other player's does online.
    */
   ranked: {
-    plies: 12,
     cues: [
-      { t: -1, name: 'clock', js: `P.clockRate = 1;` },
       {
         t: -1.2,
         name: 'a ranked game',
@@ -144,42 +124,56 @@ export const SCENES = {
             again: { w: false, b: false }, offer: null, note: null, ranked: true,
             players: { w: { name: '${YOU.name}', rating: ${YOU.rating} }, b: { name: '${THEM.name}', rating: ${THEM.rating} } },
             clock: null, ended: null, change: null };
-          ${clock(LEFT.w + 1.2, LEFT.b, 'w')}`,
+          ${clock(600, 600, null)}`,
       },
-      { t: AT.chooseQueen, name: 'choose d1', js: `app.click('d1');` },
-      { t: AT.sendQueen, name: 'Qxh5+', js: `app.click('h5'); ${clock(afterQueen.w, afterQueen.b, 'b')}` },
-      { t: AT.chooseRook, name: 'thinks of h6', js: `app.world.consider('b', 'h6');` },
-      { t: AT.sendRook, name: 'Rxh5', js: `void app.play('h6', 'h5', undefined, 'remote'); ${clock(afterRook.w, afterRook.b, 'w')}` },
-      { t: AT.chooseBishop, name: 'choose d3', js: `app.click('d3');` },
-      { t: AT.sendBishop, name: 'Bg6#', js: `app.click('g6'); ${clock(afterBishop.w, afterBishop.b, null)}` },
       {
-        t: 11.5,
-        name: 'the rating moves',
-        js: `ui.player.value = { name: '${YOU.name}', card: ${JSON.stringify({ ...YOU, rating: YOU.rating + GAIN, wins: 1 })} };
-          ui.online.value = { ...ui.online.value, change: { w: ${GAIN}, b: ${-GAIN} } };`,
+        t: 0,
+        name: 'the players come to the board',
+        js: `ui.intro.value = { id: 1, ranked: true, you: 'w', players: ui.online.value.players, clock: { base: 600000, increment: 5000 } };`,
       },
-      { t: 16.6, name: 'the rankings', js: `ui.ranks.value = { top: ${JSON.stringify(TABLE)}, you: ${JSON.stringify({ ...YOU, rating: YOU.rating + GAIN, wins: 1 })} }; ui.ranksOpen.value = true;` },
+      { t: 3.4, name: 'put away', js: `ui.intro.value = null; app.world.sound?.ui('close'); ${clock(600, 600, 'w')}` },
+      { t: 3.5, name: 'thinks of e2', js: `app.world.consider('w', 'e2');` },
+      { t: 4.2, name: 'e4', js: `void app.play('e2', 'e4', undefined, 'remote'); ${clock(599.2 + 5, 600, 'b')}` },
     ],
   },
 
-  /**
-   * The game as it is first opened: the choice of what to play, the board going slowly round behind it.
-   * What the pointer does is the shot's (shots.mjs, `act`); here is what the server would have answered.
-   */
-  opening: {
-    opening: true,
+  /** A game with a friend, from the eyes: the friend's hand answers across the board. */
+  friend: {
+    moves: [['e2', 'e4']],
+    prep: `app.setCamera('eyes');`,
     cues: [
-      // The film's browser has not the engine in it, which the choice of game would remark on; and it has a game left unfinished in it,
-      // which the choice of game offers to carry on (and, having that to offer, folds the computer's strengths away).
-      {
-        t: -1,
-        name: 'no server, a game kept',
-        js: `${NO_SERVER} ui.engine.value = 'idle'; ui.saved.value = { kind: 'computer', level: 'casual', moves: 14, at: Date.now() - 20 * 3600 * 1000 };`,
-      },
-      { t: 6.45, name: 'the server heard', js: `if (ui.queue.value) ui.queue.value = { waiting: 1, up: true };` },
-      { t: 7.35, name: 'another is waiting', js: `if (ui.queue.value) ui.queue.value = { waiting: 2, up: true };` },
-      // As the game does it when a match is made (app.ts, `matched`): two notes of glass.
-      { t: 8.25, name: 'matched', js: `app.world.sound?.glass(null, 3); app.world.sound?.glass(null, 5, 0.16);` },
+      { t: 0, name: 'thinks of e7', js: `app.world.consider('b', 'e7');` },
+      { t: 0.8, name: 'e5', js: `void app.play('e7', 'e5', undefined, 'remote');` },
     ],
+  },
+
+  /** A game against the computer, from above: Ivory has played, and the computer's hand answers. */
+  computer: {
+    begin: `app.setFollowTurn?.(false); app.startComputer('master', 'w');`,
+    moves: [['d2', 'd4']],
+    prep: `ui.engine.value = 'idle'; ui.notice.value = null; ui.thinking.value = false; app.setCamera('top');`,
+    cues: [
+      { t: 0, name: 'thinks of g8', js: `app.world.consider('b', 'g8');` },
+      { t: 0.8, name: 'Nf6', js: `void app.play('g8', 'f6', undefined, 'computer');` },
+    ],
+  },
+
+  /** A lesson at the board: the sixth, the knight. */
+  lesson: {
+    begin: `app.setFollowTurn?.(false); app.startLessons(5, 0);`,
+    cues: [{ t: 0.9, name: 'show me', js: `app.showMe();` }],
+  },
+
+  /** The case shut on the altar; the game is begun: the clasp, the lid, the drawers, the stones, the hands. */
+  unpack: {
+    shut: true,
+    cues: [{ t: 0, name: 'begin', js: `app.setFollowTurn?.(false); app.startTable();` }],
+  },
+
+  /** The end of Teed against Delmar: the queen given up with check, taken, and the bishop's mate. */
+  mate: {
+    moves: MOVES.slice(0, 12),
+    settle: 6,
+    cues: [click(0, 'd1'), click(1.0, 'h5'), click(4.9, 'h6'), click(5.317, 'h5'), click(9.89, 'd3'), click(10.39, 'g6')],
   },
 };

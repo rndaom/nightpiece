@@ -116,7 +116,7 @@ All of the recordings are dedicated to the public domain under **CC0 1.0**, whic
 | Shirt Whoosh 1.wav | saturdaysoundguy | CC0 1.0 | [Freesound](https://freesound.org/people/saturdaysoundguy/sounds/391448/) | A hand moving through the air |
 | Short Whoosh, 13x | Kinoton | CC0 1.0 | [Freesound](https://freesound.org/people/Kinoton/sounds/427979/) | A hand moving through the air |
 
-**The promotional film** (`promo/`, made by `tools/promo/`) is the game itself, filmed, with the game's own sound. Its music is made the same way and from the same sources: the two Versilian libraries above (organ pedal, double bass, wine glasses, a suspended cymbal, tremolo strings, a gong, a tubular bell, a harp) and two of the recordings above (qubodup's *Door Smash 1*, Duasun's *Old clock tick-tock*). `tools/promo/sources.json` lists exactly what it opens, and `python assets/src/sound/fetch.py --list tools/promo/sources.json` gets it again. What is written over it (the lines, the names of the pieces, the closing card) is set in the lettering the game uses: Fraunces, Archivo and DM Mono.
+**The promotional films** (`promo/`, made by `tools/promo/`) are the game itself, filmed, with the game's own sound. Their music is a recording: "Spy Glass" by Kevin MacLeod ([incompetech.com](https://incompetech.com)), licensed under [Creative Commons: By Attribution 4.0](http://creativecommons.org/licenses/by/4.0/). Each film uses a part of it, two of them with one join, and the game's sounds are laid over it; each film's last card credits it. `tools/promo/sources.json` says where it is fetched from, and `python assets/src/sound/fetch.py --list tools/promo/sources.json` gets it again. What is written over the films (the lines, the ways to play, the closing card) is set in the lettering the game uses: Fraunces, Archivo, Figtree and DM Mono. They are put together with Remotion (`tools/promo/film/`).
 
 ## Used to build and test, not shipped
 
@@ -134,7 +134,8 @@ All of the recordings are dedicated to the public domain under **CC0 1.0**, whic
 | NumPy, SciPy | 2.5.4, 1.18.1 | BSD-3-Clause. The sound builder (`assets/src/sound/`) |
 | python-soundfile (libsndfile) | 0.14.0 | BSD-3-Clause (LGPL-2.1 for libsndfile). Reads the recordings and writes the FLAC files |
 | LAME | 4.0 | LGPL-2.0-or-later. Encodes the room's loops as MP3 |
-| FFmpeg | 9.0.2 | GPL-3.0-or-later (as built here, with libx264). Puts the promotional film's frames and sound together and encodes it (`tools/promo/cut.mjs`); also measures its loudness |
+| Remotion | 4.0.544 | [Remotion License](https://github.com/remotion-dev/remotion/blob/main/LICENSE.md): free for individuals and for companies of up to three people. Lays the promotional films' shots end to end and draws their titles (`tools/promo/film/`); installed in that folder only, and no part of the game |
+| FFmpeg | 9.0.2 | GPL-3.0-or-later (as built here, with libx264). Puts the promotional films' frames and sound together and encodes them (`tools/promo/cut.mjs`); also measures their loudness |
 
 ## Studied, not included
 
