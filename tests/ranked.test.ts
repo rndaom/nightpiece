@@ -461,6 +461,20 @@ describe('the scores', () => {
     }
   });
 
+  it('give a player the server\'s own name in place of one kept from before that would not be taken now', () => {
+    const dir = mkdtempSync(path.join(tmpdir(), 'nightpiece-scores-'));
+    try {
+      const file = path.join(dir, 'scores.json');
+      const [a, b] = [playerKey(ID_A), playerKey(ID_B)];
+      writeFileSync(file, JSON.stringify({ [a]: { name: 'adm1n', rating: 1300, wins: 3, losses: 0, draws: 0 }, [b]: { name: 'Bo', rating: 1100, wins: 0, losses: 3, draws: 0 } }));
+      const scores = new Scores(file);
+      expect(scores.get(a)).toMatchObject({ name: nameFor(a), rating: 1300, wins: 3 });
+      expect(scores.get(b)).toMatchObject({ name: 'Bo', rating: 1100 });
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it('are written to a file and read back, with nothing in it but hashes', () => {
     const dir = mkdtempSync(path.join(tmpdir(), 'nightpiece-scores-'));
     try {

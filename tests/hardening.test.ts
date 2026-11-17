@@ -331,6 +331,19 @@ describe('names', () => {
     expect(cleanName('Hikarս')).toBe('');
   });
 
+  it('refuses a name that holds a hard slur, however it is dressed up, and nothing milder', () => {
+    // The words are not spelt out here either: each is given thirteen letters round the alphabet.
+    const round13 = (text: string) => text.replace(/[a-z]/gi, (c) => String.fromCharCode(((c.charCodeAt(0) - (c < 'a' ? 65 : 97) + 13) % 26) + (c < 'a' ? 65 : 97)));
+    const refused = ['avttre', 'Avttre Avttre', 'AVTTREF', 'a1tt3e', 'a v t t r e', 'avt tre', 'aavvttttrree', 'gung avttre 444', 'snttbg', 'SNTT0G', 'jrgonpx', 'puvax', 'gur Puvax', 'tbbx', 'genaal'];
+    for (const name of refused) expect(cleanName(round13(name)), name).toBe('');
+    // Cyrillic letters throughout, and small capitals.
+    expect(cleanName('піggег'.replace(/g/g, 'ԍ'))).toBe('');
+    expect(cleanName('ɴɪɢɢᴇʀ')).toBe('');
+    // The milder form is a player's own business; and names that only pass near one are names.
+    const welcome = ['gung avttn 444', 'Avttn', 'Avtre', 'Avtrevn', 'Xvxr', 'Xvxrybzb', 'Tbbtyr', 'Puvaba', 'Gena Alhra', 'Fpnecbar'];
+    for (const name of welcome) expect(cleanName(round13(name)), name).toBe(round13(name));
+  });
+
   it('refuses a name with a word on the operator\'s list; such a player keeps the name the server gave them', () => {
     const lobby = new Lobby(Date.now, undefined, { blockedNames: ['rude'] });
     const c = new Fake();

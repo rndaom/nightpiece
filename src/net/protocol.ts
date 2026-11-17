@@ -224,6 +224,19 @@ export const NAME_LENGTH = 16;
 const RESERVED = new Set(['admin', 'administrator', 'moderator', 'mod', 'server', 'system', 'nightpiece', 'staff', 'official', 'support', 'developer'].map((word) => readAs(word)));
 /** The game's own name is not to be had inside a longer one either. */
 const OWN_NAME = readAs('nightpiece');
+
+/**
+ * Words no name may hold: the hard slurs, and nothing milder. They are written thirteen letters
+ * round the alphabet, so that this file does not spell them out. One is found however it is
+ * dressed up (see `readAs`) or its letters drawn out. The long ones are found across a name's
+ * spaces too; the short ones only within one word, where they are not come by by chance.
+ */
+const SLURS = { anywhere: ['avttre', 'snttbg', 'jrgonpx'], inAWord: ['puvax', 'tbbx', 'genaal'] };
+const round13 = (word: string): string => word.replace(/[a-z]/g, (letter) => String.fromCharCode(((letter.charCodeAt(0) - 97 + 13) % 26) + 97));
+/** A word as a pattern in which each letter may be drawn out, and a doubled letter is at least doubled. */
+const drawnOut = (word: string): RegExp => new RegExp(round13(word).replace(/(.)\1*/g, (run: string, letter: string) => letter + (run.length > 1 ? '{2,}' : '+')));
+const SLUR_ANYWHERE = SLURS.anywhere.map(drawnOut);
+const SLUR_IN_A_WORD = SLURS.inAWord.map(drawnOut);
 /** Letters that show as nothing at all: the Hangul fillers and their kin. (Signs that are not letters, the invisible ones among them, are simply left out.) */
 const BLANK = /[\u115F\u1160\u3164\uFFA0\u17B4\u17B5\u{1D159}]/u;
 /** Single characters drawn as long as a sentence: the Arabic ligatures of whole phrases, cuneiform and its kind. */
@@ -233,8 +246,8 @@ const WIDE = /[\uFDFA\uFDFB\uFDFD\u{12000}-\u{1254F}\u{13000}-\u{1345F}\u{A9C1}\
  * A name as it will be shown: letters (with their accents), digits, spaces and a few marks,
  * trimmed and of a sensible length. Empty if nothing is left, or if the name is refused: one
  * with letters that show as nothing or as a whole line, one that mixes Latin letters with
- * another script's that look like them (a name in any one script is welcome), and the few
- * names reserved for the game itself, in whatever letters they are written.
+ * another script's that look like them (a name in any one script is welcome), one that holds
+ * a slur, and the few names reserved for the game itself, in whatever letters they are written.
  */
 export function cleanName(name: unknown): string {
   if (typeof name !== 'string') return '';
@@ -256,19 +269,23 @@ export function cleanName(name: unknown): string {
   if ((latin && (cyrillic || greek)) || (cyrillic && greek)) return '';
   // Nor Latin letters with any other script's letter that is drawn like one.
   if (latin && [...cut].some((letter) => !/\p{Script=Latin}/u.test(letter) && passesForLatin(letter))) return '';
-  if (reserved(cut)) return '';
+  if (unfit(cut)) return '';
   return cut;
 }
 
-/** Whether a name, or a word of it, reads as one of the reserved names. */
-function reserved(name: string): boolean {
+/** Whether a name, or a word of it, reads as one of the reserved names, or holds a slur. */
+function unfit(name: string): boolean {
   const words = name.split(/[^\p{L}\p{M}\p{N}]+/u).filter((word) => word !== '');
-  for (const text of [name, ...words]) {
+  for (const [n, text] of [name, ...words].entries()) {
     // With its digits read as letters (ADM1N), and with them left out (Admin 2).
     for (const digits of [true, false]) {
+      const read = readAs(text, digits);
       // Two letters that close up into one: rn for m, vv for w.
-      const read = readAs(text, digits).replace(/rn/g, 'm').replace(/vv/g, 'w');
-      if (RESERVED.has(read) || read.includes(OWN_NAME)) return true;
+      const closed = read.replace(/rn/g, 'm').replace(/vv/g, 'w');
+      if (RESERVED.has(closed) || closed.includes(OWN_NAME)) return true;
+      if (SLUR_ANYWHERE.some((slur) => slur.test(read))) return true;
+      // (The first of these is the whole name; the rest are its words.)
+      if (n > 0 && SLUR_IN_A_WORD.some((slur) => slur.test(read))) return true;
     }
   }
   return false;

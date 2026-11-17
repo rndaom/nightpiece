@@ -11,7 +11,7 @@
 import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, renameSync } from 'node:fs';
 import path from 'node:path';
-import type { PlayerCard } from '../src/net/protocol.ts';
+import { cleanName, type PlayerCard } from '../src/net/protocol.ts';
 import { writeWhole } from './store.ts';
 
 /** Where everyone starts. */
@@ -98,7 +98,8 @@ export class Scores {
         // Only those who have played are kept (a file from an older server may hold others too).
         if (n(value.wins, 0) + n(value.losses, 0) + n(value.draws, 0) <= 0) continue;
         this.players.set(key, {
-          name: typeof value.name === 'string' && value.name ? value.name : nameFor(key),
+          // A name kept from before, that would not be taken now, gives way to the server's own for that player.
+          name: typeof value.name === 'string' && value.name && cleanName(value.name) === value.name ? value.name : nameFor(key),
           rating: n(value.rating, START_RATING),
           wins: n(value.wins, 0),
           losses: n(value.losses, 0),
