@@ -863,6 +863,8 @@ function slowed(clock: number, top: number, show: number, slows: number): number
 const PAT_LIFT = 0.13;
 const PAT_PITCH = 0.3;
 const PAT_RISE = 0.35;
+/** And this much more, where the stone patted is not the one just let go of (the king, after its rook in castling). */
+const PAT_RISE_BESIDE = 0.3;
 /** How a hand pats: the fingers out and together, a little bent. */
 const PATTING: Pose = (() => {
   const p = between(POSES.open, POSES.relaxed, 0.45);
@@ -1020,9 +1022,10 @@ export interface CarryOptions {
   /**
    * Once it has let go, the hand taps the stone on its crown this many times, and `patted` is told
    * each time it does, before the hand goes. The carry is done with when the stone is let go, as
-   * any other is: `patting` is given what is left, which resolves when the hand has done.
+   * any other is: `patting` is given what is left, which resolves when the hand has done. `on` is
+   * the stone tapped, if it is not the one just set down: in castling, the king beside the rook.
    */
-  pat?: { taps: number; patted: (at: Vector3) => void; patting?: (left: Promise<void>) => void };
+  pat?: { taps: number; patted: (at: Vector3) => void; patting?: (left: Promise<void>) => void; on?: Puppet };
   /** The stone is set down this much off where it is going, and turned this much: see `squareUp`. */
   askew?: { by: Vector3; turn: number };
 }
@@ -1463,7 +1466,7 @@ export class Puppeteer {
     const overtaken = () => stale() || arm.jobs !== job;
     if (options.pat) {
       // The pat goes on after the move is done with; anything else the hand is given stops it.
-      const left = this.patOn(arm, puppet, options.pat.taps, options.pat.patted, () => !overtaken()).then(() => {
+      const left = this.patOn(arm, options.pat.on ?? puppet, options.pat.taps, options.pat.patted, () => !overtaken(), options.pat.on && puppet).then(() => {
         if (overtaken()) return;
         hand.restless = 1;
         void this.withdraw(arm, options.stay ?? 0, overtaken);
@@ -2293,15 +2296,19 @@ export class Puppeteer {
   /**
    * The hand pats the stone it has just let go of on its crown, `taps` times, `patted` being told each
    * time: level, the fingers out together, the pads of the longest coming down on it. For a hand that
-   * carried it there from above. `ok` says whether it still may.
+   * carried it there from above. `ok` says whether it still may. Where it has just let go of
+   * another stone (`from`) beside this one, it rises higher, turning to point the way its arm comes
+   * at this one and not the way it held the other, so that its fingers clear the stones round both.
    */
-  private async patOn(arm: Arm, puppet: Puppet, taps: number, patted: (at: Vector3) => void, ok: () => boolean): Promise<void> {
+  private async patOn(arm: Arm, puppet: Puppet, taps: number, patted: (at: Vector3) => void, ok: () => boolean, from?: Puppet): Promise<void> {
     const hand = arm.hand;
     const crown = topOf(puppet, new Vector3());
     // Up off the head first, so that the fingers straighten clear of it, and level.
     arm.omega = 12;
-    arm.shift(arm.at.get(v1).setY(v1.y + PAT_RISE), PAT_PITCH);
-    if (!(await this.pause(0.16, ok))) return;
+    if (from) arm.aim = nearestTurn(hand.headingTo(crown), arm.yaw.value);
+    arm.shift(arm.at.get(v1).setY(v1.y + PAT_RISE + (from ? PAT_RISE_BESIDE : 0)), PAT_PITCH);
+    // (Turned, and higher, before its fingers straighten, so that they do not sweep the stones beyond.)
+    if (!(await this.pause(from ? 0.36 : 0.16, ok))) return;
     hand.setPose(PATTING, 0.24, 0.02, Easing.inOutCubic);
     if (!(await this.pause(0.24, ok))) return;
     const above = await this.fingerTo(arm, crown.clone().setY(crown.y + TIP_HALF + PAT_LIFT), PAT_PITCH, ok, 0.18, 'middle');

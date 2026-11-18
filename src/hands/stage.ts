@@ -41,13 +41,6 @@ export const LEDGE_STEP = 0.59;
 export const LEDGE_ZIG = 0.17;
 export const LEDGE_ROOM = 7;
 
-/**
- * Castling takes both of a player's hands in one place. The king goes straight to its square, lifted
- * well clear, under a hand that has it from above and so stands high; the rook swings round the front
- * of it, low, this far out toward its own player, under a hand held flat, which the other arm reaches
- * across.
- */
-const KING_OVER: CarryOptions = { apex: 1, reach: 'over' };
 /** A piece that takes another standing nearer to it than this many squares is too near for both hands to be over them at once. */
 const CROWDED = 2.6;
 /** A taken piece is off its square, for the hand that waits to take its place, when its foot is this high or it is this far aside. */
@@ -55,12 +48,8 @@ const GONE_UP = 0.5;
 const GONE_ASIDE = 0.6;
 /** How much the loss of a stone is felt by the hands of the player who lost it, 0 to 1. */
 const LOSS: Record<Kind, number> = { p: 0.15, n: 0.45, b: 0.45, r: 0.7, q: 1, k: 1 };
-const ROOK_ROUND = 1.65;
 /** Taken in passing, the hand that lifts the taken pawn away waits at least this long for the other to have let go of its own. */
 const PASSING_WAITS = 1.5;
-/** A king that is patted keeps the hand over it this much longer, and this much more for a second tap: the rook's hand under it waits for it. */
-const PAT_STAYS = 1.1;
-const PAT_STAYS_MORE = 0.3;
 /** A queen taken is held up this long at the top of her carry (the trophy): a little longer than she is seen quite still there, since the hand takes a moment to stop. */
 const TROPHY_SECONDS = 0.6;
 /** A stone to be squared up is set down this far off the middle of its square, and turned this far. */
@@ -672,7 +661,7 @@ export class Stage {
     // A capture that answers a capture on the same square is made quicker than the one before it.
     const pace = QUICKENS ** this.exchange(this.ply - 1);
 
-    // Castling takes both hands at once: the hand on the rook's side takes the rook, the other the king.
+    // Castling is done with one hand, as the rules of the game ask: the king first, then the rook.
     const rook = e.rook ? this.pieces.hold(e.rook.id) : null;
     const moverArm = this.moverOf(e);
     player.engage(moverArm);
@@ -743,14 +732,15 @@ export class Stage {
       manner === 'push'
         ? player.push(moverArm, mover, to, beats)
         : player.carry(moverArm, mover, to, {
-            ...(rook && e.rook ? { ...KING_OVER, beside: { puppet: rook, at: squareCenter(e.rook.to) } } : { apex: this.apexOver(mover, to) }),
+            apex: this.apexOver(mover, to),
             delay: moverDelay,
             pace,
             makeWay: crowded && !passing,
             until: gone,
             onBeat: beats,
             ...(passing ? { rap: (at: Vector3) => this.heard?.('knock', at, 0.6) } : {}),
-            ...(pats > 0
+            // (A king that has castled is patted once its rook is across: see below.)
+            ...(pats > 0 && !rook
               ? {
                   pat: {
                     taps: pats,
@@ -810,9 +800,29 @@ export class Stage {
     );
 
     if (rook && e.rook) {
+      // The same hand, once the king is down, lifts the rook over it to the king's other side.
       const to = e.rook.to;
+      const at = squareCenter(to);
       jobs.push(
-        player.carry(player.other(moverArm), rook, squareCenter(to), { ...this.roundTheKing(e, mover, false, manner === 'pat' ? PAT_STAYS + PAT_STAYS_MORE * (e.castle === 'q' ? 1 : 0) : 0), onBeat: (b) => onBeat?.('rook', b) }).then(() => {
+        carried.then(async () => {
+          if (generation !== this.generation) return;
+          await player.carry(moverArm, rook, at, {
+            apex: this.apexOver(rook, at),
+            onBeat: (b) => onBeat?.('rook', b),
+            ...(pats > 0
+              ? {
+                  pat: {
+                    taps: pats,
+                    on: mover,
+                    patted: (spot: Vector3) => this.patted(mover, spot),
+                    patting: (rest: Promise<void>) => {
+                      left.push(rest);
+                      cuts.push(() => player.letBe(moverArm));
+                    },
+                  },
+                }
+              : {}),
+          });
           if (generation === this.generation) this.pieces.settle(rook.id, to);
         }),
       );
@@ -890,19 +900,23 @@ export class Stage {
     player.engage(moverArm);
     player.consider(null);
 
-    jobs.push(
-      player.carry(moverArm, mover, squareCenter(e.piece.from), rook && e.rook ? { ...KING_OVER, delay: 0.12, apart: true, beside: { puppet: rook, at: squareCenter(e.rook.from) } } : { apex: this.apexOver(mover, squareCenter(e.piece.from)), retrace: true }).then(() => {
+    const home = squareCenter(e.piece.from);
+    const goHome = () =>
+      player.carry(moverArm, mover, home, { apex: this.apexOver(mover, home), retrace: !rook }).then(() => {
         if (generation === this.generation) this.pieces.settle(mover.id, e.piece.from);
-      }),
-    );
+      });
     if (rook && e.rook) {
+      // Castling taken back, with the one hand that made it: the rook over the king first, as it came last; then the king.
       const from = e.rook.from;
+      const corner = squareCenter(from);
       jobs.push(
-        player.carry(player.other(moverArm), rook, squareCenter(from), this.roundTheKing(e, mover, true)).then(() => {
-          if (generation === this.generation) this.pieces.settle(rook.id, from);
+        player.carry(moverArm, rook, corner, { apex: this.apexOver(rook, corner) }).then(() => {
+          if (generation !== this.generation) return;
+          this.pieces.settle(rook.id, from);
+          return goHome();
         }),
       );
-    }
+    } else jobs.push(goHome());
     if (e.captured) {
       // The taken piece comes back from the ledge once its square is free again.
       const c = e.captured;
@@ -1362,7 +1376,7 @@ export class Stage {
 
   /**
    * Which of a player's hands moves the piece in a move; the other lifts away whatever it takes.
-   * Castling takes both: the hand on the rook's side takes the rook. A piece that takes another
+   * Castling is one hand's: the one on the rook's side, which moves the king and then the rook. A piece that takes another
    * is moved by the hand on the far side of it from what it takes, so that the taken piece goes
    * off to its own side of the board and the two hands never have to cross. Otherwise a piece is
    * moved by the hand on its own side.
@@ -1370,24 +1384,9 @@ export class Stage {
   private moverOf(e: MoveEvent): Arm {
     const player = this.hands[e.side];
     const from = squareCenter(e.piece.from).x;
-    if (e.rook) return player.other(player.armFor(squareCenter(e.rook.from).x));
+    if (e.rook) return player.armFor(squareCenter(e.rook.from).x);
     const taken = e.captured ? squareCenter(e.captured.square).x - from : 0;
     return Math.abs(taken) > 0.5 ? player.other(player.armFor(taken)) : player.armFor(from);
-  }
-
-  /**
-   * How the rook is carried in castling, or back again when castling is taken back: round the front
-   * of the king, toward its own player, and lower than the king goes. It is out in front by the time
-   * the king comes by, and comes back in to its square behind it; and stays there, under the other
-   * arm, until that has gone, and `longer` if that has something more to do there first.
-   */
-  private roundTheKing(e: MoveEvent, king: Puppet, back: boolean, longer = 0): CarryOptions {
-    const by = new Vector3(0, 0, e.side === 'w' ? ROOK_ROUND : -ROOK_ROUND);
-    const beside = { puppet: king, at: squareCenter(back ? e.piece.from : e.piece.to) };
-    // Taken back, it is the rook that goes first, as it was the rook that came last.
-    return back
-      ? { apex: 0.35, reach: 'under', beside, bow: { by, out: 0.2, back: 0.4 } }
-      : { apex: 0.35, reach: 'under', beside, delay: 0.1, stay: 0.25 + longer, bow: { by, out: 0.4, back: 0.2 } };
   }
 
   /** Everything of stone that a hand could run into: the pieces in play, and the taken ones standing on the ledges. */

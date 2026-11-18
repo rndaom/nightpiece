@@ -286,7 +286,7 @@ export const LESSONS: Lesson[] = [
           done: (e) => e.castle !== null,
           solution: { from: 'e1', to: 'g1' },
           retry: 'That was an ordinary move. Click the king and pick the square two steps to his left or right.',
-          praise: 'Both hands, one move. You may castle only if neither stone has moved before, nothing stands between them, and the king is not in check or crossing an attacked square.',
+          praise: 'One hand, one move: the king first, then the rook. You may castle only if neither stone has moved before, nothing stands between them, and the king is not in check or crossing an attacked square.',
         },
       },
     ],

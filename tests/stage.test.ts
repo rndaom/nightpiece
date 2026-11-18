@@ -803,56 +803,51 @@ describe('captures, castling and promotion', () => {
     const king = layer.puppetAt(kingOn)!;
     const rook = layer.puppetAt(rookOn)!;
     const player = stage.hands[side];
-    const rookArm = player.armFor(rook.group.position.x);
-    const kingArm = player.other(rookArm);
+    const arm = player.armFor(rook.group.position.x);
+    const idle = player.other(arm);
     const puppets = [...layer.standing()];
-    const rank = king.group.position.z;
-    const toward = side === 'w' ? 1 : -1;
     const seen = {
-      king,
-      rook,
-      kingArm,
-      rookArm,
-      /** Both hands had hold of their pieces at once. */
-      together: 0,
-      /** How much more steeply the king's hand was tipped than the rook's, at the least, and how much higher its wrist was. */
-      steeper: Infinity,
-      higher: Infinity,
-      /** How far out toward its own player the rook swung, and how high each piece's foot went. */
-      out: 0,
+      /** How long the hand on the rook's side held each stone, and the first and last moment it did. */
+      kingHeld: 0,
+      rookHeld: 0,
+      kingFrom: Infinity,
+      kingTo: 0,
+      rookFrom: Infinity,
+      rookTo: 0,
+      /** How long the player's other hand held anything at all. */
+      otherHeld: 0,
+      /** How high each piece's foot went, and how high the king's crown stands. */
       kingUp: 0,
       rookUp: 0,
+      crown: 0,
       /** The least room there was between the two stones, and the deepest a hand was in the other or in a stone that was not its own. */
       room: Infinity,
       inHand: 0,
       inStone: 0,
-      /** When each hand was done with its piece. */
-      kingFree: 0,
-      rookFree: 0,
       time: 0,
-      quiet: 0,
     };
-    const wrist = new Vector3();
     const each = () => {
       seen.time += DT;
-      seen.quiet = kingArm.busy || rookArm.busy ? 0 : seen.quiet + DT;
-      if (seen.quiet > 1.2) return;
-      if (kingArm.busy) seen.kingFree = seen.time;
-      if (rookArm.busy) seen.rookFree = seen.time;
-      if (kingArm.held?.attached && rookArm.held?.attached) {
-        seen.together++;
-        seen.steeper = Math.min(seen.steeper, kingArm.pitch.value - rookArm.pitch.value);
-        seen.higher = Math.min(seen.higher, kingArm.hand.toWorld(wrist.set(0, 0, 0)).y - rookArm.hand.toWorld(wrist.set(0, 0, 0)).y);
+      const holding = arm.held?.attached ? arm.held.puppet : null;
+      if (holding === king) {
+        seen.kingHeld += DT;
+        seen.kingFrom = Math.min(seen.kingFrom, seen.time);
+        seen.kingTo = seen.time;
       }
-      seen.out = Math.max(seen.out, (rook.group.position.z - rank) * toward);
+      if (holding === rook) {
+        seen.rookHeld += DT;
+        seen.rookFrom = Math.min(seen.rookFrom, seen.time);
+        seen.rookTo = seen.time;
+      }
+      if (idle.held) seen.otherHeld += DT;
       seen.kingUp = Math.max(seen.kingUp, king.group.position.y);
       seen.rookUp = Math.max(seen.rookUp, rook.group.position.y);
-      if (kingArm.held || rookArm.held) seen.room = Math.min(seen.room, roomBetween(king, rook));
-      for (const [arm, other] of [
-        [kingArm, rookArm],
-        [rookArm, kingArm],
+      if (arm.held) seen.room = Math.min(seen.room, roomBetween(king, rook));
+      for (const [a, other] of [
+        [arm, idle],
+        [idle, arm],
       ] as const) {
-        const deep = skinIn(arm, puppets, other);
+        const deep = skinIn(a, puppets, other);
         seen.inHand = Math.max(seen.inHand, deep.hand);
         seen.inStone = Math.max(seen.inStone, deep.stone);
       }
@@ -860,7 +855,7 @@ describe('captures, castling and promotion', () => {
     return { seen, each };
   }
 
-  it.each(CASTLES)('castles %s: the king from above, the rook low round the front of it, and nothing through anything', async (_name, fen, from, to, rookFrom, rookTo) => {
+  it.each(CASTLES)('castles %s with one hand, as the rules ask: the king first, then the rook over it, and nothing through anything', async (_name, fen, from, to, rookFrom, rookTo) => {
     const { layer, stage, run, move } = setup(fen);
     const side = fen.includes(' w ') ? 'w' : 'b';
     stage.setTurn(side);
@@ -871,23 +866,19 @@ describe('captures, castling and promotion', () => {
     expectStanding(layer, rookTo);
     expect(layer.kindAt(to)).toBe('k');
     expect(layer.kindAt(rookTo)).toBe('r');
-    // Both hands are at work at once. The one with the king has it from above and stands high; the
-    // one with the rook lies low and flat, where the other arm can reach across it.
-    expect(seen.together).toBeGreaterThan(30);
-    expect(seen.steeper).toBeGreaterThan(0.3);
-    expect(seen.higher).toBeGreaterThan(0.5);
-    // The king is lifted well clear and goes straight over; the rook goes out round the front of it, low.
-    expect(seen.kingUp).toBeGreaterThan(seen.rookUp + 0.4);
-    expect(seen.out).toBeGreaterThan(1.2);
-    // The stones never meet; neither hand is ever in the other, nor in a stone but for a fingertip's touch.
+    // The hand on the rook's side does it all; the other never takes hold of anything.
+    expect(seen.kingHeld).toBeGreaterThan(0.3);
+    expect(seen.rookHeld).toBeGreaterThan(0.3);
+    expect(seen.otherHeld).toBe(0);
+    // The king is let go of before the rook is touched.
+    expect(seen.rookFrom).toBeGreaterThan(seen.kingTo);
+    // The stones never meet; the hand is never in the other, nor in a stone but for a fingertip's touch.
     expect(seen.room).toBeGreaterThan(0.05);
     expect(seen.inHand).toBeLessThan(0.02);
     expect(seen.inStone).toBeLessThan(0.05);
-    // The hand that lies under stays until the one over it has gone.
-    expect(seen.rookFree).toBeGreaterThan(seen.kingFree + 0.2);
   });
 
-  it.each([CASTLES[1]!, CASTLES[2]!])('takes castling %s back the way it came', async (_name, fen, from, to, rookFrom, rookTo) => {
+  it.each([CASTLES[1]!, CASTLES[2]!])('takes castling %s back with the one hand: the rook first, then the king', async (_name, fen, from, to, rookFrom, rookTo) => {
     const { layer, stage, run, move, undo } = setup(fen);
     const side = fen.includes(' w ') ? 'w' : 'b';
     stage.setTurn(side);
@@ -899,9 +890,10 @@ describe('captures, castling and promotion', () => {
     expectStanding(layer, rookFrom);
     expect(layer.kindAt(from)).toBe('k');
     expect(layer.kindAt(rookFrom)).toBe('r');
-    expect(seen.together).toBeGreaterThan(30);
-    expect(seen.steeper).toBeGreaterThan(0.3);
-    expect(seen.out).toBeGreaterThan(1.2);
+    expect(seen.kingHeld).toBeGreaterThan(0.3);
+    expect(seen.rookHeld).toBeGreaterThan(0.3);
+    expect(seen.otherHeld).toBe(0);
+    expect(seen.kingFrom).toBeGreaterThan(seen.rookTo);
     expect(seen.room).toBeGreaterThan(0.05);
     expect(seen.inHand).toBeLessThan(0.02);
     expect(seen.inStone).toBeLessThan(0.05);

@@ -284,17 +284,20 @@ describe('the pat', { timeout: 60000 }, () => {
     expect(clear).toBeGreaterThan(0.005);
   });
 
-  it('keeps the hand that carried the rook under the other arm until the other has gone', async () => {
+  it('castles with one hand and pats the king with it once the rook is across; the other hand stays out of it', async () => {
     const rig = await board(LONG, seedWhere((seed) => comes(seed, 'pat', CHANCE.often)));
-    const e = rig.game.move('e1', 'c1');
     const player = rig.stage.hands.w;
-    let worst = Infinity;
-    void rig.stage.playMove(e);
-    await rig.run(6, () => {
-      const [a, b] = armsOf(player);
-      worst = Math.min(worst, a!.hand.toWorld(new Vector3(0, 0, 0), new Vector3()).distanceTo(b!.hand.toWorld(new Vector3(0, 0, 0), new Vector3())));
-    });
-    expect(worst).toBeGreaterThan(0.45);
+    const rook = rig.layer.puppetAt('a1')!;
+    const castler = player.armFor(rook.group.position.x);
+    const idle = player.other(castler);
+    let idleHeld = false;
+    const { done, when } = await play(rig, 'e1', 'c1', undefined, () => (idleHeld ||= idle.held !== null));
+    expect(done).toBe(true);
+    expect(idleHeld).toBe(false);
+    expect(when('rook', 'reach')).toBeGreaterThan(when('mover', 'release'));
+    const tapped = rig.heard.filter((h) => h.what === 'tap');
+    expect(tapped).toHaveLength(2);
+    for (const tap of tapped) expect(tap.time).toBeGreaterThan(when('rook', 'release'));
   });
 });
 
