@@ -6,16 +6,22 @@
  * addresses steps come from are held in memory for an hour, only to stop one from counting
  * without end, and never written down. The counts are written to one small JSON file now and
  * then, and said in the server's log once an hour.
+ *
+ * A visit that came by a link saying where it was posted (`?from=forum`) is counted under that
+ * word as well, as 'from:forum'. The words are whatever the links say, so only so many different
+ * ones are taken in a day.
  */
 import { mkdirSync, readFileSync, renameSync } from 'node:fs';
 import path from 'node:path';
-import { PAGE_STEPS, SERVER_STEPS } from '../src/net/visits.ts';
+import { FROM_STEP, PAGE_STEPS, SERVER_STEPS } from '../src/net/visits.ts';
 import { writeWhole } from './store.ts';
 
 /** How many days are kept. */
 const DAYS_KEPT = 400;
 /** How many steps one address may count in an hour. A page load says a dozen at most. */
 const PER_ADDRESS_HOURLY = 60;
+/** How many different places links may name in a day. More than a handful are only someone making them up. */
+const PLACES_DAILY = 24;
 /** How often what has changed is written, at most. */
 const WRITE_EVERY = 5 * 60 * 1000;
 
@@ -26,6 +32,17 @@ const ORDER = [...PAGE_STEPS, ...SERVER_STEPS] as string[];
 
 type Counts = Record<string, number>;
 
+/** Whether a name is one that is counted: a step, or a place a link was posted. */
+function known(name: string): boolean {
+  return STEPS.has(name) || FROM_STEP.test(name);
+}
+
+/** Where a name is said: the steps in the order a visit goes, then the places by name. */
+function place(name: string): number {
+  const at = ORDER.indexOf(name);
+  return at < 0 ? ORDER.length : at;
+}
+
 /** The day a moment falls on, in universal time: '2026-11-17'. */
 export function dayOf(at: number): string {
   return new Date(at).toISOString().slice(0, 10);
@@ -33,7 +50,7 @@ export function dayOf(at: number): string {
 
 /** Counts in the order a visit goes: 'open 12, drawn 11, computer 5'. */
 export function sayCounts(counts: Counts): string {
-  const names = Object.keys(counts).sort((a, b) => ORDER.indexOf(a) - ORDER.indexOf(b));
+  const names = Object.keys(counts).sort((a, b) => place(a) - place(b) || (a < b ? -1 : a > b ? 1 : 0));
   return names.map((name) => `${name} ${counts[name]}`).join(', ') || 'nothing';
 }
 
@@ -64,7 +81,7 @@ export class Tally {
       for (const [day, counts] of Object.entries(days)) {
         if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || typeof counts !== 'object' || counts === null) continue;
         const kept: Counts = {};
-        for (const [name, n] of Object.entries(counts)) if (STEPS.has(name) && typeof n === 'number' && Number.isFinite(n) && n > 0) kept[name] = Math.floor(n);
+        for (const [name, n] of Object.entries(counts)) if (known(name) && typeof n === 'number' && Number.isFinite(n) && n > 0) kept[name] = Math.floor(n);
         this.days.set(day, kept);
       }
     } catch (error) {
@@ -85,9 +102,16 @@ export class Tally {
    * address has counted too many this hour. Returns whether it was counted.
    */
   count(step: string, address?: string): boolean {
-    if (!STEPS.has(step)) return false;
+    const from = FROM_STEP.test(step);
+    if (!from && !STEPS.has(step)) return false;
+    if (from) {
+      // Only a page says where it came from, and a new place is taken only while the day has room for one.
+      if (address === undefined) return false;
+      const today = this.days.get(dayOf(this.now())) ?? {};
+      if (!(step in today) && Object.keys(today).filter((name) => FROM_STEP.test(name)).length >= PLACES_DAILY) return false;
+    }
     if (address !== undefined) {
-      if (!PAGE.has(step)) return false;
+      if (!from && !PAGE.has(step)) return false;
       const n = this.from.get(address) ?? 0;
       if (n >= PER_ADDRESS_HOURLY) return false;
       this.from.set(address, n + 1);

@@ -64,6 +64,28 @@ describe('the tally', () => {
     expect(tally.count('open', 'a')).toBe(true);
   });
 
+  it('counts where a link was posted, by the word the link carries, and only so many words a day', () => {
+    let time = Date.UTC(2026, 10, 17, 12);
+    const tally = new Tally(null, () => time);
+    expect(tally.count('from:forum', 'a')).toBe(true);
+    expect(tally.count('from:forum', 'b')).toBe(true);
+    // Not a word a link may carry, and not for the server to say.
+    for (const no of ['from:', 'from:Forum', 'from:a b', 'from:../x', `from:${'a'.repeat(17)}`, 'from:forum\nopen']) expect(tally.count(no, 'a'), no).toBe(false);
+    expect(tally.count('from:forum')).toBe(false);
+    tally.count('open', 'a');
+    expect(tally.on()).toEqual({ 'from:forum': 2, open: 1 });
+    // The steps first, then the places by name.
+    tally.count('from:chat', 'a');
+    expect(sayCounts(tally.on())).toBe('open 1, from:chat 1, from:forum 2');
+    // A day takes two dozen places; one it has already is still counted, and the next day begins again.
+    for (let i = 0; i < 40; i++) tally.count(`from:made${i}`, `c${i}`);
+    expect(Object.keys(tally.on()).filter((name) => name.startsWith('from:'))).toHaveLength(24);
+    expect(tally.count('from:forum', 'z')).toBe(true);
+    expect(tally.count('from:onemore', 'z')).toBe(false);
+    time += 24 * 60 * 60 * 1000;
+    expect(tally.count('from:onemore', 'z')).toBe(true);
+  });
+
   it("says the hour's counts in the order a visit goes, with the day's so far", () => {
     const midnight = Date.UTC(2026, 10, 18, 0, 0, 1);
     let time = midnight - 2 * 60 * 1000;
@@ -209,5 +231,54 @@ describe('a page', () => {
     expect(beacons.at(-1)).toMatch(/ stay1m$/);
     vi.advanceTimersByTime(4 * 60_000);
     expect(beacons.at(-1)).toMatch(/ stay5m$/);
+  });
+
+  it('says where its link was posted, once, and takes the word out of its address', async () => {
+    vi.resetModules();
+    const visits = await import('../src/net/visits.ts');
+    const beacons: string[] = [];
+    const shown: string[] = [];
+    vi.stubGlobal('location', { protocol: 'https:', host: 'playnightpiece.com', href: 'https://playnightpiece.com/?from=forum&room=ABCDEF' });
+    vi.stubGlobal('history', { replaceState: (_: unknown, __: string, url: URL) => shown.push(String(url)) });
+    vi.stubGlobal('navigator', { sendBeacon: (_: string, step: string) => (beacons.push(step), true) });
+    vi.stubGlobal('localStorage', { getItem: () => '2026-11-17', setItem: () => {} });
+    vi.stubGlobal('document', { visibilityState: 'visible' });
+    vi.useFakeTimers({ now: Date.UTC(2026, 10, 17, 12) });
+    visits.arrived();
+    expect(beacons).toEqual(['open', 'from:forum']);
+    // The room stays in the address; the word does not, so that the address is still the link to give a friend.
+    expect(shown).toEqual(['https://playnightpiece.com/?room=ABCDEF']);
+  });
+
+  it('counts nothing for a word that is not one a link may carry, and still takes it out', async () => {
+    vi.resetModules();
+    const visits = await import('../src/net/visits.ts');
+    const beacons: string[] = [];
+    const shown: string[] = [];
+    vi.stubGlobal('location', { protocol: 'https:', host: 'playnightpiece.com', href: 'https://playnightpiece.com/?from=Some%20Where' });
+    vi.stubGlobal('history', { replaceState: (_: unknown, __: string, url: URL) => shown.push(String(url)) });
+    vi.stubGlobal('navigator', { sendBeacon: (_: string, step: string) => (beacons.push(step), true) });
+    vi.stubGlobal('localStorage', { getItem: () => '2026-11-17', setItem: () => {} });
+    vi.stubGlobal('document', { visibilityState: 'visible' });
+    vi.useFakeTimers({ now: Date.UTC(2026, 10, 17, 12) });
+    visits.arrived();
+    expect(beacons).toEqual(['open']);
+    expect(shown).toEqual(['https://playnightpiece.com/']);
+  });
+
+  it('counts nothing in a browser that says a program is driving it', async () => {
+    vi.resetModules();
+    const visits = await import('../src/net/visits.ts');
+    const beacons: string[] = [];
+    vi.stubGlobal('location', { protocol: 'https:', host: 'playnightpiece.com', href: 'https://playnightpiece.com/?from=forum' });
+    vi.stubGlobal('history', { replaceState: () => {} });
+    vi.stubGlobal('navigator', { webdriver: true, sendBeacon: (_: string, step: string) => (beacons.push(step), true) });
+    vi.stubGlobal('localStorage', { getItem: () => null, setItem: () => {} });
+    vi.stubGlobal('document', { visibilityState: 'visible' });
+    vi.useFakeTimers({ now: Date.UTC(2026, 10, 17, 12) });
+    visits.arrived();
+    visits.reached('drawn');
+    vi.advanceTimersByTime(60_000);
+    expect(beacons).toEqual([]);
   });
 });
