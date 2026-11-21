@@ -2,7 +2,7 @@
  * The multiplayer server: first the rules of a room with no network at all,
  * then the real thing over real sockets.
  */
-import { closeSync, mkdirSync, mkdtempSync, openSync, rmSync, writeFileSync } from 'node:fs';
+import { closeSync, mkdirSync, mkdtempSync, openSync, readFileSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
 import net from 'node:net';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -823,6 +823,12 @@ describe('the server', () => {
     // An address that is not a file is the game; a missing file is missing.
     expect(await (await fetch(`${base}/anything/else?room=ABCDEF`)).text()).toContain('Nightpiece');
     expect((await fetch(`${base}/assets/missing.js`)).status).toBe(404);
+    // Nor is an address with a part that begins with a dot: there is none, and what asks for one is looking for something left lying about.
+    for (const hidden of ['/.env', '/.git/config', '/.git/HEAD', '/anything/.aws/credentials', '/%2egit/config', '/.well-known/nothing']) {
+      const response = await fetch(base + hidden);
+      expect(response.status, hidden).toBe(404);
+      expect(await response.text(), hidden).not.toContain('Nightpiece');
+    }
 
     for (const escape of ['/../nightpiece-outside.txt', '/%2e%2e/nightpiece-outside.txt', '/..%5cnightpiece-outside.txt', '/assets/..%2f..%2fnightpiece-outside.txt']) {
       const response = await fetch(base + escape);
@@ -845,6 +851,23 @@ describe('the server', () => {
     const stale = await fetch(url, { headers: { 'if-none-match': 'W/"1-1"' } });
     expect(stale.status).toBe(200);
     await stale.arrayBuffer();
+
+    // The mark is of the contents, not of the file's date: built again and no different, as every
+    // file is by a host that builds afresh for each release, it is still the one the browser has.
+    const file = path.join(root, 'engine', 'big.wasm');
+    const later = new Date(Date.now() + 60_000);
+    utimesSync(file, later, later);
+    expect((await fetch(url, { headers: { 'if-none-match': tag! } })).status).toBe(304);
+    // Different, though no bigger, it is sent.
+    const bytes = readFileSync(file);
+    bytes[0] = bytes[0]! ^ 1;
+    writeFileSync(file, bytes);
+    const changed = await fetch(url, { headers: { 'if-none-match': tag! } });
+    expect(changed.status).toBe(200);
+    expect(changed.headers.get('etag')).not.toBe(tag);
+    await changed.arrayBuffer();
+    bytes[0] = bytes[0]! ^ 1;
+    writeFileSync(file, bytes);
   });
 
   it('sends the big files squeezed to a browser that can undo it, and whole to one that cannot', async () => {

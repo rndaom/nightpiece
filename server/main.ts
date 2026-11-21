@@ -248,6 +248,34 @@ function find(file: string): { file: string; stats: Stats } | null {
 }
 
 /**
+ * A mark for a file that changes when its contents do and at no other time, so that a browser
+ * asking again is told "you have it" and sent nothing. It is made from the contents and not from
+ * the file's date: a host that builds the game afresh for each release gives every file a new
+ * date, and by its date a browser would be sent the whole room again after every release, changed
+ * or not. The contents are read once for the mark, and again only when the size or date changes.
+ */
+class Marks {
+  private kept = new Map<string, { size: number; mtimeMs: number; mark: string }>();
+
+  of(file: string, stats: Stats): string {
+    const have = this.kept.get(file);
+    if (have && have.size === stats.size && have.mtimeMs === stats.mtimeMs) return have.mark;
+    const mark = `W/"${stats.size.toString(16)}-${createHash('sha256').update(readFileSync(file)).digest('hex').slice(0, 16)}"`;
+    this.kept.set(file, { size: stats.size, mtimeMs: stats.mtimeMs, mark });
+    return mark;
+  }
+}
+
+/**
+ * Whether an address has a part that begins with a dot (`/.env`, `/.git/config`). The game has no
+ * such file and no such address; they are asked for only by programs looking for what was left
+ * lying about, and are answered "not found", not with the game.
+ */
+function hidden(relative: string): boolean {
+  return relative.split('/').some((part) => part.startsWith('.'));
+}
+
+/**
  * Whether a file's name was made from its contents by the bundler, so that a browser may keep it
  * for ever. Only the bundler's own output folder holds such files; a name elsewhere that merely
  * looks like one (the engine's loader does) must be asked for again each visit.
@@ -430,6 +458,7 @@ export function startServer(options: ServerOptions = {}): Promise<Running> {
   };
 
   const squeezer = new Squeezer();
+  const marks = new Marks();
   const server = createServer((request, response) => {
     const safe = secured(request);
     const asked = (request.url ?? '/').split('?')[0];
@@ -459,13 +488,19 @@ export function startServer(options: ServerOptions = {}): Promise<Running> {
       return;
     }
     // An address that is not a file is the game itself, which reads the room from the address.
-    const found = find(file) ?? (path.extname(relative) ? null : find(path.join(root, 'index.html')));
+    const found = hidden(relative) ? null : (find(file) ?? (path.extname(relative) ? null : find(path.join(root, 'index.html'))));
     if (!found) {
       response.writeHead(404, { ...safe, 'content-type': 'text/plain; charset=utf-8' }).end('Not found');
       return;
     }
-    // A mark that changes when the file does, so that a browser asking again is told "you have it" and sent nothing.
-    const etag = `W/"${found.stats.size.toString(16)}-${Math.round(found.stats.mtimeMs).toString(16)}"`;
+    let etag: string;
+    try {
+      etag = marks.of(found.file, found.stats);
+    } catch {
+      // Gone since it was looked for (a rebuild under a running server).
+      response.writeHead(404, { ...safe, 'content-type': 'text/plain; charset=utf-8' }).end('Not found');
+      return;
+    }
     const kind = path.extname(found.file).toLowerCase();
     const squeezes = SQUEEZED.has(kind) && found.stats.size >= SQUEEZE_FROM;
     const headers: Record<string, string> = {
